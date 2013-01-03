@@ -1,0 +1,59 @@
+3 =NGTG
+3.467  1.0E-10
+5.407  1.0E-10
+5.046  1.0E-10
+2 =NAT
+3.0   0.00   0.00  -1.6618514686  LI
+3.0   0.00   0.00   1.6618514686  LI
+10  =NEBF Number of contracted basis functions
+19  =NPEBF Number of primitive basis functions
+  1  1  0   0   0     0.975850E+02   0.223580E-01   0.00   0.00   -1.6618514686 
+  2  1  0   0   0     0.147550E+02   0.144990E+00   0.00   0.00   -1.6618514686 
+  3  1  0   0   0     0.322330E+01   0.345940E+00   0.00   0.00   -1.6618514686 
+  4  2  0   0   0     0.147550E+02   0.518750E-02   0.00   0.00   -1.6618514686 
+  5  2  0   0   0     0.322330E+01   0.166980E+00   0.00   0.00   -1.6618514686 
+  6  2  0   0   0     0.787890E+00   0.725660E+00   0.00   0.00   -1.6618514686 
+  7  3  0   0   0     0.510090E-01   1.0000000      0.00   0.00   -1.6618514686 
+  8  4  0   0   1     0.330000E+00   1.0000000      0.00   0.00   -1.6618514686
+  9  5  0   0   0     0.975850E+02   0.223580E-01   0.00   0.00    1.6618514686 
+ 10  5  0   0   0     0.147550E+02   0.144990E+00   0.00   0.00    1.6618514686 
+ 11  5  0   0   0     0.322330E+01   0.345940E+00   0.00   0.00    1.6618514686 
+ 12  6  0   0   0     0.147550E+02   0.518750E-02   0.00   0.00    1.6618514686 
+ 13  6  0   0   0     0.322330E+01   0.166980E+00   0.00   0.00    1.6618514686 
+ 14  6  0   0   0     0.787890E+00   0.725660E+00   0.00   0.00    1.6618514686 
+ 15  7  0   0   0     0.510090E-01   1.0000000      0.00   0.00    1.6618514686 
+ 16  8  0   0   1     0.330000E+00   1.0000000      0.00   0.00    1.6618514686
+ 17  9  0   0   0     0.434480E+01   0.792990E-01   0.00   0.00    0.00   
+ 18  9  0   0   0     0.660490E+00   0.424220E+00   0.00   0.00    0.00 
+ 19 10  0   0   0     0.136690E+00   1.0000000      0.00   0.00    0.00  
+3 =NPBF Number of QM particle basis functions
+1   1   0   0   0      10.6393   1.0000000      0.00   0.00   0.0000000000
+2   2   0   0   0      12.2952   1.0000000      0.00   0.00  -0.0807965
+3   3   0   0   0      12.2952   1.0000000      0.00   0.00   0.0807965
+1836.0d+00 =PMASS
+9       =nelec
+5       =NAE number of alpha electrons
+4       =NBE number of beta electrons
+1       =NUCST what nuclear state to use to form nuc density
+.false. =LNEOHF  only perform neo-hf calculation
+.true.  =LXCUHF
+.false. =LXCROHF
+.false. =LRXCHF activates RXCHF code instead of XCHF
+.true.  =read_CE optional read in elec vectors from guessCE.inp
+.true.  =read_CP optional read in nuc vectors from guessCP.inp
+.false. =read_GAM2  |
+.false. =read_GAM3  | Options to read integrals from file
+.false. =read_GAM4  |
+1       =NG4CHK Number of domains for 5-particle integrals
+.true.  =LGAM4 TRUE: Use 5-particle contributions 
+.false. =LG4DSCF Direct SCF for 5-particle integrals
+.true.  =LG4IC in-core 5-particle integrals
+10      =NG3CHK Number of domains for 4-particle integrals
+.false. =LG3DSCF Direct SCF for 4-particle integrals
+.true.  =LG3IC1 in-core 4-particle integrals: loop over contracted BF
+.false. =LG3IC2 in-core 4-particle integrals: loop over primitive BF
+10      =NG2CHK Number of domains for 3-particle integrals
+.false. =LG2DSCF  Direct SCF for 3-particle integrals
+.true.  =LG2IC1 in-core 3-particle integrals: loop over contracted BF
+.false. =LCMF Activates on-the-fly Fock matrix checking
+.true.  =LSOSCF

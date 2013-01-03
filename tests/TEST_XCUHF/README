@@ -1,0 +1,76 @@
+
+======
+TEST01
+======
+
+System: e+Li (3 electrons + one positron)
+Level:  NEO-UHF/6s/8s 
+Compare to:  Corresponding GAMESS NEO
+             ROHF calculation.
+
+======
+TEST02
+======
+
+System: e+Li (3 electrons + one positron)
+Level:  NEO-XCUHF/6s/8s NGEM=1 b=1.0 gamma=1.0E-10
+Compare to:  NEO-UHF/6s/8s
+
+======
+TEST03
+======
+
+System: LiPs (4 electrons + one positron)
+Level:  NEO-XCUHF/6s/8s NGEM=1 b=1.0 gamma=1.0E-10
+Compare to:  NEO-RHF/6s/8s
+
+======
+TEST04
+======
+
+System: LiPs (4 electrons + one positron)
+Level:  NEO-XCUHF/6s/8s NGEM=8 
+Compare to:  NEO-XCRHF/6s/8s
+XCRHF: FINAL NEOXCHF ENERGY IS       -7.6120652282 AFTER   2 ITERATIONS
+XCUHF: FINAL NEOXCHF ENERGY IS       -7.6120652282 AFTER  18 ITERATIONS
+
+======
+TEST05
+======
+
+System: LiPs^- (5 electrons + one positron)
+Level:  NEO-XCUHF/6s/8s NGEM=3 b=1.0,2.0,3.0 gamma=1.0E-10
+Compare to:  NEO-UHF/6s/8s
+UHF:   NAE=3,NBE=3
+XCUHF: NAE=2,NBE=3
+UHF:   FINAL NEOXCHF ENERGY IS       -7.3668305610 AFTER  15 ITERATIONS
+XCUHF: FINAL NEOXCHF ENERGY IS       -7.3668305625 AFTER  19 ITERATIONS
+
+======
+TEST06
+======
+
+System: [Li-H-Li]^- (8 electrons + one QM proton)
+Level:  NEO-XCUHF/3s/PC0 NGEM=3 
+Compare to:  NEO-XCRHF/3s/PC0
+FAIL!-ENUCREP and 5-particle QMP terms
+5-particle Elec terms are ok.
+
+======
+TEST07
+======
+
+System: [Li-H-Li]^-2 (9 electrons + one QM proton)
+Level:  NEO-UHF/3s/PC0  
+Compare to:  Corresponding GAMESS NEO
+             ROHF calculation.
+
+======
+TEST08
+======
+
+System: [Li-H-Li]^-2 (9 electrons + one QM proton)
+Level:  NEO-XCUHF/3s/PC0 NGEM=3 GAMMA=1.0E-10 
+Compare to:  NEO-UHF/3s/PC0
+RUNNING
+

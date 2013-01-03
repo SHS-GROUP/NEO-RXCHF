@@ -1,0 +1,3367 @@
+ 
+ nat   =                     1
+ npebf =                    14
+ nebf  =                    14
+ npbf  =                     3
+ ngtg1 =                     1
+ ngee  =                 38416
+ ng1   =                  1764
+ ng2   =                345744
+ ng3   =              67765824
+ ng4   =           13282101504
+ ng1prm=                  1764
+ ng2prm=                345744
+ ng3prm=              67765824
+ 
+ PMASS   =   1836.00000000000     
+ nelec   =                     2
+ NUCST   =                     3
+ LNEOHF  = F
+ read_CE = F
+ read_CP = F
+ READ_GAM2= T
+ READ_GAM3= F
+ READ_GAM4= F
+ NG4CHK  =                    40
+ LG4DSCF = T
+ 
+ 
+ ELECTRONIC BASIS FUNCTIONS:
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0   38.360000  1.000000  0.000000  0.000000 -1.391664
+
+   2     2    0  0  0    5.770000  1.000000  0.000000  0.000000 -1.391664
+
+   3     3    0  0  0    1.240000  1.000000  0.000000  0.000000 -1.391664
+
+   4     4    0  0  0    0.297600  1.000000  0.000000  0.000000 -1.391664
+
+   5     5    1  0  0    1.275000  1.000000  0.000000  0.000000 -1.391664
+
+   6     6    0  1  0    1.275000  1.000000  0.000000  0.000000 -1.391664
+
+   7     7    0  0  1    1.275000  1.000000  0.000000  0.000000 -1.391664
+
+   8     8    0  0  0   13.010000  1.000000  0.000000  0.000000  0.068856
+
+   9     9    0  0  0    1.962000  1.000000  0.000000  0.000000  0.068856
+
+  10    10    0  0  0    0.444600  1.000000  0.000000  0.000000  0.068856
+
+  11    11    0  0  0    0.122000  1.000000  0.000000  0.000000  0.068856
+
+  12    12    1  0  0    0.727000  1.000000  0.000000  0.000000  0.068856
+
+  13    13    0  1  0    0.727000  1.000000  0.000000  0.000000  0.068856
+
+  14    14    0  0  1    0.727000  1.000000  0.000000  0.000000  0.068856
+ ELECTRONIC BASIS FUNCTIONS:
+ CONTRACT COEFF HAVE BEEN NORMALIZED
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0   38.360000 10.985480  0.000000  0.000000 -1.391664
+
+   2     2    0  0  0    5.770000  2.653334  0.000000  0.000000 -1.391664
+
+   3     3    0  0  0    1.240000  0.837484  0.000000  0.000000 -1.391664
+
+   4     4    0  0  0    0.297600  0.287167  0.000000  0.000000 -1.391664
+
+   5     5    1  0  0    1.275000  1.931203  0.000000  0.000000 -1.391664
+
+   6     6    0  1  0    1.275000  1.931203  0.000000  0.000000 -1.391664
+
+   7     7    0  0  1    1.275000  1.931203  0.000000  0.000000 -1.391664
+
+   8     8    0  0  0   13.010000  4.882228  0.000000  0.000000  0.068856
+
+   9     9    0  0  0    1.962000  1.181502  0.000000  0.000000  0.068856
+
+  10    10    0  0  0    0.444600  0.388050  0.000000  0.000000  0.068856
+
+  11    11    0  0  0    0.122000  0.147123  0.000000  0.000000  0.068856
+
+  12    12    1  0  0    0.727000  0.956881  0.000000  0.000000  0.068856
+
+  13    13    0  1  0    0.727000  0.956881  0.000000  0.000000  0.068856
+
+  14    14    0  0  1    0.727000  0.956881  0.000000  0.000000  0.068856
+ 
+ NUCLEAR BASIS FUNCTIONS:
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    1  0  0    6.000000  1.000000  0.000000  0.000000  0.068856
+
+   2     2    0  1  0    6.000000  1.000000  0.000000  0.000000  0.068856
+
+   3     3    0  0  1    6.000000  1.000000  0.000000  0.000000  0.068856
+ 
+ NUCLEAR BASIS FUNCTIONS:
+ CONTRACT COEFF HAVE BEEN NORMALIZED
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    1  0  0    6.000000 13.385332  0.000000  0.000000  0.068856
+
+   2     2    0  1  0    6.000000 13.385332  0.000000  0.000000  0.068856
+
+   3     3    0  0  1    6.000000 13.385332  0.000000  0.000000  0.068856
+ 
+ CONTRACTED ELECTRONIC OVERLAP MATRIX
+ 
+
+             1           2           3           4           5
+
+    1    1.0000000
+    2    0.5536495   1.0000000
+    3    0.2055784   0.6666779   1.0000000
+    4    0.0730847   0.2838743   0.7023780   1.0000000
+    5    0.0000000   0.0000000   0.0000000   0.0000000   1.0000000
+    6    0.0000000   0.0000000   0.0000000   0.0000000   0.0000000
+    7    0.0000000   0.0000000   0.0000000   0.0000000   0.0000000
+    8    0.0000000   0.0001756   0.0378286   0.0864563   0.0000000
+    9    0.0052663   0.0357381   0.1901620   0.3205237   0.0000000
+   10    0.0384545   0.1534166   0.4117827   0.6634598   0.0000000
+   11    0.0290854   0.1177937   0.3405793   0.7196587   0.0000000
+   12    0.0000000   0.0000000   0.0000000   0.0000000   0.3379071
+   13    0.0000000   0.0000000   0.0000000   0.0000000   0.0000000
+   14   -0.0749446  -0.2793475  -0.5602811  -0.3988896   0.0000000
+
+             6           7           8           9          10
+
+    6    1.0000000
+    7    0.0000000   1.0000000
+    8    0.0000000   0.1086469   1.0000000
+    9    0.0000000   0.3714624   0.5544437   1.0000000
+   10    0.0000000   0.3459079   0.2137587   0.6838179   1.0000000
+   11    0.0000000   0.0963736   0.0840478   0.3217307   0.7453789
+   12    0.0000000   0.0000000   0.0000000   0.0000000   0.0000000
+   13    0.3379071   0.0000000   0.0000000   0.0000000   0.0000000
+   14    0.0000000  -0.3295488   0.0000000   0.0000000   0.0000000
+
+            11          12          13          14
+
+   11    1.0000000
+   12    0.0000000   1.0000000
+   13    0.0000000   0.0000000   1.0000000
+   14    0.0000000   0.0000000   0.0000000   1.0000000
+ 
+ NUCLEAR OVERLAP MATRIX
+ 
+
+             1           2           3
+
+    1    1.0000000
+    2    0.0000000   1.0000000
+    3    0.0000000   0.0000000   1.0000000
+ 
+ **************************************
+  CALCULATING ELEC+NUC CORE INTEGRALS  
+ **************************************
+ 
+ 
+ **************************************
+     Computing GAM_ee Integrals    
+ 
+ nebf =                    14
+ npebf=                    14
+ ngee =                 38416
+ **************************************
+ 
+ 
+ **************************************
+        GAM_1 Integrals    
+ 
+ METHOD = AC
+ npebf  =                    14
+ nebf   =                    14
+ npbf   =                     3
+ ng1    =                  1764
+  Available processors:            8
+  Available threads               16
+  Threads in use                   1
+ **************************************
+ 
+  Hello from process                      2
+  Hello from process                      4
+  Hello from process                      3
+  Hello from process                     15
+  Hello from process                      6
+  Hello from process                      8
+  Hello from process                      0
+ Threads in use          16
+  Hello from process                      1
+  Hello from process                      5
+  Hello from process                      7
+  Hello from process                      9
+  Hello from process                     13
+  Hello from process                     10
+  Hello from process                     12
+  Hello from process                     11
+  Hello from process                     14
+ TIME TO CALCULATE GAM_1 INTEGRALS:   0.233775138854980     
+ BACK FROM start
+ READ IN NUC REPULSION
+ READ IN NUC OVLAP
+ READ IN ELEC OVLAP
+ READ IN GAM_ECORE
+ READ IN GAM_PCORE
+ READ IN GAM_EP
+ READ IN GAM_EE
+ ABOUT TO CALL guess_elec
+ BACK FROM guess_elec
+ ABOUT TO CALL guess_prot
+ BACK FROM guess_prot
+
+       ** BEGIN NEOXC SELF-CONSISTENT-FIELD CALCULATION **
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.29954649972639     
+ E_TRP=  -1.29954649972639     
+ 
+ S_total=   1.51845088754815     
+ S_TRP=  0.518450887548148     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.898387204990362     
+ >>>> FE(JI)=  0.898387206341227     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.19757790604193     
+ >>>> FE(JI)=  -2.19757790622200     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.38162525109292     
+ >>>> FE(JI)=  -1.38162525007120     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.18091929459979     
+ >>>> FE(JI)=  -1.18091929505607     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)= -0.999468889864014     
+ >>>> FE(JI)= -0.999468889493625     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -3.295062599078413E-002
+ >>>> FE(JI)= -3.295062615690952E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)= -4.820193128023287E-003
+ >>>> FE(JI)= -4.820192813599827E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.171127807875416     
+ >>>> FE(JI)=  0.171127808417276     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)= -6.368449767119311E-002
+ >>>> FE(JI)= -6.368449793633624E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.179460915236435     
+ >>>> FE(JI)=  0.179460915013401     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)= -1.182172388242608E-002
+ >>>> FE(JI)= -1.182172337038412E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     7
+ >>>> FE(IJ)= -0.578336743871235     
+ >>>> FE(JI)= -0.578336743972603     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)= -1.044928166817399E-003
+ >>>> FE(JI)= -1.044928527811765E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -0.171699470667643     
+ >>>> FE(JI)= -0.171699471621197     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.397972946479907     
+ >>>> FE(JI)= -0.397972946656804     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.388719979020597     
+ >>>> FE(JI)= -0.388719977896227     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.596275726971709     
+ >>>> FE(JI)= -0.596275725596274     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.26050861603567     
+ >>>> FE(JI)=   8.26050860984360     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.489148219747670     
+ >>>> FE(JI)= -0.489148219976185     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.618313471058104     
+ >>>> FE(JI)= -0.618313471536227     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.698847193964259     
+ >>>> FE(JI)= -0.698847193415966     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.799191149912854     
+ >>>> FE(JI)= -0.799191150237979     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.458065396590731     
+ >>>> FE(JI)= -0.458065397435614     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.196979298386367     
+ >>>> FE(JI)=  0.196979297249820     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.608903685371920     
+ >>>> FE(JI)= -0.608903687217814     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.532579728817859     
+ >>>> FE(JI)= -0.532579729202642     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     3
+ >>>> FE(IJ)= -0.614092355145551     
+ >>>> FE(JI)= -0.614092354955870     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     4
+ >>>> FE(IJ)= -0.698441582333621     
+ >>>> FE(JI)= -0.698441582465577     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -0.137250702982721     
+ >>>> FE(JI)= -0.137250702876780     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.582696770281058     
+ >>>> FE(JI)= -0.582696770687586     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.855385677671613     
+ >>>> FE(JI)= -0.855385677367644     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    12
+                     5
+ >>>> FE(IJ)=  2.642596873331032E-002
+ >>>> FE(JI)=  2.642596849814466E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    13
+                     6
+ >>>> FE(IJ)=  2.642596873331038E-002
+ >>>> FE(JI)=  2.642596849814494E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=  0.994453142268439     
+ >>>> FE(JI)=  0.994453142380880     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     2
+ >>>> FE(IJ)=   1.06697721381918     
+ >>>> FE(JI)=   1.06697721392454     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.436493887401776     
+ >>>> FE(JI)=  0.436493887512015     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.282575035720356     
+ >>>> FE(JI)=  0.282575035527681     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.898010229111800     
+ >>>> FE(JI)= -0.898010228649001     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -9.391129974023150E-002
+ >>>> FE(JI)= -9.391130071815937E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.143637916773819     
+ >>>> FE(JI)= -0.143637916621102     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  9.138679951798651E-002
+ >>>> FE(JI)=  9.138679903731106E-002
+ NEOHF NORMALIZED TO UNITY
+
+           INITIAL GUESS ENERGETICS:            
+
+      -----------------------------------------------
+               NEOXCHF ENERGETIC COMPONENTS          
+      -----------------------------------------------
+                E_NUC=         0.0000000000
+              E_ECORE=        -3.9897141656
+              E_PCORE=         1.4310422528
+                 E_EP=        -1.3887919326
+                 E_EE=         1.2459034791
+               E_GAM1=        -0.4244627017
+               E_GAM2=        -0.9173341182
+               E_GAM3=         0.0000000000
+               E_GAM4=         0.0000000000
+              S_TOTAL=         1.5184508875
+              E_TOTAL=        -2.6628172299
+
+
+ ITER     TOTAL ENERGY        E CHANGE     E DENSITY CHANGE   P DENSITY CHANGE    ORB GRAD
+ 
+ NUCLEAR DENSITY MATRIX
+ 
+
+             1           2           3
+
+    1    0.0000000
+    2    0.0000000   0.0000000
+    3    0.0000000   0.0000000   1.0000000
+ 
+
+          NUCLEAR ORBITALS AND EIGENVALUES:          
+
+                        1          2          3
+
+                      0.0011     0.0011     0.0533
+
+    1  LABEL        1.000000  -0.000144   0.000000
+    2  LABEL       -0.000144  -1.000000   0.000000
+    3  LABEL        0.000000   0.000000   1.000000
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.29954649972639     
+ E_TRP=  -1.29954649972639     
+ 
+ S_total=   1.51845088754815     
+ S_TRP=  0.518450887548148     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.898387204990362     
+ >>>> FE(JI)=  0.898387206341227     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.19757790604193     
+ >>>> FE(JI)=  -2.19757790622200     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.38162525109292     
+ >>>> FE(JI)=  -1.38162525007120     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.18091929459979     
+ >>>> FE(JI)=  -1.18091929505607     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)= -0.999468889864014     
+ >>>> FE(JI)= -0.999468889493625     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -3.295062599078413E-002
+ >>>> FE(JI)= -3.295062615690952E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)= -4.820193128023287E-003
+ >>>> FE(JI)= -4.820192813599827E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.171127807875416     
+ >>>> FE(JI)=  0.171127808417276     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)= -6.368449767119311E-002
+ >>>> FE(JI)= -6.368449793633624E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.179460915236435     
+ >>>> FE(JI)=  0.179460915013401     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)= -1.182172388242608E-002
+ >>>> FE(JI)= -1.182172337038412E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     7
+ >>>> FE(IJ)= -0.578336743871235     
+ >>>> FE(JI)= -0.578336743972603     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)= -1.044928166817399E-003
+ >>>> FE(JI)= -1.044928527811765E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -0.171699470667643     
+ >>>> FE(JI)= -0.171699471621197     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.397972946479907     
+ >>>> FE(JI)= -0.397972946656804     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.388719979020597     
+ >>>> FE(JI)= -0.388719977896227     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.596275726971709     
+ >>>> FE(JI)= -0.596275725596274     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.26050861603567     
+ >>>> FE(JI)=   8.26050860984360     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.489148219747670     
+ >>>> FE(JI)= -0.489148219976185     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.618313471058104     
+ >>>> FE(JI)= -0.618313471536227     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.698847193964259     
+ >>>> FE(JI)= -0.698847193415966     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.799191149912854     
+ >>>> FE(JI)= -0.799191150237979     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.458065396590731     
+ >>>> FE(JI)= -0.458065397435614     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.196979298386367     
+ >>>> FE(JI)=  0.196979297249820     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.608903685371920     
+ >>>> FE(JI)= -0.608903687217814     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.532579728817859     
+ >>>> FE(JI)= -0.532579729202642     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     3
+ >>>> FE(IJ)= -0.614092355145551     
+ >>>> FE(JI)= -0.614092354955870     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     4
+ >>>> FE(IJ)= -0.698441582333621     
+ >>>> FE(JI)= -0.698441582465577     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -0.137250702982721     
+ >>>> FE(JI)= -0.137250702876780     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.582696770281058     
+ >>>> FE(JI)= -0.582696770687586     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.855385677671613     
+ >>>> FE(JI)= -0.855385677367644     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    12
+                     5
+ >>>> FE(IJ)=  2.642596873331032E-002
+ >>>> FE(JI)=  2.642596849814466E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    13
+                     6
+ >>>> FE(IJ)=  2.642596873331038E-002
+ >>>> FE(JI)=  2.642596849814494E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=  0.994453142268439     
+ >>>> FE(JI)=  0.994453142380880     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     2
+ >>>> FE(IJ)=   1.06697721381918     
+ >>>> FE(JI)=   1.06697721392454     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.436493887401776     
+ >>>> FE(JI)=  0.436493887512015     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.282575035720356     
+ >>>> FE(JI)=  0.282575035527681     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.898010229111800     
+ >>>> FE(JI)= -0.898010228649001     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -9.391129974023150E-002
+ >>>> FE(JI)= -9.391130071815937E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.143637916773819     
+ >>>> FE(JI)= -0.143637916621102     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  9.138679951798651E-002
+ >>>> FE(JI)=  9.138679903731106E-002
+ NEOHF NORMALIZED TO UNITY
+   1       -2.6628172299    -2.6628172299     0.5380341218     1.0000000000     0.0000000000
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -2.54199102369467     
+ E_TRP=  -2.54199102369467     
+ 
+ S_total=   2.00645566271202     
+ S_TRP=   1.00645566271202     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.476403784151188     
+ >>>> FE(JI)=  0.476403785405609     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.58682179210059     
+ >>>> FE(JI)=  -1.58682179053234     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.17545973941780     
+ >>>> FE(JI)=  -1.17545973993297     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.04249482872934     
+ >>>> FE(JI)=  -1.04249482824357     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -1.337765514812277E-002
+ >>>> FE(JI)= -1.337765533121354E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  3.785746523636474E-002
+ >>>> FE(JI)=  3.785746579828132E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.269208684567882     
+ >>>> FE(JI)=  0.269208685246705     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  9.125634363980062E-002
+ >>>> FE(JI)=  9.125634279909534E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.330546248894879     
+ >>>> FE(JI)=  0.330546248562656     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)=  8.577770480996945E-002
+ >>>> FE(JI)=  8.577770447401109E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.302419956874447     
+ >>>> FE(JI)=  0.302419957523225     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     7
+ >>>> FE(IJ)= -0.313882120102927     
+ >>>> FE(JI)= -0.313882120247615     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  9.415512163950629E-002
+ >>>> FE(JI)=  9.415512122536610E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)=  7.587517890259297E-002
+ >>>> FE(JI)=  7.587517789703577E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)=  2.662622522492014E-002
+ >>>> FE(JI)=  2.662622472976722E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)=  0.106284459838824     
+ >>>> FE(JI)=  0.106284460674803     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.267959341202625     
+ >>>> FE(JI)= -0.267959341022024     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   7.93707077250536     
+ >>>> FE(JI)=   7.93707076537144     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.426267249262239     
+ >>>> FE(JI)= -0.426267249444050     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.508889176755957     
+ >>>> FE(JI)= -0.508889177213700     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.518339776693269     
+ >>>> FE(JI)= -0.518339776099253     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.521150321512622     
+ >>>> FE(JI)= -0.521150321867917     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.256280065303850     
+ >>>> FE(JI)= -0.256280065420084     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.589405954749609     
+ >>>> FE(JI)=  0.589405953216786     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)=  0.138643520249506     
+ >>>> FE(JI)=  0.138643518966513     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.488886915663440     
+ >>>> FE(JI)= -0.488886915980559     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     4
+ >>>> FE(IJ)= -0.604936693212348     
+ >>>> FE(JI)= -0.604936693320576     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)=  0.130180049055088     
+ >>>> FE(JI)=  0.130180049337412     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.128666475795994     
+ >>>> FE(JI)= -0.128666475089313     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.554571945759570     
+ >>>> FE(JI)= -0.554571945566250     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00163589394820     
+ >>>> FE(JI)=   1.00163589409780     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.628793962052311     
+ >>>> FE(JI)=  0.628793962411187     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.417992915518473     
+ >>>> FE(JI)=  0.417992915626541     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.845969826934469     
+ >>>> FE(JI)= -0.845969826587915     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.219333030835831     
+ >>>> FE(JI)= -0.219333031531685     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.198700549230203     
+ >>>> FE(JI)= -0.198700549103316     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.188584700687783     
+ >>>> FE(JI)=  0.188584700467452     
+ NEOHF NORMALIZED TO UNITY
+ 
+ NUCLEAR DENSITY MATRIX
+ 
+
+             1           2           3
+
+    1    0.0000000
+    2    0.0000000   0.0000000
+    3    0.0000000   0.0000000   1.0000000
+ 
+
+          NUCLEAR ORBITALS AND EIGENVALUES:          
+
+                        1          2          3
+
+                     -0.0320    -0.0320    -0.0137
+
+    1  LABEL        0.595732  -0.803183   0.000000
+    2  LABEL        0.803183   0.595732   0.000000
+    3  LABEL        0.000000   0.000000   1.000000
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -2.54199102369467     
+ E_TRP=  -2.54199102369467     
+ 
+ S_total=   2.00645566271202     
+ S_TRP=   1.00645566271202     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.476403784151188     
+ >>>> FE(JI)=  0.476403785405609     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.58682179210059     
+ >>>> FE(JI)=  -1.58682179053234     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.17545973941780     
+ >>>> FE(JI)=  -1.17545973993297     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.04249482872934     
+ >>>> FE(JI)=  -1.04249482824357     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -1.337765514812277E-002
+ >>>> FE(JI)= -1.337765533121354E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  3.785746523636474E-002
+ >>>> FE(JI)=  3.785746579828132E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.269208684567882     
+ >>>> FE(JI)=  0.269208685246705     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  9.125634363980062E-002
+ >>>> FE(JI)=  9.125634279909534E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.330546248894879     
+ >>>> FE(JI)=  0.330546248562656     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)=  8.577770480996945E-002
+ >>>> FE(JI)=  8.577770447401109E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.302419956874447     
+ >>>> FE(JI)=  0.302419957523225     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     7
+ >>>> FE(IJ)= -0.313882120102927     
+ >>>> FE(JI)= -0.313882120247615     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  9.415512163950629E-002
+ >>>> FE(JI)=  9.415512122536610E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)=  7.587517890259297E-002
+ >>>> FE(JI)=  7.587517789703577E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)=  2.662622522492014E-002
+ >>>> FE(JI)=  2.662622472976722E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)=  0.106284459838824     
+ >>>> FE(JI)=  0.106284460674803     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.267959341202625     
+ >>>> FE(JI)= -0.267959341022024     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   7.93707077250536     
+ >>>> FE(JI)=   7.93707076537144     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.426267249262239     
+ >>>> FE(JI)= -0.426267249444050     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.508889176755957     
+ >>>> FE(JI)= -0.508889177213700     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.518339776693269     
+ >>>> FE(JI)= -0.518339776099253     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.521150321512622     
+ >>>> FE(JI)= -0.521150321867917     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.256280065303850     
+ >>>> FE(JI)= -0.256280065420084     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.589405954749609     
+ >>>> FE(JI)=  0.589405953216786     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)=  0.138643520249506     
+ >>>> FE(JI)=  0.138643518966513     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.488886915663440     
+ >>>> FE(JI)= -0.488886915980559     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     4
+ >>>> FE(IJ)= -0.604936693212348     
+ >>>> FE(JI)= -0.604936693320576     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)=  0.130180049055088     
+ >>>> FE(JI)=  0.130180049337412     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.128666475795994     
+ >>>> FE(JI)= -0.128666475089313     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.554571945759570     
+ >>>> FE(JI)= -0.554571945566250     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00163589394820     
+ >>>> FE(JI)=   1.00163589409780     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.628793962052311     
+ >>>> FE(JI)=  0.628793962411187     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.417992915518473     
+ >>>> FE(JI)=  0.417992915626541     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.845969826934469     
+ >>>> FE(JI)= -0.845969826587915     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.219333030835831     
+ >>>> FE(JI)= -0.219333031531685     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.198700549230203     
+ >>>> FE(JI)= -0.198700549103316     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.188584700687783     
+ >>>> FE(JI)=  0.188584700467452     
+ NEOHF NORMALIZED TO UNITY
+          ---------------START SECOND ORDER SCF---------------
+ SOSCF IS SCALING ROTATION ANGLE MATRIX, SQCDF=    0.235683
+   2       -2.4984315106     0.1643857194     0.5368270698     0.0000000000     0.4696166535
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check= -0.760121451489913     
+ E_TRP= -0.760121451489913     
+ 
+ S_total=   1.34563017956588     
+ S_TRP=  0.345630179565883     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.922159983314178     
+ >>>> FE(JI)=  0.922159984357303     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.23157506693148     
+ >>>> FE(JI)=  -2.23157506713039     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.41791434973832     
+ >>>> FE(JI)=  -1.41791434890797     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.26180073677636     
+ >>>> FE(JI)=  -1.26180073707773     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.13704899696191     
+ >>>> FE(JI)=  -1.13704899673277     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -4.237670834291217E-002
+ >>>> FE(JI)= -4.237670847073587E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)= -4.456558307309971E-002
+ >>>> FE(JI)= -4.456558280099812E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  9.485344824615927E-002
+ >>>> FE(JI)=  9.485344869055612E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)= -0.145064051944101     
+ >>>> FE(JI)= -0.145064052120660     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)= -0.185678599397408     
+ >>>> FE(JI)= -0.185678598814963     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     7
+ >>>> FE(IJ)= -0.593137124842127     
+ >>>> FE(JI)= -0.593137124624660     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)= -7.225759841313066E-002
+ >>>> FE(JI)= -7.225759865027491E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -0.359376784883362     
+ >>>> FE(JI)= -0.359376785559550     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.693679030328980     
+ >>>> FE(JI)= -0.693679030635660     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.653454773789323     
+ >>>> FE(JI)= -0.653454772823229     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.642545845296919     
+ >>>> FE(JI)= -0.642545844103795     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.84049032844502     
+ >>>> FE(JI)=   8.84049032369221     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.534566305329354     
+ >>>> FE(JI)= -0.534566305538175     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.733742399471318     
+ >>>> FE(JI)= -0.733742399783961     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.897714396549019     
+ >>>> FE(JI)= -0.897714396279609     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)=  -1.00215573713828     
+ >>>> FE(JI)=  -1.00215573751225     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.539268603288628     
+ >>>> FE(JI)= -0.539268604527714     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.109789584329382     
+ >>>> FE(JI)=  0.109789583962914     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.831361316166772     
+ >>>> FE(JI)= -0.831361317896598     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.597506090212368     
+ >>>> FE(JI)= -0.597506090476924     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -0.244783399628709     
+ >>>> FE(JI)= -0.244783399729333     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.760907025416746     
+ >>>> FE(JI)= -0.760907025887658     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)=  -1.00504615322603     
+ >>>> FE(JI)=  -1.00504615290349     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    12
+                     5
+ >>>> FE(IJ)=  3.110402068284457E-002
+ >>>> FE(JI)=  3.110402043318938E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    13
+                     6
+ >>>> FE(IJ)=  3.110402068284462E-002
+ >>>> FE(JI)=  3.110402043318955E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=  0.999764807079801     
+ >>>> FE(JI)=  0.999764807182142     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     2
+ >>>> FE(IJ)=   1.07495296089867     
+ >>>> FE(JI)=   1.07495296109331     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.460692709290526     
+ >>>> FE(JI)=  0.460692709464308     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.327611873962986     
+ >>>> FE(JI)=  0.327611873806569     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.885180129347231     
+ >>>> FE(JI)= -0.885180128887096     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -6.811508759422418E-003
+ >>>> FE(JI)= -6.811509323613536E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -1.722976586312054E-002
+ >>>> FE(JI)= -1.722976558565284E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.171100971278104     
+ >>>> FE(JI)=  0.171100971036044     
+ NEOHF NORMALIZED TO UNITY
+ 
+ NUCLEAR DENSITY MATRIX
+ 
+
+             1           2           3
+
+    1    0.0000000
+    2    0.0000000   0.0000000
+    3    0.0000000   0.0000000   1.0000000
+ 
+
+          NUCLEAR ORBITALS AND EIGENVALUES:          
+
+                        1          2          3
+
+                      0.0656     0.0656     0.1051
+
+    1  LABEL        0.992862  -0.119271   0.000000
+    2  LABEL        0.119271   0.992862   0.000000
+    3  LABEL        0.000000   0.000000   1.000000
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check= -0.760121451489913     
+ E_TRP= -0.760121451489913     
+ 
+ S_total=   1.34563017956588     
+ S_TRP=  0.345630179565883     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.922159983314178     
+ >>>> FE(JI)=  0.922159984357303     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.23157506693148     
+ >>>> FE(JI)=  -2.23157506713039     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.41791434973832     
+ >>>> FE(JI)=  -1.41791434890797     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.26180073677636     
+ >>>> FE(JI)=  -1.26180073707773     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.13704899696191     
+ >>>> FE(JI)=  -1.13704899673277     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -4.237670834291217E-002
+ >>>> FE(JI)= -4.237670847073587E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)= -4.456558307309971E-002
+ >>>> FE(JI)= -4.456558280099812E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  9.485344824615927E-002
+ >>>> FE(JI)=  9.485344869055612E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)= -0.145064051944101     
+ >>>> FE(JI)= -0.145064052120660     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)= -0.185678599397408     
+ >>>> FE(JI)= -0.185678598814963     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     7
+ >>>> FE(IJ)= -0.593137124842127     
+ >>>> FE(JI)= -0.593137124624660     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)= -7.225759841313066E-002
+ >>>> FE(JI)= -7.225759865027491E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -0.359376784883362     
+ >>>> FE(JI)= -0.359376785559550     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.693679030328980     
+ >>>> FE(JI)= -0.693679030635660     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.653454773789323     
+ >>>> FE(JI)= -0.653454772823229     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.642545845296919     
+ >>>> FE(JI)= -0.642545844103795     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.84049032844502     
+ >>>> FE(JI)=   8.84049032369221     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.534566305329354     
+ >>>> FE(JI)= -0.534566305538175     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.733742399471318     
+ >>>> FE(JI)= -0.733742399783961     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.897714396549019     
+ >>>> FE(JI)= -0.897714396279609     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)=  -1.00215573713828     
+ >>>> FE(JI)=  -1.00215573751225     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.539268603288628     
+ >>>> FE(JI)= -0.539268604527714     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.109789584329382     
+ >>>> FE(JI)=  0.109789583962914     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.831361316166772     
+ >>>> FE(JI)= -0.831361317896598     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.597506090212368     
+ >>>> FE(JI)= -0.597506090476924     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -0.244783399628709     
+ >>>> FE(JI)= -0.244783399729333     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.760907025416746     
+ >>>> FE(JI)= -0.760907025887658     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)=  -1.00504615322603     
+ >>>> FE(JI)=  -1.00504615290349     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    12
+                     5
+ >>>> FE(IJ)=  3.110402068284457E-002
+ >>>> FE(JI)=  3.110402043318938E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    13
+                     6
+ >>>> FE(IJ)=  3.110402068284462E-002
+ >>>> FE(JI)=  3.110402043318955E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=  0.999764807079801     
+ >>>> FE(JI)=  0.999764807182142     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     2
+ >>>> FE(IJ)=   1.07495296089867     
+ >>>> FE(JI)=   1.07495296109331     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.460692709290526     
+ >>>> FE(JI)=  0.460692709464308     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.327611873962986     
+ >>>> FE(JI)=  0.327611873806569     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.885180129347231     
+ >>>> FE(JI)= -0.885180128887096     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -6.811508759422418E-003
+ >>>> FE(JI)= -6.811509323613536E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -1.722976586312054E-002
+ >>>> FE(JI)= -1.722976558565284E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.171100971278104     
+ >>>> FE(JI)=  0.171100971036044     
+ NEOHF NORMALIZED TO UNITY
+   3       -2.6084731401    -0.1100416295     0.2542607009     0.0000000000     0.4852805575
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.66395613619935     
+ E_TRP=  -1.66395613619935     
+ 
+ S_total=   1.60358404338412     
+ S_TRP=  0.603584043384125     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.728467660278335     
+ >>>> FE(JI)=  0.728467661469062     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.20474629387542     
+ >>>> FE(JI)=  -2.20474629397739     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.46061967662698     
+ >>>> FE(JI)=  -1.46061967535962     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.18320994541931     
+ >>>> FE(JI)=  -1.18320994592241     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.01758526200097     
+ >>>> FE(JI)=  -1.01758526159243     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -1.755087347971672E-002
+ >>>> FE(JI)= -1.755087365737390E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  3.310430223534665E-002
+ >>>> FE(JI)=  3.310430264414961E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.249245630545088     
+ >>>> FE(JI)=  0.249245631161811     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  2.750565845094488E-002
+ >>>> FE(JI)=  2.750565777778291E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.259411625548453     
+ >>>> FE(JI)=  0.259411625293207     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)= -8.039966010963856E-002
+ >>>> FE(JI)= -8.039966026911471E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.156724476786729     
+ >>>> FE(JI)=  0.156724477420544     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     7
+ >>>> FE(IJ)= -0.446867837816692     
+ >>>> FE(JI)= -0.446867837936177     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  5.367459934060038E-002
+ >>>> FE(JI)=  5.367459894500924E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -3.534059538751548E-002
+ >>>> FE(JI)= -3.534059639499523E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.171358581555828     
+ >>>> FE(JI)= -0.171358582123059     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.120533980877681     
+ >>>> FE(JI)= -0.120533979745417     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.413719031781966     
+ >>>> FE(JI)= -0.413719031008988     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.54937946575875     
+ >>>> FE(JI)=   8.54937946062701     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.457669849877261     
+ >>>> FE(JI)= -0.457669850094736     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.558004429436558     
+ >>>> FE(JI)= -0.558004429882052     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.602643756424189     
+ >>>> FE(JI)= -0.602643755919185     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.660166800672049     
+ >>>> FE(JI)= -0.660166800999066     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.347859734634980     
+ >>>> FE(JI)= -0.347859735227032     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.440153442278434     
+ >>>> FE(JI)=  0.440153441080896     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.195564767375473     
+ >>>> FE(JI)= -0.195564768817346     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.513811639289331     
+ >>>> FE(JI)= -0.513811639599043     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)=  1.720722758975501E-003
+ >>>> FE(JI)=  1.720722874319347E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.349017807062794     
+ >>>> FE(JI)= -0.349017806726774     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.712922475934970     
+ >>>> FE(JI)= -0.712922475712620     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00246826758015     
+ >>>> FE(JI)=   1.00246826771859     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.509455484748516     
+ >>>> FE(JI)=  0.509455485023712     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.338617033992284     
+ >>>> FE(JI)=  0.338617033890077     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.922093947173577     
+ >>>> FE(JI)= -0.922093946946180     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.153634608152924     
+ >>>> FE(JI)= -0.153634608956551     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.183830295577078     
+ >>>> FE(JI)= -0.183830295435007     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.126563108556529     
+ >>>> FE(JI)=  0.126563108275515     
+ NEOHF NORMALIZED TO UNITY
+ 
+ NUCLEAR DENSITY MATRIX
+ 
+
+             1           2           3
+
+    1    0.0000000
+    2    0.0000000   0.0000000
+    3    0.0000000   0.0000000   1.0000000
+ 
+
+          NUCLEAR ORBITALS AND EIGENVALUES:          
+
+                        1          2          3
+
+                     -0.0221    -0.0221     0.0113
+
+    1  LABEL        0.999991   0.004154   0.000000
+    2  LABEL        0.004154  -0.999991   0.000000
+    3  LABEL        0.000000   0.000000   1.000000
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.66395613619935     
+ E_TRP=  -1.66395613619935     
+ 
+ S_total=   1.60358404338412     
+ S_TRP=  0.603584043384125     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.728467660278335     
+ >>>> FE(JI)=  0.728467661469062     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.20474629387542     
+ >>>> FE(JI)=  -2.20474629397739     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.46061967662698     
+ >>>> FE(JI)=  -1.46061967535962     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.18320994541931     
+ >>>> FE(JI)=  -1.18320994592241     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.01758526200097     
+ >>>> FE(JI)=  -1.01758526159243     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -1.755087347971672E-002
+ >>>> FE(JI)= -1.755087365737390E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  3.310430223534665E-002
+ >>>> FE(JI)=  3.310430264414961E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.249245630545088     
+ >>>> FE(JI)=  0.249245631161811     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  2.750565845094488E-002
+ >>>> FE(JI)=  2.750565777778291E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.259411625548453     
+ >>>> FE(JI)=  0.259411625293207     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)= -8.039966010963856E-002
+ >>>> FE(JI)= -8.039966026911471E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.156724476786729     
+ >>>> FE(JI)=  0.156724477420544     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     7
+ >>>> FE(IJ)= -0.446867837816692     
+ >>>> FE(JI)= -0.446867837936177     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  5.367459934060038E-002
+ >>>> FE(JI)=  5.367459894500924E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -3.534059538751548E-002
+ >>>> FE(JI)= -3.534059639499523E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.171358581555828     
+ >>>> FE(JI)= -0.171358582123059     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.120533980877681     
+ >>>> FE(JI)= -0.120533979745417     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.413719031781966     
+ >>>> FE(JI)= -0.413719031008988     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.54937946575875     
+ >>>> FE(JI)=   8.54937946062701     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.457669849877261     
+ >>>> FE(JI)= -0.457669850094736     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.558004429436558     
+ >>>> FE(JI)= -0.558004429882052     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.602643756424189     
+ >>>> FE(JI)= -0.602643755919185     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.660166800672049     
+ >>>> FE(JI)= -0.660166800999066     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.347859734634980     
+ >>>> FE(JI)= -0.347859735227032     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.440153442278434     
+ >>>> FE(JI)=  0.440153441080896     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.195564767375473     
+ >>>> FE(JI)= -0.195564768817346     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.513811639289331     
+ >>>> FE(JI)= -0.513811639599043     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)=  1.720722758975501E-003
+ >>>> FE(JI)=  1.720722874319347E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.349017807062794     
+ >>>> FE(JI)= -0.349017806726774     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.712922475934970     
+ >>>> FE(JI)= -0.712922475712620     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00246826758015     
+ >>>> FE(JI)=   1.00246826771859     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.509455484748516     
+ >>>> FE(JI)=  0.509455485023712     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.338617033992284     
+ >>>> FE(JI)=  0.338617033890077     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.922093947173577     
+ >>>> FE(JI)= -0.922093946946180     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.153634608152924     
+ >>>> FE(JI)= -0.153634608956551     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.183830295577078     
+ >>>> FE(JI)= -0.183830295435007     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.126563108556529     
+ >>>> FE(JI)=  0.126563108275515     
+ NEOHF NORMALIZED TO UNITY
+   4       -2.7867264000    -0.1782532599     0.0310570750     0.0000000000     0.1382644426
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.46627048166433     
+ E_TRP=  -1.46627048166433     
+ 
+ S_total=   1.53162419206732     
+ S_TRP=  0.531624192067321     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.767739123956608     
+ >>>> FE(JI)=  0.767739125094088     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.21203194585449     
+ >>>> FE(JI)=  -2.21203194596931     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.45006795329863     
+ >>>> FE(JI)=  -1.45006795210934     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.19571987617754     
+ >>>> FE(JI)=  -1.19571987666167     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.03210137938934     
+ >>>> FE(JI)=  -1.03210137900789     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -2.152157760909777E-002
+ >>>> FE(JI)= -2.152157778301685E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  2.283629063081258E-002
+ >>>> FE(JI)=  2.283629100795503E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.233287652553673     
+ >>>> FE(JI)=  0.233287653151959     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  6.078150748696998E-003
+ >>>> FE(JI)=  6.078150087098999E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.227195308522768     
+ >>>> FE(JI)=  0.227195308311553     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)= -0.135391807450802     
+ >>>> FE(JI)= -0.135391807554898     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.112971486062917     
+ >>>> FE(JI)=  0.112971486703329     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  3.661365719325366E-002
+ >>>> FE(JI)=  3.661365681534121E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -7.915298441716073E-002
+ >>>> FE(JI)= -7.915298538100422E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.238940398651478     
+ >>>> FE(JI)= -0.238940399255834     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.186273731053665     
+ >>>> FE(JI)= -0.186273729877720     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.435558010685664     
+ >>>> FE(JI)= -0.435558009922239     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.72419341414680     
+ >>>> FE(JI)=   8.72419340960867     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.469133758457533     
+ >>>> FE(JI)= -0.469133758678955     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.581739200784692     
+ >>>> FE(JI)= -0.581739201211107     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.640827849562273     
+ >>>> FE(JI)= -0.640827849103843     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.705620154392672     
+ >>>> FE(JI)= -0.705620154732953     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.370694257730920     
+ >>>> FE(JI)= -0.370694258404512     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.410876814681105     
+ >>>> FE(JI)=  0.410876813620586     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.267264697891123     
+ >>>> FE(JI)= -0.267264699373436     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.526344381065528     
+ >>>> FE(JI)= -0.526344381360981     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -2.983927674716202E-002
+ >>>> FE(JI)= -2.983927662993746E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.401710729930294     
+ >>>> FE(JI)= -0.401710729610551     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.753957779971312     
+ >>>> FE(JI)= -0.753957779728266     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00538362707667     
+ >>>> FE(JI)=   1.00538362721047     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.499722564498244     
+ >>>> FE(JI)=  0.499722564763349     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.335548730849121     
+ >>>> FE(JI)=  0.335548730706892     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.931475818512940     
+ >>>> FE(JI)= -0.931475818301634     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.133820584545013     
+ >>>> FE(JI)= -0.133820585302827     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.166214607577873     
+ >>>> FE(JI)= -0.166214607405069     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.129030549730442     
+ >>>> FE(JI)=  0.129030549465201     
+ NEOHF NORMALIZED TO UNITY
+ 
+ NUCLEAR DENSITY MATRIX
+ 
+
+             1           2           3
+
+    1    0.0000000
+    2    0.0000000   0.0000000
+    3    0.0000000   0.0000000   1.0000000
+ 
+
+          NUCLEAR ORBITALS AND EIGENVALUES:          
+
+                        1          2          3
+
+                     -0.0227    -0.0227     0.0131
+
+    1  LABEL       -0.073552   0.997291   0.000000
+    2  LABEL       -0.997291  -0.073552   0.000000
+    3  LABEL        0.000000   0.000000   1.000000
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.46627048166433     
+ E_TRP=  -1.46627048166433     
+ 
+ S_total=   1.53162419206732     
+ S_TRP=  0.531624192067321     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.767739123956608     
+ >>>> FE(JI)=  0.767739125094088     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.21203194585449     
+ >>>> FE(JI)=  -2.21203194596931     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.45006795329863     
+ >>>> FE(JI)=  -1.45006795210934     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.19571987617754     
+ >>>> FE(JI)=  -1.19571987666167     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.03210137938934     
+ >>>> FE(JI)=  -1.03210137900789     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -2.152157760909777E-002
+ >>>> FE(JI)= -2.152157778301685E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  2.283629063081258E-002
+ >>>> FE(JI)=  2.283629100795503E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.233287652553673     
+ >>>> FE(JI)=  0.233287653151959     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  6.078150748696998E-003
+ >>>> FE(JI)=  6.078150087098999E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.227195308522768     
+ >>>> FE(JI)=  0.227195308311553     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)= -0.135391807450802     
+ >>>> FE(JI)= -0.135391807554898     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.112971486062917     
+ >>>> FE(JI)=  0.112971486703329     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  3.661365719325366E-002
+ >>>> FE(JI)=  3.661365681534121E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -7.915298441716073E-002
+ >>>> FE(JI)= -7.915298538100422E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.238940398651478     
+ >>>> FE(JI)= -0.238940399255834     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.186273731053665     
+ >>>> FE(JI)= -0.186273729877720     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.435558010685664     
+ >>>> FE(JI)= -0.435558009922239     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.72419341414680     
+ >>>> FE(JI)=   8.72419340960867     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.469133758457533     
+ >>>> FE(JI)= -0.469133758678955     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.581739200784692     
+ >>>> FE(JI)= -0.581739201211107     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.640827849562273     
+ >>>> FE(JI)= -0.640827849103843     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.705620154392672     
+ >>>> FE(JI)= -0.705620154732953     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.370694257730920     
+ >>>> FE(JI)= -0.370694258404512     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.410876814681105     
+ >>>> FE(JI)=  0.410876813620586     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.267264697891123     
+ >>>> FE(JI)= -0.267264699373436     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.526344381065528     
+ >>>> FE(JI)= -0.526344381360981     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -2.983927674716202E-002
+ >>>> FE(JI)= -2.983927662993746E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.401710729930294     
+ >>>> FE(JI)= -0.401710729610551     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.753957779971312     
+ >>>> FE(JI)= -0.753957779728266     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00538362707667     
+ >>>> FE(JI)=   1.00538362721047     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.499722564498244     
+ >>>> FE(JI)=  0.499722564763349     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.335548730849121     
+ >>>> FE(JI)=  0.335548730706892     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.931475818512940     
+ >>>> FE(JI)= -0.931475818301634     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.133820584545013     
+ >>>> FE(JI)= -0.133820585302827     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.166214607577873     
+ >>>> FE(JI)= -0.166214607405069     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.129030549730442     
+ >>>> FE(JI)=  0.129030549465201     
+ NEOHF NORMALIZED TO UNITY
+   5       -2.7957661835    -0.0090397835     0.0047509619     0.0000000000     0.0080227035
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.46064513985864     
+ E_TRP=  -1.46064513985864     
+ 
+ S_total=   1.52918044748257     
+ S_TRP=  0.529180447482569     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.766842587026409     
+ >>>> FE(JI)=  0.766842588159289     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.21275136629571     
+ >>>> FE(JI)=  -2.21275136641008     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.45111820532670     
+ >>>> FE(JI)=  -1.45111820413835     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.19665726314538     
+ >>>> FE(JI)=  -1.19665726363002     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.03341227951048     
+ >>>> FE(JI)=  -1.03341227912898     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -2.178307981820757E-002
+ >>>> FE(JI)= -2.178307999242085E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  2.243815537385982E-002
+ >>>> FE(JI)=  2.243815575142086E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.233369770177217     
+ >>>> FE(JI)=  0.233369770773995     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  6.189513216057319E-003
+ >>>> FE(JI)=  6.189512546351250E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.225866485780867     
+ >>>> FE(JI)=  0.225866485573424     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)= -0.137040826467836     
+ >>>> FE(JI)= -0.137040826569148     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.112453788093362     
+ >>>> FE(JI)=  0.112453788735992     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  3.596863136121393E-002
+ >>>> FE(JI)=  3.596863098369215E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -8.044294831647905E-002
+ >>>> FE(JI)= -8.044294927706193E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.240139026847687     
+ >>>> FE(JI)= -0.240139027457364     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.186404784100351     
+ >>>> FE(JI)= -0.186404782918921     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.433347202523677     
+ >>>> FE(JI)= -0.433347201774023     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.73835280641240     
+ >>>> FE(JI)=   8.73835280195447     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.469626118798545     
+ >>>> FE(JI)= -0.469626119020024     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.582731738520116     
+ >>>> FE(JI)= -0.582731738944792     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.642089642252001     
+ >>>> FE(JI)= -0.642089641793563     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.706464649758534     
+ >>>> FE(JI)= -0.706464650102175     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.370102468004907     
+ >>>> FE(JI)= -0.370102468671003     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.412703757324828     
+ >>>> FE(JI)=  0.412703756270516     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.264673551767884     
+ >>>> FE(JI)= -0.264673553238665     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.527043325234613     
+ >>>> FE(JI)= -0.527043325528356     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -2.975477227592782E-002
+ >>>> FE(JI)= -2.975477215393862E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.401183584177210     
+ >>>> FE(JI)= -0.401183583839255     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.754287886516825     
+ >>>> FE(JI)= -0.754287886273677     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00572162284177     
+ >>>> FE(JI)=   1.00572162297579     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.500256177946532     
+ >>>> FE(JI)=  0.500256178214248     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.336237261237977     
+ >>>> FE(JI)=  0.336237261094504     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.932005402822501     
+ >>>> FE(JI)= -0.932005402614018     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.132958294841650     
+ >>>> FE(JI)= -0.132958295593506     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.165058708688905     
+ >>>> FE(JI)= -0.165058708517298     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.130204950909636     
+ >>>> FE(JI)=  0.130204950648039     
+ NEOHF NORMALIZED TO UNITY
+ 
+ NUCLEAR DENSITY MATRIX
+ 
+
+             1           2           3
+
+    1    0.0000000
+    2    0.0000000   0.0000000
+    3    0.0000000   0.0000000   1.0000000
+ 
+
+          NUCLEAR ORBITALS AND EIGENVALUES:          
+
+                        1          2          3
+
+                     -0.0231    -0.0231     0.0123
+
+    1  LABEL        0.010894  -0.999941   0.000000
+    2  LABEL        0.999941   0.010894   0.000000
+    3  LABEL        0.000000   0.000000   1.000000
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.46064513985864     
+ E_TRP=  -1.46064513985864     
+ 
+ S_total=   1.52918044748257     
+ S_TRP=  0.529180447482569     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.766842587026409     
+ >>>> FE(JI)=  0.766842588159289     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.21275136629571     
+ >>>> FE(JI)=  -2.21275136641008     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.45111820532670     
+ >>>> FE(JI)=  -1.45111820413835     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.19665726314538     
+ >>>> FE(JI)=  -1.19665726363002     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.03341227951048     
+ >>>> FE(JI)=  -1.03341227912898     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -2.178307981820757E-002
+ >>>> FE(JI)= -2.178307999242085E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  2.243815537385982E-002
+ >>>> FE(JI)=  2.243815575142086E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.233369770177217     
+ >>>> FE(JI)=  0.233369770773995     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  6.189513216057319E-003
+ >>>> FE(JI)=  6.189512546351250E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.225866485780867     
+ >>>> FE(JI)=  0.225866485573424     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)= -0.137040826467836     
+ >>>> FE(JI)= -0.137040826569148     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.112453788093362     
+ >>>> FE(JI)=  0.112453788735992     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  3.596863136121393E-002
+ >>>> FE(JI)=  3.596863098369215E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -8.044294831647905E-002
+ >>>> FE(JI)= -8.044294927706193E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.240139026847687     
+ >>>> FE(JI)= -0.240139027457364     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.186404784100351     
+ >>>> FE(JI)= -0.186404782918921     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.433347202523677     
+ >>>> FE(JI)= -0.433347201774023     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.73835280641240     
+ >>>> FE(JI)=   8.73835280195447     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.469626118798545     
+ >>>> FE(JI)= -0.469626119020024     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.582731738520116     
+ >>>> FE(JI)= -0.582731738944792     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.642089642252001     
+ >>>> FE(JI)= -0.642089641793563     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.706464649758534     
+ >>>> FE(JI)= -0.706464650102175     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.370102468004907     
+ >>>> FE(JI)= -0.370102468671003     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.412703757324828     
+ >>>> FE(JI)=  0.412703756270516     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.264673551767884     
+ >>>> FE(JI)= -0.264673553238665     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.527043325234613     
+ >>>> FE(JI)= -0.527043325528356     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -2.975477227592782E-002
+ >>>> FE(JI)= -2.975477215393862E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.401183584177210     
+ >>>> FE(JI)= -0.401183583839255     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.754287886516825     
+ >>>> FE(JI)= -0.754287886273677     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00572162284177     
+ >>>> FE(JI)=   1.00572162297579     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.500256177946532     
+ >>>> FE(JI)=  0.500256178214248     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.336237261237977     
+ >>>> FE(JI)=  0.336237261094504     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.932005402822501     
+ >>>> FE(JI)= -0.932005402614018     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.132958294841650     
+ >>>> FE(JI)= -0.132958295593506     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.165058708688905     
+ >>>> FE(JI)= -0.165058708517298     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.130204950909636     
+ >>>> FE(JI)=  0.130204950648039     
+ NEOHF NORMALIZED TO UNITY
+   6       -2.7958204901    -0.0000543066     0.0005707103     0.0000000000     0.0011591520
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.46116287653153     
+ E_TRP=  -1.46116287653153     
+ 
+ S_total=   1.52936562120436     
+ S_TRP=  0.529365621204365     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.766843786435878     
+ >>>> FE(JI)=  0.766843787569221     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.21273544273077     
+ >>>> FE(JI)=  -2.21273544284519     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.45107701957364     
+ >>>> FE(JI)=  -1.45107701838524     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.19660318592189     
+ >>>> FE(JI)=  -1.19660318640669     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.03330909392081     
+ >>>> FE(JI)=  -1.03330909353923     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -2.179830229096211E-002
+ >>>> FE(JI)= -2.179830246522283E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  2.246679687449066E-002
+ >>>> FE(JI)=  2.246679725214037E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.233415128892490     
+ >>>> FE(JI)=  0.233415129488958     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  6.233231921849769E-003
+ >>>> FE(JI)=  6.233231252399274E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.225926463740006     
+ >>>> FE(JI)=  0.225926463532432     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)= -0.136959651372787     
+ >>>> FE(JI)= -0.136959651474206     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.112477779061135     
+ >>>> FE(JI)=  0.112477779703771     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  3.595225792441804E-002
+ >>>> FE(JI)=  3.595225754680907E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -8.038939483582558E-002
+ >>>> FE(JI)= -8.038939579650209E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.240039920193247     
+ >>>> FE(JI)= -0.240039920801875     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.186342604946767     
+ >>>> FE(JI)= -0.186342603765312     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.433365677842388     
+ >>>> FE(JI)= -0.433365677092153     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.73742575632966     
+ >>>> FE(JI)=   8.73742575186957     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.469639413852212     
+ >>>> FE(JI)= -0.469639414073700     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.582699658439561     
+ >>>> FE(JI)= -0.582699658864406     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.642006721437135     
+ >>>> FE(JI)= -0.642006720978052     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.706383753738796     
+ >>>> FE(JI)= -0.706383754082566     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.370058816956730     
+ >>>> FE(JI)= -0.370058817622117     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.412578731594142     
+ >>>> FE(JI)=  0.412578730539102     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.264688070121570     
+ >>>> FE(JI)= -0.264688071591710     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.527020204777149     
+ >>>> FE(JI)= -0.527020205071042     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -2.975718289353568E-002
+ >>>> FE(JI)= -2.975718277186867E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.401150677316042     
+ >>>> FE(JI)= -0.401150676978559     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.754237106049352     
+ >>>> FE(JI)= -0.754237105806414     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00570871544260     
+ >>>> FE(JI)=   1.00570871557665     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.500179054166267     
+ >>>> FE(JI)=  0.500179054434034     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.336161889738065     
+ >>>> FE(JI)=  0.336161889594937     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.931974172943897     
+ >>>> FE(JI)= -0.931974172734857     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.132949341584177     
+ >>>> FE(JI)= -0.132949342336300     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.165087070154940     
+ >>>> FE(JI)= -0.165087069983406     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.130156530475335     
+ >>>> FE(JI)=  0.130156530213487     
+ NEOHF NORMALIZED TO UNITY
+ 
+ NUCLEAR DENSITY MATRIX
+ 
+
+             1           2           3
+
+    1    0.0000000
+    2    0.0000000   0.0000000
+    3    0.0000000   0.0000000   1.0000000
+ 
+
+          NUCLEAR ORBITALS AND EIGENVALUES:          
+
+                        1          2          3
+
+                     -0.0231    -0.0231     0.0123
+
+    1  LABEL        0.989047  -0.147600   0.000000
+    2  LABEL       -0.147600  -0.989047   0.000000
+    3  LABEL        0.000000   0.000000   1.000000
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.46116287653153     
+ E_TRP=  -1.46116287653153     
+ 
+ S_total=   1.52936562120436     
+ S_TRP=  0.529365621204365     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.766843786435878     
+ >>>> FE(JI)=  0.766843787569221     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.21273544273077     
+ >>>> FE(JI)=  -2.21273544284519     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.45107701957364     
+ >>>> FE(JI)=  -1.45107701838524     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.19660318592189     
+ >>>> FE(JI)=  -1.19660318640669     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.03330909392081     
+ >>>> FE(JI)=  -1.03330909353923     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -2.179830229096211E-002
+ >>>> FE(JI)= -2.179830246522283E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  2.246679687449066E-002
+ >>>> FE(JI)=  2.246679725214037E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.233415128892490     
+ >>>> FE(JI)=  0.233415129488958     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  6.233231921849769E-003
+ >>>> FE(JI)=  6.233231252399274E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.225926463740006     
+ >>>> FE(JI)=  0.225926463532432     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)= -0.136959651372787     
+ >>>> FE(JI)= -0.136959651474206     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.112477779061135     
+ >>>> FE(JI)=  0.112477779703771     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  3.595225792441804E-002
+ >>>> FE(JI)=  3.595225754680907E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -8.038939483582558E-002
+ >>>> FE(JI)= -8.038939579650209E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.240039920193247     
+ >>>> FE(JI)= -0.240039920801875     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.186342604946767     
+ >>>> FE(JI)= -0.186342603765312     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.433365677842388     
+ >>>> FE(JI)= -0.433365677092153     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.73742575632966     
+ >>>> FE(JI)=   8.73742575186957     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.469639413852212     
+ >>>> FE(JI)= -0.469639414073700     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.582699658439561     
+ >>>> FE(JI)= -0.582699658864406     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.642006721437135     
+ >>>> FE(JI)= -0.642006720978052     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.706383753738796     
+ >>>> FE(JI)= -0.706383754082566     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.370058816956730     
+ >>>> FE(JI)= -0.370058817622117     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.412578731594142     
+ >>>> FE(JI)=  0.412578730539102     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.264688070121570     
+ >>>> FE(JI)= -0.264688071591710     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.527020204777149     
+ >>>> FE(JI)= -0.527020205071042     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -2.975718289353568E-002
+ >>>> FE(JI)= -2.975718277186867E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.401150677316042     
+ >>>> FE(JI)= -0.401150676978559     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.754237106049352     
+ >>>> FE(JI)= -0.754237105806414     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00570871544260     
+ >>>> FE(JI)=   1.00570871557665     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.500179054166267     
+ >>>> FE(JI)=  0.500179054434034     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.336161889738065     
+ >>>> FE(JI)=  0.336161889594937     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.931974172943897     
+ >>>> FE(JI)= -0.931974172734857     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.132949341584177     
+ >>>> FE(JI)= -0.132949342336300     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.165087070154940     
+ >>>> FE(JI)= -0.165087069983406     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.130156530475335     
+ >>>> FE(JI)=  0.130156530213487     
+ NEOHF NORMALIZED TO UNITY
+   7       -2.7958207160    -0.0000002259     0.0000670887     0.0000000000     0.0000588932
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.46118733474057     
+ E_TRP=  -1.46118733474057     
+ 
+ S_total=   1.52936931710043     
+ S_TRP=  0.529369317100429     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.766845739334003     
+ >>>> FE(JI)=  0.766845740467356     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.21274000649278     
+ >>>> FE(JI)=  -2.21274000660720     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.45108009148494     
+ >>>> FE(JI)=  -1.45108009029656     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.19660238598273     
+ >>>> FE(JI)=  -1.19660238646755     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.03330404840403     
+ >>>> FE(JI)=  -1.03330404802245     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -2.180316847952350E-002
+ >>>> FE(JI)= -2.180316865379108E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  2.246533211895443E-002
+ >>>> FE(JI)=  2.246533249659868E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.233416891960499     
+ >>>> FE(JI)=  0.233416892556944     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  6.235822300907468E-003
+ >>>> FE(JI)=  6.235821631434990E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.225930667107614     
+ >>>> FE(JI)=  0.225930666900013     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)= -0.136950183752809     
+ >>>> FE(JI)= -0.136950183854222     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.112486422800910     
+ >>>> FE(JI)=  0.112486423443555     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  3.594824323619830E-002
+ >>>> FE(JI)=  3.594824285857939E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -8.038296508701408E-002
+ >>>> FE(JI)= -8.038296604769234E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.240024793091795     
+ >>>> FE(JI)= -0.240024793700377     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.186327394704485     
+ >>>> FE(JI)= -0.186327393522987     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.433358062112084     
+ >>>> FE(JI)= -0.433358061361964     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.73742177492020     
+ >>>> FE(JI)=   8.73742177046007     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.469642947367877     
+ >>>> FE(JI)= -0.469642947589368     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.582696336503069     
+ >>>> FE(JI)= -0.582696336927938     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.641997213251502     
+ >>>> FE(JI)= -0.641997212792378     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.706372240717222     
+ >>>> FE(JI)= -0.706372241061012     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.370052958491929     
+ >>>> FE(JI)= -0.370052959157211     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.412584771622302     
+ >>>> FE(JI)=  0.412584770567234     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.264674342826877     
+ >>>> FE(JI)= -0.264674344297036     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.527018899515847     
+ >>>> FE(JI)= -0.527018899809751     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -2.975157418658947E-002
+ >>>> FE(JI)= -2.975157406491558E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.401140280545950     
+ >>>> FE(JI)= -0.401140280208452     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.754228829928472     
+ >>>> FE(JI)= -0.754228829685533     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00571492176445     
+ >>>> FE(JI)=   1.00571492189849     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.500186170610812     
+ >>>> FE(JI)=  0.500186170878583     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.336164688526149     
+ >>>> FE(JI)=  0.336164688383038     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.931979429805623     
+ >>>> FE(JI)= -0.931979429596550     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.132956954310440     
+ >>>> FE(JI)= -0.132956955062551     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.165096681974273     
+ >>>> FE(JI)= -0.165096681802673     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.130153795924931     
+ >>>> FE(JI)=  0.130153795663062     
+ NEOHF NORMALIZED TO UNITY
+ 
+ NUCLEAR DENSITY MATRIX
+ 
+
+             1           2           3
+
+    1    0.0000000
+    2    0.0000000   0.0000000
+    3    0.0000000   0.0000000   1.0000000
+ 
+
+          NUCLEAR ORBITALS AND EIGENVALUES:          
+
+                        1          2          3
+
+                     -0.0231    -0.0231     0.0123
+
+    1  LABEL        0.988848  -0.148928   0.000000
+    2  LABEL       -0.148928  -0.988848   0.000000
+    3  LABEL        0.000000   0.000000   1.000000
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.46118733474057     
+ E_TRP=  -1.46118733474057     
+ 
+ S_total=   1.52936931710043     
+ S_TRP=  0.529369317100429     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.766845739334003     
+ >>>> FE(JI)=  0.766845740467356     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.21274000649278     
+ >>>> FE(JI)=  -2.21274000660720     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.45108009148494     
+ >>>> FE(JI)=  -1.45108009029656     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.19660238598273     
+ >>>> FE(JI)=  -1.19660238646755     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.03330404840403     
+ >>>> FE(JI)=  -1.03330404802245     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -2.180316847952350E-002
+ >>>> FE(JI)= -2.180316865379108E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  2.246533211895443E-002
+ >>>> FE(JI)=  2.246533249659868E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.233416891960499     
+ >>>> FE(JI)=  0.233416892556944     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  6.235822300907468E-003
+ >>>> FE(JI)=  6.235821631434990E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.225930667107614     
+ >>>> FE(JI)=  0.225930666900013     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)= -0.136950183752809     
+ >>>> FE(JI)= -0.136950183854222     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.112486422800910     
+ >>>> FE(JI)=  0.112486423443555     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  3.594824323619830E-002
+ >>>> FE(JI)=  3.594824285857939E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -8.038296508701408E-002
+ >>>> FE(JI)= -8.038296604769234E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.240024793091795     
+ >>>> FE(JI)= -0.240024793700377     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.186327394704485     
+ >>>> FE(JI)= -0.186327393522987     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.433358062112084     
+ >>>> FE(JI)= -0.433358061361964     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.73742177492020     
+ >>>> FE(JI)=   8.73742177046007     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.469642947367877     
+ >>>> FE(JI)= -0.469642947589368     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.582696336503069     
+ >>>> FE(JI)= -0.582696336927938     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.641997213251502     
+ >>>> FE(JI)= -0.641997212792378     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.706372240717222     
+ >>>> FE(JI)= -0.706372241061012     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.370052958491929     
+ >>>> FE(JI)= -0.370052959157211     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.412584771622302     
+ >>>> FE(JI)=  0.412584770567234     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.264674342826877     
+ >>>> FE(JI)= -0.264674344297036     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.527018899515847     
+ >>>> FE(JI)= -0.527018899809751     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -2.975157418658947E-002
+ >>>> FE(JI)= -2.975157406491558E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.401140280545950     
+ >>>> FE(JI)= -0.401140280208452     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.754228829928472     
+ >>>> FE(JI)= -0.754228829685533     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00571492176445     
+ >>>> FE(JI)=   1.00571492189849     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.500186170610812     
+ >>>> FE(JI)=  0.500186170878583     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.336164688526149     
+ >>>> FE(JI)=  0.336164688383038     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.931979429805623     
+ >>>> FE(JI)= -0.931979429596550     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.132956954310440     
+ >>>> FE(JI)= -0.132956955062551     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.165096681974273     
+ >>>> FE(JI)= -0.165096681802673     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.130153795924931     
+ >>>> FE(JI)=  0.130153795663062     
+ NEOHF NORMALIZED TO UNITY
+   8       -2.7958207197    -0.0000000037     0.0000025891     0.0000000000     0.0000180309
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.46118356790060     
+ E_TRP=  -1.46118356790060     
+ 
+ S_total=   1.52936796634142     
+ S_TRP=  0.529367966341417     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.766846512362131     
+ >>>> FE(JI)=  0.766846513495484     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.21274012842960     
+ >>>> FE(JI)=  -2.21274012854403     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.45107950106527     
+ >>>> FE(JI)=  -1.45107949987689     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.19660249493303     
+ >>>> FE(JI)=  -1.19660249541786     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.03330434252690     
+ >>>> FE(JI)=  -1.03330434214532     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -2.180338683109153E-002
+ >>>> FE(JI)= -2.180338700535905E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  2.246532169598103E-002
+ >>>> FE(JI)=  2.246532207362451E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.233416629757852     
+ >>>> FE(JI)=  0.233416630354296     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  6.235418800525472E-003
+ >>>> FE(JI)=  6.235418131050441E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.225929307492558     
+ >>>> FE(JI)=  0.225929307284960     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)= -0.136952159710706     
+ >>>> FE(JI)= -0.136952159812117     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.112484924647910     
+ >>>> FE(JI)=  0.112484925290557     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  3.594731889235810E-002
+ >>>> FE(JI)=  3.594731851473940E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -8.038458790707334E-002
+ >>>> FE(JI)= -8.038458886775265E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.240027480938417     
+ >>>> FE(JI)= -0.240027481546998     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.186329795303583     
+ >>>> FE(JI)= -0.186329794122082     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.433357913740059     
+ >>>> FE(JI)= -0.433357912989939     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.73742730369065     
+ >>>> FE(JI)=   8.73742729923055     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.469643493419184     
+ >>>> FE(JI)= -0.469643493640675     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.582697126513062     
+ >>>> FE(JI)= -0.582697126937932     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.641998680418761     
+ >>>> FE(JI)= -0.641998679959635     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.706373774286282     
+ >>>> FE(JI)= -0.706373774630075     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.370053251524469     
+ >>>> FE(JI)= -0.370053252189746     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.412584917157128     
+ >>>> FE(JI)=  0.412584916102063     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.264676050736690     
+ >>>> FE(JI)= -0.264676052206836     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.527019245919103     
+ >>>> FE(JI)= -0.527019246213007     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -2.975235105089791E-002
+ >>>> FE(JI)= -2.975235092922413E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.401141896989124     
+ >>>> FE(JI)= -0.401141896651622     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.754230076750966     
+ >>>> FE(JI)= -0.754230076508028     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00571477791720     
+ >>>> FE(JI)=   1.00571477805124     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.500185218876499     
+ >>>> FE(JI)=  0.500185219144272     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.336164144757224     
+ >>>> FE(JI)=  0.336164144614114     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.931979405678511     
+ >>>> FE(JI)= -0.931979405469437     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.132956077941778     
+ >>>> FE(JI)= -0.132956078693889     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.165095466586420     
+ >>>> FE(JI)= -0.165095466414822     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.130154088226974     
+ >>>> FE(JI)=  0.130154087965105     
+ NEOHF NORMALIZED TO UNITY
+ 
+ NUCLEAR DENSITY MATRIX
+ 
+
+             1           2           3
+
+    1    0.0000000
+    2    0.0000000   0.0000000
+    3    0.0000000   0.0000000   1.0000000
+ 
+
+          NUCLEAR ORBITALS AND EIGENVALUES:          
+
+                        1          2          3
+
+                     -0.0231    -0.0231     0.0123
+
+    1  LABEL        0.015647  -0.999878   0.000000
+    2  LABEL        0.999878   0.015647   0.000000
+    3  LABEL        0.000000   0.000000   1.000000
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.46118356790060     
+ E_TRP=  -1.46118356790060     
+ 
+ S_total=   1.52936796634142     
+ S_TRP=  0.529367966341417     
+ 
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     2
+                     1
+ >>>> FE(IJ)=  0.766846512362131     
+ >>>> FE(JI)=  0.766846513495484     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     1
+ >>>> FE(IJ)=  -2.21274012842960     
+ >>>> FE(JI)=  -2.21274012854403     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     3
+                     2
+ >>>> FE(IJ)=  -1.45107950106527     
+ >>>> FE(JI)=  -1.45107949987689     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     2
+ >>>> FE(IJ)=  -1.19660249493303     
+ >>>> FE(JI)=  -1.19660249541786     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     4
+                     3
+ >>>> FE(IJ)=  -1.03330434252690     
+ >>>> FE(JI)=  -1.03330434214532     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     1
+ >>>> FE(IJ)= -2.180338683109153E-002
+ >>>> FE(JI)= -2.180338700535905E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     2
+ >>>> FE(IJ)=  2.246532169598103E-002
+ >>>> FE(JI)=  2.246532207362451E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     3
+ >>>> FE(IJ)=  0.233416629757852     
+ >>>> FE(JI)=  0.233416630354296     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     7
+                     4
+ >>>> FE(IJ)=  6.235418800525472E-003
+ >>>> FE(JI)=  6.235418131050441E-003
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     2
+ >>>> FE(IJ)=  0.225929307492558     
+ >>>> FE(JI)=  0.225929307284960     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     3
+ >>>> FE(IJ)= -0.136952159710706     
+ >>>> FE(JI)= -0.136952159812117     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     8
+                     4
+ >>>> FE(IJ)=  0.112484924647910     
+ >>>> FE(JI)=  0.112484925290557     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     1
+ >>>> FE(IJ)=  3.594731889235810E-002
+ >>>> FE(JI)=  3.594731851473940E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     2
+ >>>> FE(IJ)= -8.038458790707334E-002
+ >>>> FE(JI)= -8.038458886775265E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     3
+ >>>> FE(IJ)= -0.240027480938417     
+ >>>> FE(JI)= -0.240027481546998     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     4
+ >>>> FE(IJ)= -0.186329795303583     
+ >>>> FE(JI)= -0.186329794122082     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     7
+ >>>> FE(IJ)= -0.433357913740059     
+ >>>> FE(JI)= -0.433357912989939     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                     9
+                     8
+ >>>> FE(IJ)=   8.73742730369065     
+ >>>> FE(JI)=   8.73742729923055     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     1
+ >>>> FE(IJ)= -0.469643493419184     
+ >>>> FE(JI)= -0.469643493640675     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     2
+ >>>> FE(IJ)= -0.582697126513062     
+ >>>> FE(JI)= -0.582697126937932     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     3
+ >>>> FE(IJ)= -0.641998680418761     
+ >>>> FE(JI)= -0.641998679959635     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     4
+ >>>> FE(IJ)= -0.706373774286282     
+ >>>> FE(JI)= -0.706373774630075     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     7
+ >>>> FE(IJ)= -0.370053251524469     
+ >>>> FE(JI)= -0.370053252189746     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     8
+ >>>> FE(IJ)=  0.412584917157128     
+ >>>> FE(JI)=  0.412584916102063     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    10
+                     9
+ >>>> FE(IJ)= -0.264676050736690     
+ >>>> FE(JI)= -0.264676052206836     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     2
+ >>>> FE(IJ)= -0.527019245919103     
+ >>>> FE(JI)= -0.527019246213007     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     8
+ >>>> FE(IJ)= -2.975235105089791E-002
+ >>>> FE(JI)= -2.975235092922413E-002
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                     9
+ >>>> FE(IJ)= -0.401141896989124     
+ >>>> FE(JI)= -0.401141896651622     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    11
+                    10
+ >>>> FE(IJ)= -0.754230076750966     
+ >>>> FE(JI)= -0.754230076508028     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     1
+ >>>> FE(IJ)=   1.00571477791720     
+ >>>> FE(JI)=   1.00571477805124     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     3
+ >>>> FE(IJ)=  0.500185218876499     
+ >>>> FE(JI)=  0.500185219144272     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     4
+ >>>> FE(IJ)=  0.336164144757224     
+ >>>> FE(JI)=  0.336164144614114     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     7
+ >>>> FE(IJ)= -0.931979405678511     
+ >>>> FE(JI)= -0.931979405469437     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     8
+ >>>> FE(IJ)= -0.132956077941778     
+ >>>> FE(JI)= -0.132956078693889     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                     9
+ >>>> FE(IJ)= -0.165095466586420     
+ >>>> FE(JI)= -0.165095466414822     
+ ELEC FOCK MATRIX IS NOT SYMMETRIC FOR IJ=                    14
+                    10
+ >>>> FE(IJ)=  0.130154088226974     
+ >>>> FE(JI)=  0.130154087965105     
+ NEOHF NORMALIZED TO UNITY
+   9       -2.7958207198     0.0000000000     0.0000001337     0.0000000000     0.0000005145
+
+ FINAL NEOXCHF ENERGY IS       -2.7958207198 AFTER   9 ITERATIONS
+
+      -----------------------------------------------
+               NEOXCHF ENERGETIC COMPONENTS          
+      -----------------------------------------------
+                E_NUC=         0.0000000000
+              E_ECORE=        -3.8506032603
+              E_PCORE=         1.4310422528
+                 E_EP=        -1.3766494539
+                 E_EE=         1.0359481798
+               E_GAM1=        -0.5382071996
+               E_GAM2=        -0.9773691672
+               E_GAM3=         0.0000000000
+               E_GAM4=         0.0000000000
+              S_TOTAL=         1.5293679663
+              E_TOTAL=        -2.7958207198
+
+
+        ELECTRONIC ORBITALS AND EIGENVALUES:         
+
+                        1          2          3          4          5
+
+                     -1.3386    -0.8339    -0.1151     0.6255     1.0234
+
+    1  LABEL       -0.024563   0.008836  -0.005176  -0.023627   0.000000
+    2  LABEL       -0.166912   0.063152  -0.039403  -0.086150   0.000000
+    3  LABEL       -0.463304   0.217535  -0.099343  -1.009086   0.000000
+    4  LABEL       -0.382959   0.564085  -0.132697   2.081484   0.000000
+    5  LABEL        0.000000   0.000000   0.000000   0.000000   0.330863
+    6  LABEL        0.000000   0.000000   0.000000   0.000000   0.060113
+    7  LABEL        0.057328  -0.093712  -0.013131   0.170923   0.000000
+    8  LABEL       -0.002767   0.004447  -0.001604  -0.000434   0.000000
+    9  LABEL        0.050462  -0.000903   0.064248  -0.010897   0.000000
+   10  LABEL       -0.217875  -1.126254  -1.052624  -0.175750   0.000000
+   11  LABEL        0.027904  -0.122496   1.559159  -0.937427   0.000000
+   12  LABEL        0.000000   0.000000   0.000000   0.000000   0.821513
+   13  LABEL        0.000000   0.000000   0.000000   0.000000   0.149258
+   14  LABEL        0.030354  -0.044540   0.040031   0.383708   0.000000
+
+                        6          7          8          9         10
+
+                      1.0234     1.7835     2.3074     2.3074     3.6179
+
+    1  LABEL        0.000000   0.011367   0.000000   0.000000  -0.012451
+    2  LABEL        0.000000  -0.040025   0.000000   0.000000  -0.161079
+    3  LABEL        0.000000   0.692652   0.000000   0.000000  -0.610908
+    4  LABEL        0.000000   0.117165   0.000000   0.000000  -1.093262
+    5  LABEL       -0.060113   0.000000   0.996930  -0.148144   0.000000
+    6  LABEL        0.330863   0.000000  -0.148144  -0.996930   0.000000
+    7  LABEL        0.000000  -0.239746   0.000000   0.000000  -1.453984
+    8  LABEL        0.000000   0.001007   0.000000   0.000000   0.021559
+    9  LABEL        0.000000  -0.002148   0.000000   0.000000  -0.418891
+   10  LABEL        0.000000  -0.092614   0.000000   0.000000   1.908569
+   11  LABEL        0.000000  -0.259150   0.000000   0.000000  -0.110305
+   12  LABEL       -0.149258   0.000000  -0.649931   0.096580   0.000000
+   13  LABEL        0.821513   0.000000   0.096580   0.649931   0.000000
+   14  LABEL        0.000000   1.107146   0.000000   0.000000  -1.388021
+
+                       11         12         13         14
+
+                      7.0297     9.6793    68.1658   106.0836
+
+    1  LABEL       -0.004387   0.012901   1.258263   0.014797
+    2  LABEL       -0.477209   1.353164  -1.059347  -0.043417
+    3  LABEL        0.594957  -1.714393   0.627934   0.046959
+    4  LABEL       -0.357373   0.332759  -0.175285   0.013573
+    5  LABEL        0.000000   0.000000   0.000000   0.000000
+    6  LABEL        0.000000   0.000000   0.000000   0.000000
+    7  LABEL       -0.316157  -0.508665   0.070050   0.084328
+    8  LABEL       -0.111238  -0.046205  -0.003468   1.259205
+    9  LABEL        1.459476   0.504571  -0.014318  -0.914615
+   10  LABEL       -1.183302   0.139678  -0.095118   0.426242
+   11  LABEL        0.568727  -0.049512   0.067009  -0.157829
+   12  LABEL        0.000000   0.000000   0.000000   0.000000
+   13  LABEL        0.000000   0.000000   0.000000   0.000000
+   14  LABEL       -0.120088  -0.539164   0.108810   0.048347
+
+          NUCLEAR ORBITALS AND EIGENVALUES:          
+
+                        1          2          3
+
+                     -0.0231    -0.0231     0.0123
+
+    1  LABEL        0.015647  -0.999878   0.000000
+    2  LABEL        0.999878   0.015647   0.000000
+    3  LABEL        0.000000   0.000000   1.000000
+ BACK FROM xcscf

@@ -1,0 +1,39 @@
+0.5977
+1.5977
+3
+0 0 0   2.4328793    0.0   0.0  -2.1259417362
+0 0 0   2.4328793    0.0   0.0  -2.1259417362
+0 0 0   6.1840       0.0   0.0   0.000000000
+3
+0 0 0   2.4328793    0.0   0.0  -2.1259417362
+0 0 0   2.4328793    0.0   0.0  -2.1259417362
+0 0 1   6.1840       0.0   0.0   0.000000000
+0.0   0.0   -2.1259417362
+2.0
+5
+.true.
+.true.
+.true.
+.true.
+.true.
+
+9.2196
+C INPUT FILE FORMAT:
+C
+C gamma1
+C gamma2
+C Nbra
+C I J K A x y z   (x y z are basis func centers)
+C I J K A x y z
+C Nket
+C L M N B x y z
+C L M N B x y z
+C cmatx cmaty cmatz ==> coordinates of classical nucleus
+C ZNUC ==> Charge of classical nucleus
+NQUAD_COULOMB
+USE_RI ==> logical switch
+ORTHABS ==> logical switch to activate orthnormalization of ABS
+USE_MD
+USE_AE
+USE_AC
+

@@ -1,0 +1,59 @@
+1 =NGTG
+1.0  1.0E-10
+1 =NAT
+3.0   0.00   0.00   0.00       Li
+8   =NEBF
+8   =NPEBF
+1   1   0   0   0       0.02663117347        1.00    0.00  0.00   0.00
+2   2   0   0   0       0.0996514543191277   1.00    0.00  0.00   0.00
+3   3   0   0   0       0.372886773431287    1.00    0.00  0.00   0.00
+4   4   0   0   0       1.39530874637027     1.00    0.00  0.00   0.00
+5   5   0   0   0       5.22111975113037     1.00    0.00  0.00   0.00
+6   6   0   0   0      19.5369602079522      1.00    0.00  0.00   0.00
+7   7   0   0   0      73.1055467717385      1.00    0.00  0.00   0.00
+8   8   0   0   0     273.554376520636       1.00    0.00  0.00   0.00
+6   =NPBF
+1   1   0   0   0      0.0122474139          1.00     0.000     0.000     0.000
+2   2   0   0   0      0.028901569795359     1.00     0.000     0.000     0.000
+3   3   0   0   0      0.0682022134187861    1.00     0.000     0.000     0.000
+4   4   0   0   0      0.160944265247786     1.00     0.000     0.000     0.000
+5   5   0   0   0      0.379797886574377     1.00     0.000     0.000     0.000
+6   6   0   0   0      0.896250850717081     1.00     0.000     0.000     0.000
+1.0d+00 =eMASS
+1.0d+00 =PMASS
+3       =nelec
+2       =NAE number of alpha electrons
+1       =NBE number of beta electrons
+1       =NUCST what nuclear state to use to form nuc density
+.false.  =LNEOHF  only perform neo-hf calculation
+.true.  =LXCUHF
+0.0  0.0  5.0     Xmat1(1),Xmat1(2),Xmat1(3)
+0.0  0.0  5.0     Xmat2(1),Xmat2(2),Xmat2(3)
+0.0  0.0  5.0     REPMAT(1),REPMAT(2),REPMAT(3)
+0.0  0.0  5.0     REPMAT2(1),REPMAT2(2),REPMAT2(3)
+1  1  64          NP1D(1),NP1D(2),NP1D(3)
+0.0  0.0   0.00     pmin(1),pmin(2),pmin(3)
+0.0  0.0  20.00     pmax(1),pmax(2),pmax(3)
+.true.   LDP    ::  < PSI | delta(xp-x) | PSI >
+.true.   LDE    ::  < PSI | delta(xe-x) | PSI >
+.true.   LDEDP  ::  < PSI | delta(xe-x) delta(xp-x) | PSI >
+.true.   LDEP   ::  < PSI | delta(xe-xp) | PSI >
+.false.   LD2EP  ::  < PSI | delta(xe1-xp) delta(xe2-xp) | PSI >
+.false.   LD2EDP < PSI | delta(xe1-x1) delta(xe2-x2 delta(xp-x3) | PSI >
+.false.   LD2E   ::  < PSI | delta(xe1-xe2) | PSI >
+.false.   LD3EP  ::  < PSI | delta(xe1-xp) delta(xe2-xp) delta(xe3-xp) | PSI >
+.false.   LDPM   ::  DIPOLE MOMENT
+.false.   LICEP  ::  <PSI|delta(REP-Re+Rp)|PSI> :: 1-electron mixed intracule
+.false.   LICEEP ::  <PSI|delta(RE1P-Re1+Rp) delta(RE2-Re2+Rp)|PSI>
+.false.   LICEE  ::  <PSI|delta(REE-Re1+Re2)|PSI> :: 2-electron pure intracule
+.false.   LGM3DCMP
+.false.   LSDP   ! scan QM Particle density
+.false.   LSDE   ! scan electronic density
+.false.   LSDEDP ! scan pair density
+.false.   LNONAD ::  NON-ADIABATICITY ANALYSIS
+1         NG1CHK
+1         NG2CHK
+10        NG3CHK
+1         NG4CHK
+
+

@@ -1,0 +1,507 @@
+ 
+ nat   =                     3
+ npebf =                    21
+ nebf  =                    15
+ npbf  =                     1
+ ngtg1 =                     1
+ ngee  =                 50625
+ ng1   =                   225
+ ng2   =                 50625
+ ng3   =              11390625
+ ng4   =            2562890625
+ ng1prm=                   441
+ ng2prm=                194481
+ ng3prm=              85766121
+ 
+ PMASS   =   1836.00000000000     
+ nelec   =                     4
+ NUCST   =                     1
+ LNEOHF  = F
+ read_CE = T
+ read_CP = T
+ READ_GAM2= F
+ READ_GAM3= F
+ READ_GAM4= F
+ NG4CHK  =                    20
+ LG4DSCF = T
+ 
+ 
+ ELECTRONIC BASIS FUNCTIONS:
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0   38.360000  0.023809  0.000000  0.000000 -1.847207
+
+   2     1    0  0  0    5.770000  0.154891  0.000000  0.000000 -1.847207
+
+   3     1    0  0  0    1.240000  0.469987  0.000000  0.000000 -1.847207
+
+   4     2    0  0  0    0.297600  1.000000  0.000000  0.000000 -1.847207
+
+   5     3    1  0  0    1.275000  1.000000  0.000000  0.000000 -1.847207
+
+   6     4    0  1  0    1.275000  1.000000  0.000000  0.000000 -1.847207
+
+   7     5    0  0  1    1.275000  1.000000  0.000000  0.000000 -1.847207
+
+   8     6    0  0  0   38.360000  0.023809  0.000000  0.000000  1.847207
+
+   9     6    0  0  0    5.770000  0.154891  0.000000  0.000000  1.847207
+
+  10     6    0  0  0    1.240000  0.469987  0.000000  0.000000  1.847207
+
+  11     7    0  0  0    0.297600  1.000000  0.000000  0.000000  1.847207
+
+  12     8    1  0  0    1.275000  1.000000  0.000000  0.000000  1.847207
+
+  13     9    0  1  0    1.275000  1.000000  0.000000  0.000000  1.847207
+
+  14    10    0  0  1    1.275000  1.000000  0.000000  0.000000  1.847207
+
+  15    11    0  0  0   13.010000  0.019685  0.000000  0.000000  0.000000
+
+  16    11    0  0  0    1.962000  0.137977  0.000000  0.000000  0.000000
+
+  17    11    0  0  0    0.444600  0.478148  0.000000  0.000000  0.000000
+
+  18    12    0  0  0    0.122000  1.000000  0.000000  0.000000  0.000000
+
+  19    13    1  0  0    0.727000  1.000000  0.000000  0.000000  0.000000
+
+  20    14    0  1  0    0.727000  1.000000  0.000000  0.000000  0.000000
+
+  21    15    0  0  1    0.727000  1.000000  0.000000  0.000000  0.000000
+ ELECTRONIC BASIS FUNCTIONS:
+ CONTRACT COEFF HAVE BEEN NORMALIZED
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0   38.360000  0.261553  0.000000  0.000000 -1.847207
+
+   2     1    0  0  0    5.770000  0.410978  0.000000  0.000000 -1.847207
+
+   3     1    0  0  0    1.240000  0.393606  0.000000  0.000000 -1.847207
+
+   4     2    0  0  0    0.297600  0.287167  0.000000  0.000000 -1.847207
+
+   5     3    1  0  0    1.275000  1.931203  0.000000  0.000000 -1.847207
+
+   6     4    0  1  0    1.275000  1.931203  0.000000  0.000000 -1.847207
+
+   7     5    0  0  1    1.275000  1.931203  0.000000  0.000000 -1.847207
+
+   8     6    0  0  0   38.360000  0.261553  0.000000  0.000000  1.847207
+
+   9     6    0  0  0    5.770000  0.410978  0.000000  0.000000  1.847207
+
+  10     6    0  0  0    1.240000  0.393606  0.000000  0.000000  1.847207
+
+  11     7    0  0  0    0.297600  0.287167  0.000000  0.000000  1.847207
+
+  12     8    1  0  0    1.275000  1.931203  0.000000  0.000000  1.847207
+
+  13     9    0  1  0    1.275000  1.931203  0.000000  0.000000  1.847207
+
+  14    10    0  0  1    1.275000  1.931203  0.000000  0.000000  1.847207
+
+  15    11    0  0  0   13.010000  0.096107  0.000000  0.000000  0.000000
+
+  16    11    0  0  0    1.962000  0.163020  0.000000  0.000000  0.000000
+
+  17    11    0  0  0    0.444600  0.185545  0.000000  0.000000  0.000000
+
+  18    12    0  0  0    0.122000  0.147123  0.000000  0.000000  0.000000
+
+  19    13    1  0  0    0.727000  0.956881  0.000000  0.000000  0.000000
+
+  20    14    0  1  0    0.727000  0.956881  0.000000  0.000000  0.000000
+
+  21    15    0  0  1    0.727000  0.956881  0.000000  0.000000  0.000000
+ 
+ NUCLEAR BASIS FUNCTIONS:
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0    7.083000  1.000000  0.000000  0.000000  0.000000
+ 
+ NUCLEAR BASIS FUNCTIONS:
+ CONTRACT COEFF HAVE BEEN NORMALIZED
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0    7.083000  3.094376  0.000000  0.000000  0.000000
+ 
+ CONTRACTED ELECTRONIC OVERLAP MATRIX
+ 
+
+             1           2           3           4           5
+
+    1    0.3511942
+    2    0.3758182   1.0000000
+    3    0.0000000   0.0000000   1.0000000
+    4    0.0000000   0.0000000   0.0000000   1.0000000
+    5    0.0000000   0.0000000   0.0000000   0.0000000   1.0000000
+    6    0.0000468   0.0134299   0.0000000   0.0000000   0.0003635
+    7    0.0134299   0.1312139   0.0000000   0.0000000   0.0406545
+    8    0.0000000   0.0000000   0.0001664   0.0000000   0.0000000
+    9    0.0000000   0.0000000   0.0000000   0.0001664   0.0000000
+   10   -0.0003635  -0.0406545   0.0000000   0.0000000  -0.0027295
+   11    0.0727055   0.2855023   0.0000000   0.0000000   0.1619558
+   12    0.1551213   0.6442602   0.0000000   0.0000000   0.1057097
+   13    0.0000000   0.0000000   0.1868990   0.0000000   0.0000000
+   14    0.0000000   0.0000000   0.0000000   0.1868990   0.0000000
+   15   -0.2101870  -0.3850914   0.0000000   0.0000000  -0.4036401
+
+             6           7           8           9          10
+
+    6    0.3511942
+    7    0.3758182   1.0000000
+    8    0.0000000   0.0000000   1.0000000
+    9    0.0000000   0.0000000   0.0000000   1.0000000
+   10    0.0000000   0.0000000   0.0000000   0.0000000   1.0000000
+   11    0.0727055   0.2855023   0.0000000   0.0000000  -0.1619558
+   12    0.1551213   0.6442602   0.0000000   0.0000000  -0.1057097
+   13    0.0000000   0.0000000   0.1868990   0.0000000   0.0000000
+   14    0.0000000   0.0000000   0.0000000   0.1868990   0.0000000
+   15    0.2101870   0.3850914   0.0000000   0.0000000  -0.4036401
+
+            11          12          13          14          15
+
+   11    0.3453140
+   12    0.4024474   1.0000000
+   13    0.0000000   0.0000000   1.0000000
+   14    0.0000000   0.0000000   0.0000000   1.0000000
+   15    0.0000000   0.0000000   0.0000000   0.0000000   1.0000000
+ 
+ NUCLEAR OVERLAP MATRIX
+ 
+
+             1
+
+    1    1.0000000
+ 
+ **************************************
+  CALCULATING ELEC+NUC CORE INTEGRALS  
+ **************************************
+ 
+ 
+ **************************************
+     Computing GAM_ee Integrals    
+ 
+ nebf =                    15
+ npebf=                    21
+ ngee =                 50625
+ **************************************
+ 
+ 
+ **************************************
+        GAM_1 Integrals    
+ 
+ METHOD = MD
+ npebf  =                    21
+ nebf   =                    15
+ npbf   =                     1
+ ng1    =                   225
+  Available processors:            8
+  Available threads               32
+  Threads in use                   1
+ **************************************
+ 
+  Hello from process                      3
+  Hello from process                      6
+  Hello from process                      1
+  Hello from process                      0
+ Threads in use          32
+  Hello from process                      5
+  Hello from process                      2
+  Hello from process                      4
+  Hello from process                      8
+  Hello from process                      7
+  Hello from process                     11
+  Hello from process                     10
+  Hello from process                      9
+  Hello from process                     20
+  Hello from process                     30
+  Hello from process                     18
+  Hello from process                     16
+  Hello from process                     24
+  Hello from process                     27
+  Hello from process                     23
+  Hello from process                     22
+  Hello from process                     19
+  Hello from process                     17
+  Hello from process                     29
+  Hello from process                     12
+  Hello from process                     13
+  Hello from process                     14
+  Hello from process                     28
+  Hello from process                     31
+  Hello from process                     21
+  Hello from process                     15
+  Hello from process                     26
+  Hello from process                     25
+ TIME TO CALCULATE GAM_1 INTEGRALS:   0.207742929458618     
+ 
+ **************************************
+          GAM_2 Integrals    
+ 
+ METHOD   = MD
+ npebf    =                    21
+ nebf     =                    15
+ npbf     =                     1
+ nprim_g2 =                194481
+ ng2      =                 50625
+  Available processors:            8
+  Available threads               32
+  Threads in use                   1
+ **************************************
+ 
+  Hello from process                     28
+  Hello from process                     13
+  Hello from process                     22
+  Hello from process                     11
+  Hello from process                      9
+  Hello from process                     12
+  Hello from process                     10
+  Hello from process                      3
+  Hello from process                     24
+  Hello from process                     17
+  Hello from process                      5
+  Hello from process                     25
+  Hello from process                      0
+ Threads in use          32
+  Hello from process                     29
+  Hello from process                      1
+  Hello from process                     23
+  Hello from process                     30
+  Hello from process                      8
+  Hello from process                     16
+  Hello from process                     19
+  Hello from process                     27
+  Hello from process                     20
+  Hello from process                     14
+  Hello from process                     26
+  Hello from process                     15
+  Hello from process                      6
+  Hello from process                     31
+  Hello from process                      2
+  Hello from process                      7
+  Hello from process                     18
+  Hello from process                      4
+  Hello from process                     21
+ TIME TO CALCULATE GAM_2 INTEGRALS:    11.7285380363464     
+ 
+ **************************************
+          GAM_3 Integrals    
+ 
+ METHOD = MD
+ npebf=                    21
+ nebf=                    15
+ npbf=                     1
+ nprim_g2 =              85766121
+ ng2 =              11390625
+  Available processors:            8
+  Available threads               32
+  Threads in use                   1
+ **************************************
+ 
+  Hello from process                     12
+  Hello from process                     21
+  Hello from process                     24
+  Hello from process                      3
+  Hello from process                     16
+  Hello from process                      5
+  Hello from process                     18
+  Hello from process                      9
+  Hello from process                     15
+  Hello from process                     23
+  Hello from process                     27
+  Hello from process                      1
+  Hello from process                     20
+  Hello from process                     17
+  Hello from process                      4
+  Hello from process                     26
+  Hello from process                      8
+  Hello from process                     31
+  Hello from process                      6
+  Hello from process                      2
+  Hello from process                     29
+  Hello from process                     19
+  Hello from process                     30
+  Hello from process                     10
+  Hello from process                     11
+  Hello from process                     22
+  Hello from process                      7
+  Hello from process                     28
+  Hello from process                     13
+  Hello from process                      0
+ Threads in use          32
+  Hello from process                     14
+  Hello from process                     25
+ TIME TO CALCULATE GAM_3 INTEGRALS:    3565.84214591980     
+ 
+ FINISHED CALCULATING CONTRACTED GAM_3 INTEGRALS
+ BEGINNING SYMMETRIZATION OF GAM_3 INTEGRALS
+ 
+ BACK FROM start
+ READ IN NUC REPULSION
+ READ IN NUC OVLAP
+ READ IN ELEC OVLAP
+ READ IN GAM_ECORE
+ READ IN GAM_PCORE
+ READ IN GAM_EP
+ READ IN GAM_EE
+
+       ** BEGIN NEOXC SELF-CONSISTENT-FIELD CALCULATION **
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.30391507157732     
+ E_TRP=  -1.30391507157732     
+ 
+ S_total=   1.17486515230134     
+ S_TRP=  0.174865152301345     
+ 
+
+           INITIAL GUESS ENERGETICS:            
+
+      -----------------------------------------------
+               NEOXCHF ENERGETIC COMPONENTS          
+      -----------------------------------------------
+                E_NUC=         1.0827155990
+              E_ECORE=        -9.9576720223
+              E_PCORE=         2.1712179627
+                 E_EP=        -2.2572441088
+                 E_EE=         3.2134071073
+               E_GAM1=        -0.1851282461
+               E_GAM2=        -1.2961747233
+               E_GAM3=         0.2610138190
+               E_GAM4=         0.0024002250
+              S_TOTAL=         1.1748651523
+              E_TOTAL=        -5.7675854511
+
+
+ ITER     TOTAL ENERGY        E CHANGE     E DENSITY CHANGE   P DENSITY CHANGE    ORB GRAD
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.30391507157732     
+ E_TRP=  -1.30391507157732     
+ 
+ S_total=   1.17486515230134     
+ S_TRP=  0.174865152301345     
+ 
+   1       -5.7675854511    -5.7675854511     2.1217452848     1.0000000000     0.0000000000
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.30391535154575     
+ E_TRP=  -1.30391535154575     
+ 
+ S_total=   1.17486518647343     
+ S_TRP=  0.174865186473434     
+ 
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -1.30391535154575     
+ E_TRP=  -1.30391535154575     
+ 
+ S_total=   1.17486518647343     
+ S_TRP=  0.174865186473434     
+ 
+          ---------------START SECOND ORDER SCF---------------
+   2       -5.7675854479     0.0000000032     0.0000000189     0.0000000000     0.0000000132
+
+ FINAL NEOXCHF ENERGY IS       -5.7675854479 AFTER   2 ITERATIONS
+
+      -----------------------------------------------
+               NEOXCHF ENERGETIC COMPONENTS          
+      -----------------------------------------------
+                E_NUC=         1.0827155990
+              E_ECORE=        -9.9576719895
+              E_PCORE=         2.1712179627
+                 E_EP=        -2.2572441699
+                 E_EE=         3.2134071242
+               E_GAM1=        -0.1851282668
+               E_GAM2=        -1.2961749728
+               E_GAM3=         0.2610138695
+               E_GAM4=         0.0024002258
+              S_TOTAL=         1.1748651865
+              E_TOTAL=        -5.7675854479
+
+
+        ELECTRONIC ORBITALS AND EIGENVALUES:         
+
+                        1          2          3          4          5
+
+                     -1.4265    -1.3606    -0.1348     0.5576     0.9086
+
+    1  LABEL        0.696244   0.759024   0.379170  -0.065595   1.102672
+    2  LABEL        0.289003   0.334945   0.656813   0.104311  -1.032020
+    3  LABEL        0.000000   0.000000   0.000000   0.000000   0.000000
+    4  LABEL        0.000000   0.000000   0.000000   0.000000   0.000000
+    5  LABEL        0.022999   0.011132  -0.042914   0.192118   0.017249
+    6  LABEL        0.696244  -0.759024   0.379170  -0.065595  -1.102672
+    7  LABEL        0.289003  -0.334945   0.656813   0.104311   1.032020
+    8  LABEL        0.000000   0.000000   0.000000   0.000000   0.000000
+    9  LABEL        0.000000   0.000000   0.000000   0.000000   0.000000
+   10  LABEL       -0.022999   0.011132   0.042914  -0.192118   0.017249
+   11  LABEL        0.172150   0.000000  -0.427173   1.948226   0.000000
+   12  LABEL        0.037126   0.000000  -1.447650  -1.135999   0.000000
+   13  LABEL        0.000000   0.000000   0.000000   0.000000   0.000000
+   14  LABEL        0.000000   0.000000   0.000000   0.000000   0.000000
+   15  LABEL        0.000000  -0.026948   0.000000   0.000000  -0.523045
+
+                        6          7          8          9         10
+
+                      1.1571     1.1571     1.3085     1.7512     2.0477
+
+    1  LABEL        0.000000   0.000000  -1.427619  -0.765026   0.000000
+    2  LABEL        0.000000   0.000000   1.453988   0.217264   0.000000
+    3  LABEL       -0.230437   0.074226   0.000000   0.000000   0.082317
+    4  LABEL        0.074226   0.230437   0.000000   0.000000  -0.702358
+    5  LABEL        0.000000   0.000000  -0.071360   0.372595   0.000000
+    6  LABEL        0.000000   0.000000  -1.427619   0.765026   0.000000
+    7  LABEL        0.000000   0.000000   1.453988  -0.217264   0.000000
+    8  LABEL       -0.230437   0.074226   0.000000   0.000000  -0.082317
+    9  LABEL        0.074226   0.230437   0.000000   0.000000   0.702358
+   10  LABEL        0.000000   0.000000   0.071360   0.372595   0.000000
+   11  LABEL        0.000000   0.000000  -0.045187   0.000000   0.000000
+   12  LABEL        0.000000   0.000000  -1.224967   0.000000   0.000000
+   13  LABEL       -0.812305   0.261652   0.000000   0.000000   0.000000
+   14  LABEL        0.261652   0.812305   0.000000   0.000000   0.000000
+   15  LABEL        0.000000   0.000000   0.000000  -0.564255   0.000000
+
+                       11         12         13         14         15
+
+                      2.0477     2.4644     2.4644     3.3185     4.4312
+
+    1  LABEL        0.000000   0.000000   0.000000   0.280885   0.535200
+    2  LABEL        0.000000   0.000000   0.000000  -0.611648   0.532387
+    3  LABEL        0.702358   0.304120   0.621578   0.000000   0.000000
+    4  LABEL        0.082317  -0.621578   0.304120   0.000000   0.000000
+    5  LABEL        0.000000   0.000000   0.000000  -0.783140   0.993355
+    6  LABEL        0.000000   0.000000   0.000000   0.280885  -0.535200
+    7  LABEL        0.000000   0.000000   0.000000  -0.611648  -0.532387
+    8  LABEL       -0.702358   0.304120   0.621578   0.000000   0.000000
+    9  LABEL       -0.082317  -0.621578   0.304120   0.000000   0.000000
+   10  LABEL        0.000000   0.000000   0.000000   0.783140   0.993355
+   11  LABEL        0.000000   0.000000   0.000000   1.722171   0.000000
+   12  LABEL        0.000000   0.000000   0.000000   0.166340   0.000000
+   13  LABEL        0.000000  -0.258812  -0.528973   0.000000   0.000000
+   14  LABEL        0.000000   0.528973  -0.258812   0.000000   0.000000
+   15  LABEL        0.000000   0.000000   0.000000   0.000000   1.713980
+
+          NUCLEAR ORBITALS AND EIGENVALUES:          
+
+                        1
+
+                     -0.0903
+
+    1  LABEL        1.000000
+ BACK FROM xcscf

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=01:00:00
+#PBS -q lionxn-soh3
+#PBS -j oe
+#PBS -N TEST_06
+
+ export OMP_NUM_THREADS=1
+
+ MAIN=/gpfs/home/cws161/XCHF1_INDEPENDENT
+
+ EXE=runXCOMP_MD.exe
+#EXE=runXCOMP_AEAC.exe
+
+ cd $PBS_O_WORKDIR
+
+ time $MAIN/$EXE > xcOMP_MD_out.log
+#time $MAIN/$EXE > xcOMP_AEAC_out.log
+

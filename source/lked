@@ -1,0 +1,35 @@
+#!/bin/bash
+
+if [ $# -lt 1 ] ; then
+ echo "Usage: $0 [executable]"
+ echo "Generated executable will be [executable].exe in ../bin"
+ exit 0
+fi
+
+EXEDIR=../bin
+EXE=$1
+
+if [ -e $EXEDIR/$EXE.exe ] ; then
+  echo "Executable $EXE.exe exists in ../bin. Exiting..."
+  exit 0
+fi
+
+F77=ifort
+OPT='-openmp -parallel -fpp -traceback -check all -integer-size 64'
+
+FILS='../object/*.o'
+
+set echo
+
+echo Using compiler $F77 with options $OPT to link files
+echo
+echo $FILS
+echo
+echo to executable $EXE.exe in ../bin
+
+$F77 $OPT $FILS -o $EXEDIR/$EXE.exe
+
+echo Done.
+
+unset echo
+

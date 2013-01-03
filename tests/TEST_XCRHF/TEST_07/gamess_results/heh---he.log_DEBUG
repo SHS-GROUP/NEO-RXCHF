@@ -1,0 +1,2741 @@
+----- GAMESS execution script -----
+This job is running on host shspc2.chem.psu.edu
+under operating system Linux at Mon Mar 7 16:43:45 EST 2011
+Available scratch disk space (Kbyte units) at beginning of the job is
+Filesystem           1K-blocks      Used Available Use% Mounted on
+/dev/mapper/isw_djejifhhbg_ARRAYp5
+                     899556120   2327248 850797008   1% /scr
+In the right spot
+shspc2.chem.psu.edu
+
+ Distributed Data Interface kickoff program.
+ Initiating 1 compute processes on 1 nodes to run the following command:
+ /scr/chet/gamess_neoxc_sockets/gamess.XCHF.x heh---he 
+
+          ******************************************************
+          *         GAMESS VERSION = 25 MAR 2010 (R2)          *
+          *             FROM IOWA STATE UNIVERSITY             *
+          * M.W.SCHMIDT, K.K.BALDRIDGE, J.A.BOATZ, S.T.ELBERT, *
+          *   M.S.GORDON, J.H.JENSEN, S.KOSEKI, N.MATSUNAGA,   *
+          *          K.A.NGUYEN, S.J.SU, T.L.WINDUS,           *
+          *       TOGETHER WITH M.DUPUIS, J.A.MONTGOMERY       *
+          *         J.COMPUT.CHEM.  14, 1347-1363(1993)        *
+          **************** 64 BIT LINUX VERSION ****************
+
+  SINCE 1993, STUDENTS AND POSTDOCS WORKING AT IOWA STATE UNIVERSITY
+  AND ALSO IN THEIR VARIOUS JOBS AFTER LEAVING ISU HAVE MADE IMPORTANT
+  CONTRIBUTIONS TO THE CODE:
+     IVANA ADAMOVIC, CHRISTINE AIKENS, YURI ALEXEEV, POOJA ARORA,
+     ANDREY ASADCHEV, ROB BELL, PRADIPTA BANDYOPADHYAY, JONATHAN BENTZ,
+     BRETT BODE, GALINA CHABAN, WEI CHEN, CHEOL HO CHOI, PAUL DAY, TIM DUDLEY,
+     DMITRI FEDOROV, GRAHAM FLETCHER, MARK FREITAG, KURT GLAESEMANN, DAN KEMP,
+     GRANT MERRILL, JONATHAN MULLIN, TAKESHI NAGATA, SEAN NEDD,
+     HEATHER NETZLOFF, BOSILJKA NJEGIC, RYAN OLSON, MIKE PAK, JIM SHOEMAKER,
+     LYUDMILA SLIPCHENKO, SAROM SOK, JIE SONG, TETSUYA TAKETSUGU,
+     SIMON WEBB, SOOHAENG YOO, FEDERICO ZAHARIEV
+
+  ADDITIONAL CODE HAS BEEN PROVIDED BY COLLABORATORS IN OTHER GROUPS:
+     IOWA STATE UNIVERSITY: JOE IVANIC, LAIMUTIS BYTAUTAS,
+          KLAUS RUEDENBERG
+     UNIVERSITY OF TOKYO: KIMIHIKO HIRAO, TAKAHITO NAKAJIMA,
+          TAKAO TSUNEDA, MUNEAKI KAMIYA, SUSUMU YANAGISAWA,
+          KIYOSHI YAGI, MAHITO CHIBA, SEIKEN TOKURA, NAOAKI KAWAKAMI
+     UNIVERSITY OF AARHUS: FRANK JENSEN
+     UNIVERSITY OF IOWA: VISVALDAS KAIRYS, HUI LI
+     NATIONAL INST. OF STANDARDS AND TECHNOLOGY: WALT STEVENS, DAVID GARMER
+     UNIVERSITY OF PISA: BENEDETTA MENNUCCI, JACOPO TOMASI
+     UNIVERSITY OF MEMPHIS: HENRY KURTZ, PRAKASHAN KORAMBATH
+     UNIVERSITY OF ALBERTA: TOBY ZENG, MARIUSZ KLOBUKOWSKI
+     UNIVERSITY OF NEW ENGLAND: MARK SPACKMAN
+     MIE UNIVERSITY: HIROAKI UMEDA
+     MICHIGAN STATE UNIVERSITY:
+          KAROL KOWALSKI, MARTA WLOCH, JEFFREY GOUR, JESSE LUTZ, PIOTR PIECUCH
+     UNIVERSITY OF SILESIA: MONIKA MUSIAL, STANISLAW KUCHARSKI
+     FACULTES UNIVERSITAIRES NOTRE-DAME DE LA PAIX:
+          OLIVIER QUINET, BENOIT CHAMPAGNE
+     UNIVERSITY OF CALIFORNIA - SANTA BARBARA: BERNARD KIRTMAN
+     INSTITUTE FOR MOLECULAR SCIENCE: KAZUYA ISHIMURA AND SHIGERU NAGASE
+     UNIVERSITY OF NOTRE DAME: DAN CHIPMAN
+     KYUSHU UNIVERSITY:
+          HARUYUKI NAKANO,
+          FENG LONG GU, JACEK KORCHOWIEC, MARCIN MAKOWSKI, AND YURIKO AOKI,
+          HIROTOSHI MORI AND EISAKU MIYOSHI
+     PENNSYLVANIA STATE UNIVERSITY:
+          TZVETELIN IORDANOV, CHET SWALINA, JONATHAN SKONE,
+          SHARON HAMMES-SCHIFFER
+     WASEDA UNIVERSITY:
+          MASATO KOBAYASHI, TOMOKO AKAMA, HIROMI NAKAI
+     UNIVERSITY OF NEBRASKA:
+          PEIFENG SU, DEJUN SI, YALI WANG, HUI LI
+
+ EXECUTION OF GAMESS BEGUN Mon Mar  7 16:43:45 2011
+
+            ECHO OF THE FIRST FEW INPUT CARDS -
+ INPUT CARD> 1                                                                              
+ INPUT CARD> 1  10.34700000                                                                 
+ INPUT CARD>                                                                                
+ INPUT CARD>i                                                                               
+ INPUT CARD>!                                                                               
+ INPUT CARD>!                                                                               
+ INPUT CARD>!                                                                               
+ INPUT CARD>                                                                                
+ INPUT CARD> $CONTRL SCFTYP=RHF RUNTYP=ENERGY MAXIT=100 EXETYP=DEBUG                        
+ INPUT CARD>         INTTYP=HONDO ICHARG=1 MULT=1 MPLEVL=0   $END                           
+ INPUT CARD> $SYSTEM TIMLIM=3000 MWORDS=50 $END                                             
+ INPUT CARD> $INTGRL SCHWRZ=.F. $END                                                        
+ INPUT CARD> $SCF    SOSCF=.T. SOGTOL=1.0d+00 $END                                          
+ INPUT CARD> $NEO    NEOSCF=DIAGZN BASNUC=READIN NUMULT=2 EXCH=.T.                          
+ INPUT CARD>         NUNIQN=1 IUNIQN(1)=3 NUCST=1                                           
+ INPUT CARD>         XCTYP=NONE                                                             
+ INPUT CARD>         XC1G2=MD XC1G3=MD XC1G4=MD                                             
+ INPUT CARD>         BCOEF1(1)=5.046,5.407,3.467                                            
+ INPUT CARD>         GAMMA1(1)=0.1928,1.2366,8.275                                          
+ INPUT CARD>         NGTG1=3 $END                                                           
+ INPUT CARD> $GUESS  GUESS=HCORE NORB=3 $END                                                
+ INPUT CARD>i$GESNMO GUESS=MOREAD NORB=5 $END                                               
+ INPUT CARD> $DATA                                                                          
+ INPUT CARD>                                                                                
+ INPUT CARD> C1                                                                             
+ INPUT CARD> HE          2.0  -0.0000000000  -0.0000000000  -0.7419131570                   
+ INPUT CARD>S   3                                                                           
+ INPUT CARD>  1     38.3600000              0.0238090                                       
+ INPUT CARD>  2      5.7700000              0.1548910                                       
+ INPUT CARD>  3      1.2400000              0.4699870                                       
+ INPUT CARD>S   1                                                                           
+ INPUT CARD>  1      0.2976000              1.0000000                                       
+ INPUT CARD>P   1                                                                           
+ INPUT CARD>  1      1.2750000              1.0000000                                       
+ INPUT CARD>                                                                                
+ INPUT CARD> HE          2.0  -0.0000000000  -0.0000000000   22.00000                       
+ INPUT CARD>S   3                                                                           
+ INPUT CARD>  1     38.3600000              0.0238090                                       
+ INPUT CARD>  2      5.7700000              0.1548910                                       
+ INPUT CARD>  3      1.2400000              0.4699870                                       
+ INPUT CARD>S   1                                                                           
+ INPUT CARD>  1      0.2976000              1.0000000                                       
+ INPUT CARD>P   1                                                                           
+ INPUT CARD>  1      1.2750000              1.0000000                                       
+ INPUT CARD>                                                                                
+ INPUT CARD> H           1.0   0.0000000000   0.0000000000   0.0419131570                   
+ INPUT CARD>S   3                                                                           
+ INPUT CARD>  1     13.0100000              0.0196850                                       
+ INPUT CARD>  2      1.9620000              0.1379770                                       
+ INPUT CARD>  3      0.4446000              0.4781480                                       
+   50000000 WORDS OF MEMORY AVAILABLE
+
+
+     RUN TITLE
+     ---------
+                                                                                 
+
+ THE POINT GROUP OF THE MOLECULE IS C1      
+ THE ORDER OF THE PRINCIPAL AXIS IS     0
+ *** WARNING! ATOM   1 SHELL    1 TYPE S HAS NORMALIZATION   1.68743229
+ *** WARNING! ATOM   2 SHELL    4 TYPE S HAS NORMALIZATION   1.68743229
+ *** WARNING! ATOM   3 SHELL    7 TYPE S HAS NORMALIZATION   1.70173870
+
+ ATOM      ATOMIC                      COORDINATES (BOHR)
+           CHARGE         X                   Y                   Z
+ HE          2.0     0.0000000000        0.0000000000       -1.4020125734
+ HE          2.0     0.0000000000        0.0000000000       41.5739717299
+ H           1.0     0.0000000000        0.0000000000        0.0792043820
+
+          INTERNUCLEAR DISTANCES (ANGS.)
+          ------------------------------
+
+                1 HE         2 HE         3 H     
+
+   1 HE      0.0000000   22.7419132    0.7838263 *
+   2 HE     22.7419132    0.0000000   21.9580868  
+   3 H       0.7838263 * 21.9580868    0.0000000  
+
+  * ... LESS THAN  3.000
+
+
+     ATOMIC BASIS SET
+     ----------------
+ THE CONTRACTED PRIMITIVE FUNCTIONS HAVE BEEN UNNORMALIZED
+ THE CONTRACTED BASIS FUNCTIONS ARE NOW NORMALIZED TO UNITY
+
+  SHELL TYPE  PRIMITIVE        EXPONENT          CONTRACTION COEFFICIENT(S)
+
+ HE        
+
+      1   S       1            38.3600000    0.040176075383
+      1   S       2             5.7700000    0.261368074769
+      1   S       3             1.2400000    0.793071239495
+
+      2   S       4             0.2976000    1.000000000000
+
+      3   P       5             1.2750000    1.000000000000
+
+ HE        
+
+      4   S       6            38.3600000    0.040176075383
+      4   S       7             5.7700000    0.261368074769
+      4   S       8             1.2400000    0.793071239495
+
+      5   S       9             0.2976000    1.000000000000
+
+      6   P      10             1.2750000    1.000000000000
+
+ H         
+
+      7   S      11            13.0100000    0.033498726390
+      7   S      12             1.9620000    0.234800801174
+      7   S      13             0.4446000    0.813682957883
+
+      8   S      14             0.1220000    1.000000000000
+
+      9   P      15             0.7270000    1.000000000000
+
+ TOTAL NUMBER OF BASIS SET SHELLS             =    9
+ NUMBER OF CARTESIAN GAUSSIAN BASIS FUNCTIONS =   15
+ NUMBER OF ELECTRONS                          =    4
+ CHARGE OF MOLECULE                           =    1
+ SPIN MULTIPLICITY                            =    1
+ NUMBER OF OCCUPIED ORBITALS (ALPHA)          =    2
+ NUMBER OF OCCUPIED ORBITALS (BETA )          =    2
+ TOTAL NUMBER OF ATOMS                        =    3
+ THE NUCLEAR REPULSION ENERGY IS        1.4915151796
+
+ THIS MOLECULE IS RECOGNIZED AS BEING LINEAR,
+ ORBITAL LZ DEGENERACY TOLERANCE ETOLLZ= 1.00E-06
+
+
+     ----------------------------------------------------------------
+              NUCLEAR ELECTRONIC ORBITAL (NEO) CALCULATION
+     ----------------------------------------------------------------
+     NEO METHOD DEVELOPMENT IS CARRIED OUT IN THE LABORATORY OF      
+     SHARON HAMMES-SCHIFFER AT THE PENNSYLVANIA STATE UNIVERISTY
+
+     CONTRIBUTORS TO THE CODE: SIMON P. WEBB, TZVETELIN IORDANOV,
+                               MIKE PAK, CHET SWALINA, AND JONATHAN SKONE
+     ----------------------------------------------------------------
+
+
+     $NEO OPTIONS
+     ------------
+     NUNIQN=       1     BASNUC=READIN       NEOSCF=DIAGZN  
+     NEOCI =NONE         NUMULT=       2     NUCST =       1
+     NAUXNB=       0     VNUCEX=       F     NUCOPT=       F
+     NTAUXB=       0     NEOHSS=       F     HSSINI=READH   
+     HSSUPD=POWELLUP     DIRNUC=       F     SYMNUC=       F
+     QMTOLN= 0.0E+00     USRDEX=       F
+     POSNEO=       F     POSPRP=       F
+     NEONCI=       F     LOCORB=       0
+     XCTYP =NONE    
+     XC1G2 =MD           XC1G3 =MD           XC1G4 =MD      
+
+ CWS PMASS           =   1836.00000000000     
+ CWS QM NUCLEUS MASS =   1836.00000000000     
+
+     NUCLEAR BASIS SET CENTERS
+     -------------------------
+
+ NUC       ATOMIC                      COORDINATES (BOHR)
+           CHARGE         X                   Y                   Z
+ PROTON      1.0     0.0000000000        0.0000000000        0.0792043820
+
+     NUCLEAR BASIS SET
+     -----------------
+ THE CONTRACTED PRIMITIVE FUNCTIONS HAVE BEEN UNNORMALIZED
+ THE CONTRACTED BASIS FUNCTIONS ARE NOW NORMALIZED TO UNITY
+
+ SHELL TYPE PRIMITIVE    EXPONENT          CONTRACTION COEFFICIENTS
+
+ PROTON    
+
+   1   S    1          10.3470000      1.000000000000
+
+ TOTAL NUMBER OF NUCLEAR BASIS SET SHELLS     =    1
+ NUMBER OF CARTESIAN GAUSSIAN BASIS FUNCTIONS =    1
+ NUCLEAR SPIN MULTIPLICITY                    =    2
+ NUMBER OF OCCUPIED NUCLEAR ORBITALS (ALPHA)  =    1
+ NUMBER OF OCCUPIED NUCLEAR ORBITALS (BETA )  =    0
+ TOTAL NUMBER OF QUANTUM NUCLEI               =    1
+ THE CORRECTED CLASSICAL NUCLEAR REPULSION ENERGY IS        0.0930752388
+
+     $CONTRL OPTIONS
+     ---------------
+ SCFTYP=RHF          RUNTYP=ENERGY       EXETYP=DEBUG   
+ MPLEVL=       0     CITYP =NONE         CCTYP =NONE         VBTYP =NONE    
+ DFTTYP=NONE         TDDFT =NONE    
+ MULT  =       1     ICHARG=       1     NZVAR =       0     COORD =UNIQUE  
+ PP    =NONE         RELWFN=NONE         LOCAL =NONE         NUMGRD=       F
+ ISPHER=      -1     NOSYM =       0     MAXIT =     100     UNITS =ANGS    
+ PLTORB=       F     MOLPLT=       F     AIMPAC=       F     FRIEND=        
+ NPRINT=       7     IREST =       0     GEOM  =INPUT   
+ NORMF =       0     NORMP =       0     ITOL  =      20     ICUT  =       9
+ INTTYP=BEST         GRDTYP=BEST         QMTTOL= 1.0E-06
+
+     $SYSTEM OPTIONS
+     ---------------
+  REPLICATED MEMORY=    50000000 WORDS (ON EVERY NODE).
+ DISTRIBUTED MEMDDI=           0 MILLION WORDS IN AGGREGATE,
+ MEMDDI DISTRIBUTED OVER   1 PROCESSORS IS           0 WORDS/PROCESSOR.
+ TOTAL MEMORY REQUESTED ON EACH PROCESSOR=    50000000 WORDS.
+ TIMLIM=        3000.00 MINUTES, OR       2.1 DAYS.
+ PARALL= F  BALTYP=  DLB     KDIAG=    0  COREFL= F
+ MXSEQ2=     300 MXSEQ3=     150
+
+          ----------------
+          PROPERTIES INPUT
+          ----------------
+
+     MOMENTS            FIELD           POTENTIAL          DENSITY
+ IEMOM =       1   IEFLD =       0   IEPOT =       0   IEDEN =       0
+ WHERE =COMASS     WHERE =NUCLEI     WHERE =NUCLEI     WHERE =NUCLEI  
+ OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH    
+ IEMINT=       0   IEFINT=       0                     IEDINT=       0
+                                                       MORB  =       0
+          EXTRAPOLATION IN EFFECT
+          SOSCF IN EFFECT
+ ORBITAL PRINTING OPTION: NPREO=     1    15     2     1
+
+     -------------------------------
+     INTEGRAL TRANSFORMATION OPTIONS
+     -------------------------------
+     NWORD  =         0     CUTOFF = 1.0E-09
+     MPTRAN =         0     DIRTRF =       F
+     AOINTS =DUP     
+
+          ----------------------
+          INTEGRAL INPUT OPTIONS
+          ----------------------
+ NOPK  =       1 NORDER=       0 SCHWRZ=       F
+
+     ------------------------------------------
+     THE POINT GROUP IS C1 , NAXIS= 0, ORDER= 1
+     ------------------------------------------
+
+     DIMENSIONS OF THE SYMMETRY SUBSPACES ARE
+ A   =   15
+
+ ..... DONE SETTING UP THE RUN .....
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS   0.00%
+
+          ********************
+          1 ELECTRON INTEGRALS
+          ********************
+ OVERLAP MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.000000
+    2  HE 1  S    0.634168   1.000000
+    3  HE 1  X    0.000000   0.000000   1.000000
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.000000
+    5  HE 1  Z    0.000000   0.000000   0.000000   0.000000   1.000000
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.330326   0.610948   0.000000   0.000000   0.367605
+   12  H  3  S    0.300007   0.715877   0.000000   0.000000   0.097079
+   13  H  3  X    0.000000   0.000000   0.328514   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.328514   0.000000
+   15  H  3  Z   -0.512355  -0.399374   0.000000   0.000000  -0.338910
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.000000
+    7  HE 2  S    0.634168   1.000000
+    8  HE 2  X    0.000000   0.000000   1.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   1.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.000000
+   12  H  3  S    0.684860   1.000000
+   13  H  3  X    0.000000   0.000000   1.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   1.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   1.000000
+ BARE NUCLEUS HAMILTONIAN INTEGRALS (H=T+V)
+
+                      1          2          3          4          5
+
+    1  HE 1  S   -1.926790
+    2  HE 1  S   -1.575301  -1.341209
+    3  HE 1  X    0.000000   0.000000   0.738465
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.738465
+    5  HE 1  Z   -0.000416  -0.000539   0.000000   0.000000   0.738450
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S   -0.865640  -0.766252   0.000000   0.000000  -0.269257
+   12  H  3  S   -0.814077  -0.891320   0.000000   0.000000  -0.127886
+   13  H  3  X    0.000000   0.000000  -0.191370   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000  -0.191370   0.000000
+   15  H  3  Z    1.112420   0.728425   0.000000   0.000000  -0.292909
+
+                      6          7          8          9         10
+
+    6  HE 2  S   -1.926790
+    7  HE 2  S   -1.575301  -1.341209
+    8  HE 2  X    0.000000   0.000000   0.738465
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.738465
+   10  HE 2  Z    0.000416   0.000539   0.000000   0.000000   0.738450
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S   -0.385453
+   12  H  3  S   -0.662198  -0.809296
+   13  H  3  X    0.000000   0.000000   0.626282
+   14  H  3  Y    0.000000   0.000000   0.000000   0.626282
+   15  H  3  Z    0.488818   0.379829   0.000000   0.000000   0.163393
+ KINETIC ENERGY INTEGRALS
+
+                      1          2          3          4          5
+
+    1  HE 1  S    2.922435
+    2  HE 1  S    0.466660   0.446400
+    3  HE 1  X    0.000000   0.000000   3.187500
+    4  HE 1  Y    0.000000   0.000000   0.000000   3.187500
+    5  HE 1  Z    0.000000   0.000000   0.000000   0.000000   3.187500
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.128283   0.248281   0.000000   0.000000   0.432281
+   12  H  3  S    0.084261   0.162311   0.000000   0.000000   0.048765
+   13  H  3  X    0.000000   0.000000   0.451493   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.451493   0.000000
+   15  H  3  Z   -0.703823  -0.343521   0.000000   0.000000  -1.083815
+
+                      6          7          8          9         10
+
+    6  HE 2  S    2.922435
+    7  HE 2  S    0.466660   0.446400
+    8  HE 2  X    0.000000   0.000000   3.187500
+    9  HE 2  Y    0.000000   0.000000   0.000000   3.187500
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   3.187500
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    0.969457
+   12  H  3  S    0.201234   0.183000
+   13  H  3  X    0.000000   0.000000   1.817500
+   14  H  3  Y    0.000000   0.000000   0.000000   1.817500
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   1.817500
+ Z-ANGULAR MOMENTUM INTEGRALS
+
+                      1          2          3          4          5
+
+    1  HE 1  S    0.000000
+    2  HE 1  S    0.000000   0.000000
+    3  HE 1  X    0.000000   0.000000   0.000000
+    4  HE 1  Y    0.000000   0.000000  -1.000000   0.000000
+    5  HE 1  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.328514   0.000000
+   14  H  3  Y    0.000000   0.000000  -0.328514   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                      6          7          8          9         10
+
+    6  HE 2  S    0.000000
+    7  HE 2  S    0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000  -1.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    0.000000
+   12  H  3  S    0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000  -1.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+ ...... END OF ONE-ELECTRON INTEGRALS ......
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS   0.00%
+
+          -------------
+          GUESS OPTIONS
+          -------------
+          GUESS =HCORE             NORB  =       3          NORDER=       0
+          MIX   =       F          PRTMO =       F          PUNMO =       F
+          TOLZ  = 1.0E-08          TOLE  = 1.0E-05
+          SYMDEN=       F          PURIFY=       F
+
+ INITIAL GUESS ORBITALS GENERATED BY HCORE    ROUTINE.
+     0 MO COEFS WERE ZEROED,    0 WERE EQUATED
+
+ SYMMETRIES FOR INITIAL GUESS ORBITALS FOLLOW.   BOTH SET(S).
+     2 ORBITALS ARE OCCUPIED (    0 CORE ORBITALS).
+     1=A        2=A        3=A        4=A        5=A        6=A        7=A   
+     8=A        9=A       10=A       11=A       12=A   
+
+                              ----------------------
+                              INITIAL GUESS ORBITALS
+                              ----------------------
+
+                              ASSIGNED OCCUPANCIES
+
+                  2.000000   2.000000   0.000000   0.000000   0.000000
+                  0.000000   0.000000   0.000000   0.000000   0.000000
+                  0.000000   0.000000   0.000000   0.000000   0.000000
+
+                      1          2          3          4          5
+                    0.0000     0.0000     0.0000     0.0000     0.0000
+                     A          A          A          A          A   
+    1  HE 1  S    0.766944   0.000000  -0.299853   0.000000  -0.673296
+    2  HE 1  S    0.318648   0.000000  -0.340738   0.000000   1.545678
+    3  HE 1  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z   -0.005391   0.000000   0.064498   0.000000  -0.176458
+    6  HE 2  S    0.000000   0.773126   0.000000  -1.036817   0.000000
+    7  HE 2  S    0.000000   0.311370   0.000000   1.255293   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000  -0.000176   0.000000  -0.000298   0.000000
+   11  H  3  S    0.012378   0.000000   0.083965   0.000000  -0.800931
+   12  H  3  S   -0.025308   0.000000   1.158306   0.000000  -0.213135
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.011476   0.000000  -0.029879   0.000000   0.252316
+
+                      6          7          8          9         10
+                    0.0000     0.0000     0.0000     0.0000     0.0000
+                     A          A          A          A          A   
+    1  HE 1  S    0.663668   0.000000   0.000000   0.000000   0.000000
+    2  HE 1  S   -1.221499   0.000000   0.000000   0.000000   0.000000
+    3  HE 1  X    0.000000   0.429503   0.355550   0.000000   0.000000
+    4  HE 1  Y    0.000000  -0.355550   0.429503   0.000000   0.000000
+    5  HE 1  Z   -0.337896   0.000000   0.000000   0.000000   0.000000
+    6  HE 2  S    0.000000   0.000000   0.000000  -0.000173   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000429   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000  -0.467543
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.883970
+   10  HE 2  Z    0.000000   0.000000   0.000000   1.000000   0.000000
+   11  H  3  S   -0.751756   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    1.236122   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.513737   0.425281   0.000000   0.000000
+   14  H  3  Y    0.000000  -0.425281   0.513737   0.000000   0.000000
+   15  H  3  Z   -0.223071   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+                    0.0000     0.0000     0.0000     0.0000     0.0000
+                     A          A          A          A          A   
+    1  HE 1  S    0.000000   0.479735   0.000000   0.000000  -0.535304
+    2  HE 1  S    0.000000   0.022402   0.000000   0.000000  -1.180625
+    3  HE 1  X    0.000000   0.000000   0.703874   0.560937   0.000000
+    4  HE 1  Y    0.000000   0.000000  -0.560937   0.703874   0.000000
+    5  HE 1  Z    0.000000  -0.331897   0.000000   0.000000  -1.428148
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.883970   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.467543   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.403533   0.000000   0.000000   1.463904
+   12  H  3  S    0.000000  -0.379673   0.000000   0.000000   0.155979
+   13  H  3  X    0.000000   0.000000  -0.643076  -0.512486   0.000000
+   14  H  3  Y    0.000000   0.000000   0.512486  -0.643076   0.000000
+   15  H  3  Z    0.000000   0.932951   0.000000   0.000000  -1.414999
+ ...... END OF INITIAL ORBITAL SELECTION ......
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS   0.00%
+
+                    ----------------------
+                    AO INTEGRAL TECHNOLOGY
+                    ----------------------
+     S,P,L SHELL ROTATED AXIS INTEGRALS, REPROGRAMMED BY
+        KAZUYA ISHIMURA (IMS) AND JOSE SIERRA (SYNSTAR).
+     S,P,D,L SHELL ROTATED AXIS INTEGRALS PROGRAMMED BY
+        KAZUYA ISHIMURA (INSTITUTE FOR MOLECULAR SCIENCE).
+     S,P,D,F,G SHELL TO TOTAL QUARTET ANGULAR MOMENTUM SUM 5,
+        ERIC PROGRAM BY GRAHAM FLETCHER (ELORET AND NASA ADVANCED
+        SUPERCOMPUTING DIVISION, AMES RESEARCH CENTER).
+     S,P,D,F,G,L SHELL GENERAL RYS QUADRATURE PROGRAMMED BY
+        MICHEL DUPUIS (PACIFIC NORTHWEST NATIONAL LABORATORY).
+
+          --------------------
+          2 ELECTRON INTEGRALS
+          --------------------
+
+ THE -PK- OPTION IS OFF, THE INTEGRALS ARE NOT IN SUPERMATRIX FORM.
+ STORING   15000 INTEGRALS/RECORD ON DISK, USING 12 BYTES/INTEGRAL.
+ TWO ELECTRON INTEGRAL EVALUATION REQUIRES   89401 WORDS OF MEMORY.
+ II,JST,KST,LST =  1  1  1  1 NREC =         1 INTLOC =    1
+ II,JST,KST,LST =  2  1  1  1 NREC =         1 INTLOC =    2
+ II,JST,KST,LST =  3  1  1  1 NREC =         1 INTLOC =    7
+ II,JST,KST,LST =  4  1  1  1 NREC =         1 INTLOC =   34
+ II,JST,KST,LST =  5  1  1  1 NREC =         1 INTLOC =   43
+ II,JST,KST,LST =  6  1  1  1 NREC =         1 INTLOC =   64
+ II,JST,KST,LST =  7  1  1  1 NREC =         1 INTLOC =  149
+ II,JST,KST,LST =  8  1  1  1 NREC =         1 INTLOC =  237
+ II,JST,KST,LST =  9  1  1  1 NREC =         1 INTLOC =  368
+ TOTAL NUMBER OF NONZERO TWO-ELECTRON INTEGRALS =                 834
+          1 INTEGRAL RECORDS WERE STORED ON DISK FILE  8.
+  ...... END OF TWO-ELECTRON INTEGRALS .....
+ STEP CPU TIME =     0.03 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS  75.00%
+
+          *******************
+          1 NUCLEUS INTEGRALS
+          *******************
+ OVERLAP MATRIX
+
+                      1
+
+    1  HE 1  S    1.000000
+ BARE NUCLEUS HAMILTONIAN INTEGRALS (H=T+V)
+
+                      1
+
+    1  HE 1  S    1.406893
+ KINETIC ENERGY INTEGRALS
+
+                      1
+
+    1  HE 1  S    0.008453
+ Z-ANGULAR MOMENTUM INTEGRALS
+
+                      1
+
+    1  HE 1  S    0.000000
+ ...... END OF ONE-NUCLEUS INTEGRALS ......
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS  75.00%
+
+          --------------------------
+          ELECTRON-NUCLEUS INTEGRALS
+          --------------------------
+
+ THE -PK- OPTION IS OFF, THE INTEGRALS ARE NOT IN SUPERMATRIX FORM.
+ STORING   15000 INTEGRALS/RECORD ON DISK, USING 16 BYTES/INTEGRAL.
+ ELECTRON-NUCLEAR INTEGRAL EVALUATION REQUIRES   89365 WORDS OF MEMORY.
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS  75.00%
+ II,JST,KST,LST = 10  1  1  1 NREC =         1 INTLOC =    1
+ TOTAL NUMBER OF NONZERO ELECTRON-NUCLEAR INTEGRALS =                  33
+          1 INTEGRAL RECORDS WERE STORED ON DISK FILE 67.
+  .. END OF ELECTRON-NUCLEAR COULOMB INTEGRALS ..
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS  75.00%
+
+          ------------------------
+          NUCLEAR MO GUESS OPTIONS
+          ------------------------
+          GUESS =GESDEN            NORB  =       0          NORDER=       0
+          MIX   =       F          PRTMO =       F          PUNMO =       F
+          TOLZ  = 1.0E-08          TOLE  = 1.0E-05
+          SYMDEN=       F          PURIFY=       F
+
+ INITIAL GUESS NUCLEAR ORBITALS GENERATED BY GESDEN   ROUTINE.
+
+     -----------------
+     EIGENVECTORS OF S
+     -----------------
+
+                      1
+
+                  1.000000
+
+    1             1.000000
+
+     ------------------------------
+     CANONICAL ORTHONORMAL ORBITALS
+     ------------------------------
+
+                      1
+
+                  1.000000
+
+    1             1.000000
+ SYMMETRIZED EL-NU MATRIX ELEMENTS
+
+             1
+
+    1   -1.3817711
+ ALPHA TOTAL FOCK MATRIX
+
+             1
+
+    1    0.0251223
+ NEW ALPHA ORBITALS
+
+                        1
+
+                      0.0251
+
+    1  PROT 3  S    1.000000
+ NEW ALPHA DENSITY MATRIX
+
+             1
+
+    1    1.0000000
+     0 MO COEFS WERE ZEROED,    0 WERE EQUATED
+ .... END OF INITIAL NUCLEAR ORBITAL SELECTION ....
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS  75.00%
+
+          --------------------------
+                 RHF SCF CALCULATION
+          --------------------------
+
+     NUCLEAR ENERGY =         0.0930752388
+     MAXIT =  100     NPUNCH=    2
+     EXTRAP=T  DAMP=F  SHIFT=F  RSTRCT=F  DIIS=F  DEM=F  SOSCF=T
+     DENSITY MATRIX CONV=  1.00E-05
+     SOSCF WILL OPTIMIZE      26 ORBITAL ROTATIONS, SOGTOL=   1.000
+     MEMORY REQUIRED FOR RHF ITERS=     31889 WORDS.
+
+ ITER EX DEM     TOTAL ENERGY        E CHANGE  DENSITY CHANGE     ORB. GRAD
+ *** START OF DEBUG OUTPUT FOR ITERATION                    1
+ SKELETON FOCK MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.460933
+    2  HE 1  S    0.660127   1.042364
+    3  HE 1  X    0.000000   0.000000   1.921806
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.921806
+    5  HE 1  Z    0.000057   0.000271   0.000000   0.000000   1.921628
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.314861   0.631435   0.000000   0.000000   0.592231
+   12  H  3  S    0.267669   0.693887   0.000000   0.000000   0.149551
+   13  H  3  X    0.000000   0.000000   0.538962   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.538962   0.000000
+   15  H  3  Z   -0.628930  -0.475488   0.000000   0.000000  -0.637769
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.461197
+    7  HE 2  S    0.659647   1.040747
+    8  HE 2  X    0.000000   0.000000   1.920983
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.920983
+   10  HE 2  Z   -0.000328  -0.000493   0.000000   0.000000   1.920997
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.119510
+   12  H  3  S    0.667938   0.813500
+   13  H  3  X    0.000000   0.000000   1.148133
+   14  H  3  Y    0.000000   0.000000   0.000000   1.148133
+   15  H  3  Z   -0.152849  -0.089673   0.000000   0.000000   1.116096
+ SYMMETRIZED FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.460933
+    2  HE 1  S    0.660127   1.042364
+    3  HE 1  X    0.000000   0.000000   1.921806
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.921806
+    5  HE 1  Z    0.000057   0.000271   0.000000   0.000000   1.921628
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.314861   0.631435   0.000000   0.000000   0.592231
+   12  H  3  S    0.267669   0.693887   0.000000   0.000000   0.149551
+   13  H  3  X    0.000000   0.000000   0.538962   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.538962   0.000000
+   15  H  3  Z   -0.628930  -0.475488   0.000000   0.000000  -0.637769
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.461197
+    7  HE 2  S    0.659647   1.040747
+    8  HE 2  X    0.000000   0.000000   1.920983
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.920983
+   10  HE 2  Z   -0.000328  -0.000493   0.000000   0.000000   1.920997
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.119510
+   12  H  3  S    0.667938   0.813500
+   13  H  3  X    0.000000   0.000000   1.148133
+   14  H  3  Y    0.000000   0.000000   0.000000   1.148133
+   15  H  3  Z   -0.152849  -0.089673   0.000000   0.000000   1.116096
+
+ EHF1 =      -4.376070748884 EHF2 =      -9.544017471630 EHF =      -6.960044110257
+ TOTAL FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S   -1.140203
+    2  HE 1  S   -1.338722  -0.898970
+    3  HE 1  X    0.000000   0.000000   2.045425
+    4  HE 1  Y    0.000000   0.000000   0.000000   2.045425
+    5  HE 1  Z   -0.172394  -0.206052   0.000000   0.000000   1.878040
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S   -0.854000  -0.730388   0.000000   0.000000  -0.194441
+   12  H  3  S   -0.761023  -0.646698   0.000000   0.000000  -0.167373
+   13  H  3  X    0.000000   0.000000   0.087293   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.087293   0.000000
+   15  H  3  Z    0.884534   0.545744   0.000000   0.000000  -0.536660
+
+                      6          7          8          9         10
+
+    6  HE 2  S   -0.489693
+    7  HE 2  S   -0.930937  -0.324561
+    8  HE 2  X    0.000000   0.000000   2.635351
+    9  HE 2  Y    0.000000   0.000000   0.000000   2.635351
+   10  HE 2  Z    0.000312   0.000335   0.000000   0.000000   2.635342
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S   -0.572494
+   12  H  3  S   -0.628784  -0.549917
+   13  H  3  X    0.000000   0.000000   0.868833
+   14  H  3  Y    0.000000   0.000000   0.000000   0.868833
+   15  H  3  Z    0.335969   0.290156   0.000000   0.000000   0.373907
+ LAGRANGE MULTIPLIER MATRIX
+
+             1           2
+
+    1   -2.8313223   0.0000000
+    2    0.0000000  -1.5447485
+    3   -0.3714454   0.0000000
+    4    0.0000000  -0.6745237
+    5   -0.0543145   0.0000000
+    6    0.6144982   0.0000000
+    7    0.0000000   0.0000000
+    8    0.0000000   0.0000000
+    9    0.0000000  -0.0007114
+   10    0.0000000   0.0000000
+   11    0.0000000   0.0000000
+   12    0.2922156   0.0000000
+   13    0.0000000   0.0000000
+   14    0.0000000   0.0000000
+   15   -0.1652320   0.0000000
+ NEW ORBITALS
+
+                      1          2          3          4          5
+
+                   -1.4911    -0.8239    -0.2805     0.2157     0.8394
+
+    1  HE 1  S   -0.606580   0.000000  -0.218799   0.030661   0.000000
+    2  HE 1  S   -0.363777   0.000000  -0.685483   0.028090   0.000000
+    3  HE 1  X    0.000000   0.000000   0.000000   0.000000   0.146391
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000   0.015294
+    5  HE 1  Z   -0.017964   0.000000   0.013148  -0.093999   0.000000
+    6  HE 2  S    0.000000  -0.607806   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.497241   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000103   0.000000   0.000000   0.000000
+   11  H  3  S   -0.188340   0.000000   0.456395  -1.232511   0.000000
+   12  H  3  S    0.023237   0.000000   0.984730   1.169646   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.936838
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.097871
+   15  H  3  Z    0.049768   0.000000   0.043781  -0.108284   0.000000
+
+                      6          7          8          9         10
+
+                    0.8394     0.9403     1.4369     1.6375     2.3631
+
+    1  HE 1  S    0.000000   0.712859   0.000000  -0.979711   0.000000
+    2  HE 1  S    0.000000  -1.917813   0.000000   0.345435   0.000000
+    3  HE 1  X    0.015294   0.000000   0.000000   0.000000   1.030067
+    4  HE 1  Y   -0.146391   0.000000   0.000000   0.000000  -0.195642
+    5  HE 1  Z    0.000000  -0.093101   0.000000   0.144143   0.000000
+    6  HE 2  S    0.000000   0.000000   1.141615   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000  -1.193928   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000037   0.000000   0.000000
+   11  H  3  S    0.000000   0.250102   0.000000   0.138753   0.000000
+   12  H  3  S    0.000000   0.850234   0.000000   0.012916   0.000000
+   13  H  3  X    0.097871   0.000000   0.000000   0.000000  -0.474969
+   14  H  3  Y   -0.936838   0.000000   0.000000   0.000000   0.090212
+   15  H  3  Z    0.000000  -0.780059   0.000000  -0.966402   0.000000
+
+                     11         12         13         14         15
+
+                    2.3631     2.6353     2.6354     2.6354     3.5624
+
+    1  HE 1  S    0.000000   0.000000   0.000000   0.000000   0.451484
+    2  HE 1  S    0.000000   0.000000   0.000000   0.000000   1.045396
+    3  HE 1  X    0.195642   0.000000   0.000000   0.000000   0.000000
+    4  HE 1  Y    1.030067   0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.000000   0.000000   0.000000   0.000000   1.503491
+    6  HE 2  S    0.000000  -0.000020   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.000096   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.423547  -0.905874   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.905874   0.423547   0.000000
+   10  HE 2  Z    0.000000  -1.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000  -1.294229
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000  -0.151157
+   13  H  3  X   -0.090212   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y   -0.474969   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   1.195209
+ NEW DENSITY MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    0.735878
+    2  HE 1  S    0.441320   0.264668
+    3  HE 1  X    0.000000   0.000000   0.000000
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.021793   0.013070   0.000000   0.000000   0.000645
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.228486   0.137027   0.000000   0.000000   0.006767
+   12  H  3  S   -0.028190  -0.016906   0.000000   0.000000  -0.000835
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.060377  -0.036209   0.000000   0.000000  -0.001788
+
+                      6          7          8          9         10
+
+    6  HE 2  S    0.738856
+    7  HE 2  S    0.604452   0.494496
+    8  HE 2  X    0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z   -0.000125  -0.000102   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    0.070944
+   12  H  3  S   -0.008753   0.001080
+   13  H  3  X    0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.018747   0.002313   0.000000   0.000000   0.004954
+ *** END OF DEBUG OUTPUT FOR ITERATION                    1
+   1  0  0       -5.4600754993    -5.4600754993   0.456591943   0.000000000
+ *** START OF DEBUG OUTPUT FOR ITERATION                    2
+ SKELETON FOCK MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.389646
+    2  HE 1  S    0.591538   0.935346
+    3  HE 1  X    0.000000   0.000000   1.797867
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.797867
+    5  HE 1  Z   -0.035312  -0.024107   0.000000   0.000000   1.791933
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.223022   0.540193   0.000000   0.000000   0.542443
+   12  H  3  S    0.206846   0.618589   0.000000   0.000000   0.122061
+   13  H  3  X    0.000000   0.000000   0.518279   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.518279   0.000000
+   15  H  3  Z   -0.599378  -0.424620   0.000000   0.000000  -0.593472
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.383032
+    7  HE 2  S    0.581410   0.922559
+    8  HE 2  X    0.000000   0.000000   1.797601
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.797601
+   10  HE 2  Z   -0.000374  -0.000513   0.000000   0.000000   1.797616
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.057289
+   12  H  3  S    0.611957   0.771249
+   13  H  3  X    0.000000   0.000000   1.183964
+   14  H  3  Y    0.000000   0.000000   0.000000   1.183964
+   15  H  3  Z   -0.069520  -0.034358   0.000000   0.000000   1.123635
+ SYMMETRIZED FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.389646
+    2  HE 1  S    0.591538   0.935346
+    3  HE 1  X    0.000000   0.000000   1.797867
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.797867
+    5  HE 1  Z   -0.035312  -0.024107   0.000000   0.000000   1.791933
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.223022   0.540193   0.000000   0.000000   0.542443
+   12  H  3  S    0.206846   0.618589   0.000000   0.000000   0.122061
+   13  H  3  X    0.000000   0.000000   0.518279   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.518279   0.000000
+   15  H  3  Z   -0.599378  -0.424620   0.000000   0.000000  -0.593472
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.383032
+    7  HE 2  S    0.581410   0.922559
+    8  HE 2  X    0.000000   0.000000   1.797601
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.797601
+   10  HE 2  Z   -0.000374  -0.000513   0.000000   0.000000   1.797616
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.057289
+   12  H  3  S    0.611957   0.771249
+   13  H  3  X    0.000000   0.000000   1.183964
+   14  H  3  Y    0.000000   0.000000   0.000000   1.183964
+   15  H  3  Z   -0.069520  -0.034358   0.000000   0.000000   1.123635
+
+ EHF1 =      -5.059722605297 EHF2 =      -9.434832167997 EHF =      -7.247277386647
+ TOTAL FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S   -1.211490
+    2  HE 1  S   -1.407311  -1.005988
+    3  HE 1  X    0.000000   0.000000   1.921485
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.921485
+    5  HE 1  Z   -0.207764  -0.230430   0.000000   0.000000   1.748345
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S   -0.945839  -0.821630   0.000000   0.000000  -0.244229
+   12  H  3  S   -0.821845  -0.721996   0.000000   0.000000  -0.194863
+   13  H  3  X    0.000000   0.000000   0.066609   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.066609   0.000000
+   15  H  3  Z    0.914085   0.596612   0.000000   0.000000  -0.492363
+
+                      6          7          8          9         10
+
+    6  HE 2  S   -0.567858
+    7  HE 2  S   -1.009175  -0.442749
+    8  HE 2  X    0.000000   0.000000   2.511969
+    9  HE 2  Y    0.000000   0.000000   0.000000   2.511969
+   10  HE 2  Z    0.000266   0.000315   0.000000   0.000000   2.511961
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S   -0.634715
+   12  H  3  S   -0.684765  -0.592168
+   13  H  3  X    0.000000   0.000000   0.904665
+   14  H  3  Y    0.000000   0.000000   0.000000   0.904665
+   15  H  3  Z    0.419298   0.345471   0.000000   0.000000   0.381446
+ LAGRANGE MULTIPLIER MATRIX
+
+             1           2
+
+    1   -3.2012251   0.0000000
+    2    0.0000000  -1.8584975
+    3    0.0703916   0.0000000
+    4   -0.0631522   0.0000000
+    5    0.0000000   0.0000000
+    6    0.0000000   0.0000000
+    7   -0.0014764   0.0000000
+    8    0.0000000  -0.0565814
+    9    0.0420809   0.0000000
+   10    0.0000000   0.0000000
+   11    0.0000000   0.0000000
+   12    0.0000000  -0.0000744
+   13    0.0000000   0.0000000
+   14    0.0000000   0.0000000
+   15   -0.0001913   0.0000000
+          ---------------START SECOND ORDER SCF---------------
+ NEW ORBITALS
+
+                      1          2          3          4          5
+
+                   -1.4911    -0.8239    -0.2805     0.2157     0.8394
+
+    1  HE 1  S   -0.592473   0.000000  -0.236334   0.041748   0.000000
+    2  HE 1  S   -0.346002   0.000000  -0.695765   0.034440   0.000000
+    3  HE 1  X    0.000000   0.000000   0.000000   0.000000   0.146391
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000   0.015294
+    5  HE 1  Z   -0.021041   0.000000   0.012620  -0.093644   0.000000
+    6  HE 2  S    0.000000  -0.593474   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.512141   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000093   0.000000   0.000000   0.000000
+   11  H  3  S   -0.225151   0.000000   0.450729  -1.228575   0.000000
+   12  H  3  S    0.016405   0.000000   0.984989   1.169546   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.936838
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.097871
+   15  H  3  Z    0.052745   0.000000   0.045208  -0.109162   0.000000
+
+                      6          7          8          9         10
+
+                    0.8394     0.9403     1.4369     1.6375     2.3631
+
+    1  HE 1  S    0.000000   0.713041   0.000000  -0.983715   0.000000
+    2  HE 1  S    0.000000  -1.917709   0.000000   0.343117   0.000000
+    3  HE 1  X    0.015294   0.000000   0.000000   0.000000   1.030067
+    4  HE 1  Y   -0.146391   0.000000   0.000000   0.000000  -0.195642
+    5  HE 1  Z    0.000000  -0.093095   0.000000   0.144005   0.000000
+    6  HE 2  S    0.000000   0.000000   1.149131   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000  -1.187613   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000036   0.000000   0.000000
+   11  H  3  S    0.000000   0.250170   0.000000   0.137243   0.000000
+   12  H  3  S    0.000000   0.850229   0.000000   0.013027   0.000000
+   13  H  3  X    0.097871   0.000000   0.000000   0.000000  -0.474969
+   14  H  3  Y   -0.936838   0.000000   0.000000   0.000000   0.090212
+   15  H  3  Z    0.000000  -0.780073   0.000000  -0.966070   0.000000
+
+                     11         12         13         14         15
+
+                    2.3631     2.6353     2.6354     2.6354     3.5624
+
+    1  HE 1  S    0.000000   0.000000   0.000000   0.000000   0.451495
+    2  HE 1  S    0.000000   0.000000   0.000000   0.000000   1.045403
+    3  HE 1  X    0.195642   0.000000   0.000000   0.000000   0.000000
+    4  HE 1  Y    1.030067   0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.000000   0.000000   0.000000   0.000000   1.503492
+    6  HE 2  S    0.000000  -0.000014   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.000090   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.423547  -0.905874   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.905874   0.423547   0.000000
+   10  HE 2  Z    0.000000  -1.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000  -1.294225
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000  -0.151157
+   13  H  3  X   -0.090212   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y   -0.474969   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   1.195208
+ NEW DENSITY MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    0.702049
+    2  HE 1  S    0.409994   0.239435
+    3  HE 1  X    0.000000   0.000000   0.000000
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.024933   0.014561   0.000000   0.000000   0.000885
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.266792   0.155806   0.000000   0.000000   0.009475
+   12  H  3  S   -0.019439  -0.011353   0.000000   0.000000  -0.000690
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.062500  -0.036500   0.000000   0.000000  -0.002220
+
+                      6          7          8          9         10
+
+    6  HE 2  S    0.704422
+    7  HE 2  S    0.607884   0.524577
+    8  HE 2  X    0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z   -0.000110  -0.000095   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    0.101386
+   12  H  3  S   -0.007387   0.000538
+   13  H  3  X    0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.023751   0.001731   0.000000   0.000000   0.005564
+ *** END OF DEBUG OUTPUT FOR ITERATION                    2
+   2  1  0       -5.7473087757    -0.2872332764   0.038305973   0.035195790
+ *** START OF DEBUG OUTPUT FOR ITERATION                    3
+ SKELETON FOCK MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.383447
+    2  HE 1  S    0.588195   0.927344
+    3  HE 1  X    0.000000   0.000000   1.781812
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.781812
+    5  HE 1  Z   -0.039470  -0.027323   0.000000   0.000000   1.774161
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.210827   0.529335   0.000000   0.000000   0.534536
+   12  H  3  S    0.200678   0.610930   0.000000   0.000000   0.117311
+   13  H  3  X    0.000000   0.000000   0.516602   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.516602   0.000000
+   15  H  3  Z   -0.600902  -0.423689   0.000000   0.000000  -0.589486
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.376956
+    7  HE 2  S    0.575900   0.913179
+    8  HE 2  X    0.000000   0.000000   1.786786
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.786786
+   10  HE 2  Z   -0.000380  -0.000517   0.000000   0.000000   1.786801
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.049212
+   12  H  3  S    0.604584   0.767024
+   13  H  3  X    0.000000   0.000000   1.194568
+   14  H  3  Y    0.000000   0.000000   0.000000   1.194568
+   15  H  3  Z   -0.058427  -0.028227   0.000000   0.000000   1.134602
+ SYMMETRIZED FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.383447
+    2  HE 1  S    0.588195   0.927344
+    3  HE 1  X    0.000000   0.000000   1.781812
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.781812
+    5  HE 1  Z   -0.039470  -0.027323   0.000000   0.000000   1.774161
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.210827   0.529335   0.000000   0.000000   0.534536
+   12  H  3  S    0.200678   0.610930   0.000000   0.000000   0.117311
+   13  H  3  X    0.000000   0.000000   0.516602   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.516602   0.000000
+   15  H  3  Z   -0.600902  -0.423689   0.000000   0.000000  -0.589486
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.376956
+    7  HE 2  S    0.575900   0.913179
+    8  HE 2  X    0.000000   0.000000   1.786786
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.786786
+   10  HE 2  Z   -0.000380  -0.000517   0.000000   0.000000   1.786801
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.049212
+   12  H  3  S    0.604584   0.767024
+   13  H  3  X    0.000000   0.000000   1.194568
+   14  H  3  Y    0.000000   0.000000   0.000000   1.194568
+   15  H  3  Z   -0.058427  -0.028227   0.000000   0.000000   1.134602
+
+ EHF1 =      -5.099487273032 EHF2 =      -9.404285251964 EHF =      -7.251886262498
+ TOTAL FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S   -1.217689
+    2  HE 1  S   -1.410654  -1.013989
+    3  HE 1  X    0.000000   0.000000   1.905430
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.905430
+    5  HE 1  Z   -0.211921  -0.233646   0.000000   0.000000   1.730573
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S   -0.958034  -0.832488   0.000000   0.000000  -0.252136
+   12  H  3  S   -0.828013  -0.729655   0.000000   0.000000  -0.199613
+   13  H  3  X    0.000000   0.000000   0.064932   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.064932   0.000000
+   15  H  3  Z    0.912561   0.597543   0.000000   0.000000  -0.488377
+
+                      6          7          8          9         10
+
+    6  HE 2  S   -0.573933
+    7  HE 2  S   -1.014684  -0.452129
+    8  HE 2  X    0.000000   0.000000   2.501154
+    9  HE 2  Y    0.000000   0.000000   0.000000   2.501154
+   10  HE 2  Z    0.000260   0.000311   0.000000   0.000000   2.501146
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S   -0.642792
+   12  H  3  S   -0.692138  -0.596394
+   13  H  3  X    0.000000   0.000000   0.915269
+   14  H  3  Y    0.000000   0.000000   0.000000   0.915269
+   15  H  3  Z    0.430392   0.351602   0.000000   0.000000   0.392413
+ LAGRANGE MULTIPLIER MATRIX
+
+             1           2
+
+    1   -3.2243982   0.0000000
+    2    0.0000000  -1.8750891
+    3    0.0068959   0.0000000
+    4   -0.0082544   0.0000000
+    5    0.0000000   0.0000000
+    6    0.0000000   0.0000000
+    7    0.0067706   0.0000000
+    8    0.0000000  -0.0031870
+    9   -0.0008767   0.0000000
+   10    0.0000000   0.0000000
+   11    0.0000000   0.0000000
+   12    0.0000000  -0.0000103
+   13    0.0000000   0.0000000
+   14    0.0000000   0.0000000
+   15    0.0021275   0.0000000
+ NEW ORBITALS
+
+                      1          2          3          4          5
+
+                   -1.4911    -0.8239    -0.2805     0.2157     0.8394
+
+    1  HE 1  S   -0.592895   0.000000  -0.238272   0.043375   0.000000
+    2  HE 1  S   -0.340890   0.000000  -0.696894   0.035385   0.000000
+    3  HE 1  X    0.000000   0.000000   0.000000   0.000000   0.146391
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000   0.015294
+    5  HE 1  Z   -0.021528   0.000000   0.012551  -0.093586   0.000000
+    6  HE 2  S    0.000000  -0.592513   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.513133   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000091   0.000000   0.000000   0.000000
+   11  H  3  S   -0.230070   0.000000   0.449990  -1.227947   0.000000
+   12  H  3  S    0.015131   0.000000   0.985037   1.169505   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.936838
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.097871
+   15  H  3  Z    0.053096   0.000000   0.045381  -0.109306   0.000000
+
+                      6          7          8          9         10
+
+                    0.8394     0.9403     1.4369     1.6375     2.3631
+
+    1  HE 1  S    0.000000   0.712134   0.000000  -0.983643   0.000000
+    2  HE 1  S    0.000000  -1.918232   0.000000   0.343159   0.000000
+    3  HE 1  X    0.015294   0.000000   0.000000   0.000000   1.030067
+    4  HE 1  Y   -0.146391   0.000000   0.000000   0.000000  -0.195642
+    5  HE 1  Z    0.000000  -0.093128   0.000000   0.144007   0.000000
+    6  HE 2  S    0.000000   0.000000   1.149626   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000  -1.187184   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000036   0.000000   0.000000
+   11  H  3  S    0.000000   0.249817   0.000000   0.137271   0.000000
+   12  H  3  S    0.000000   0.850253   0.000000   0.013025   0.000000
+   13  H  3  X    0.097871   0.000000   0.000000   0.000000  -0.474969
+   14  H  3  Y   -0.936838   0.000000   0.000000   0.000000   0.090212
+   15  H  3  Z    0.000000  -0.779992   0.000000  -0.966076   0.000000
+
+                     11         12         13         14         15
+
+                    2.3631     2.6353     2.6354     2.6354     3.5624
+
+    1  HE 1  S    0.000000   0.000000   0.000000   0.000000   0.451358
+    2  HE 1  S    0.000000   0.000000   0.000000   0.000000   1.045324
+    3  HE 1  X    0.195642   0.000000   0.000000   0.000000   0.000000
+    4  HE 1  Y    1.030067   0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.000000   0.000000   0.000000   0.000000   1.503487
+    6  HE 2  S    0.000000  -0.000013   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.000089   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.423547  -0.905874   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.905874   0.423547   0.000000
+   10  HE 2  Z    0.000000  -1.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000  -1.294278
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000  -0.151154
+   13  H  3  X   -0.090212   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y   -0.474969   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   1.195220
+ NEW DENSITY MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    0.703049
+    2  HE 1  S    0.404224   0.232412
+    3  HE 1  X    0.000000   0.000000   0.000000
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.025528   0.014677   0.000000   0.000000   0.000927
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.272814   0.156857   0.000000   0.000000   0.009906
+   12  H  3  S   -0.017943  -0.010316   0.000000   0.000000  -0.000652
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.062960  -0.036200   0.000000   0.000000  -0.002286
+
+                      6          7          8          9         10
+
+    6  HE 2  S    0.702143
+    7  HE 2  S    0.608076   0.526612
+    8  HE 2  X    0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z   -0.000108  -0.000093   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    0.105864
+   12  H  3  S   -0.006963   0.000458
+   13  H  3  X    0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.024431   0.001607   0.000000   0.000000   0.005638
+ *** END OF DEBUG OUTPUT FOR ITERATION                    3
+   3  2  0       -5.7519176516    -0.0046088759   0.007022997   0.004127202
+ *** START OF DEBUG OUTPUT FOR ITERATION                    4
+ SKELETON FOCK MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.383542
+    2  HE 1  S    0.588667   0.927780
+    3  HE 1  X    0.000000   0.000000   1.781223
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.781223
+    5  HE 1  Z   -0.040149  -0.027754   0.000000   0.000000   1.773297
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.209645   0.528796   0.000000   0.000000   0.533869
+   12  H  3  S    0.200405   0.610857   0.000000   0.000000   0.116788
+   13  H  3  X    0.000000   0.000000   0.516771   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.516771   0.000000
+   15  H  3  Z   -0.601539  -0.424296   0.000000   0.000000  -0.589397
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.376556
+    7  HE 2  S    0.575540   0.912558
+    8  HE 2  X    0.000000   0.000000   1.786065
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.786065
+   10  HE 2  Z   -0.000381  -0.000518   0.000000   0.000000   1.786080
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.048908
+   12  H  3  S    0.604237   0.767084
+   13  H  3  X    0.000000   0.000000   1.196298
+   14  H  3  Y    0.000000   0.000000   0.000000   1.196298
+   15  H  3  Z   -0.057484  -0.027891   0.000000   0.000000   1.136603
+ SYMMETRIZED FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.383542
+    2  HE 1  S    0.588667   0.927780
+    3  HE 1  X    0.000000   0.000000   1.781223
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.781223
+    5  HE 1  Z   -0.040149  -0.027754   0.000000   0.000000   1.773297
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.209645   0.528796   0.000000   0.000000   0.533869
+   12  H  3  S    0.200405   0.610857   0.000000   0.000000   0.116788
+   13  H  3  X    0.000000   0.000000   0.516771   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.516771   0.000000
+   15  H  3  Z   -0.601539  -0.424296   0.000000   0.000000  -0.589397
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.376556
+    7  HE 2  S    0.575540   0.912558
+    8  HE 2  X    0.000000   0.000000   1.786065
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.786065
+   10  HE 2  Z   -0.000381  -0.000518   0.000000   0.000000   1.786080
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.048908
+   12  H  3  S    0.604237   0.767084
+   13  H  3  X    0.000000   0.000000   1.196298
+   14  H  3  Y    0.000000   0.000000   0.000000   1.196298
+   15  H  3  Z   -0.057484  -0.027891   0.000000   0.000000   1.136603
+
+ EHF1 =      -5.100830151348 EHF2 =      -9.403063564324 EHF =      -7.251946857836
+ TOTAL FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S   -1.217594
+    2  HE 1  S   -1.410182  -1.013554
+    3  HE 1  X    0.000000   0.000000   1.904841
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.904841
+    5  HE 1  Z   -0.212600  -0.234077   0.000000   0.000000   1.729709
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S   -0.959216  -0.833026   0.000000   0.000000  -0.252803
+   12  H  3  S   -0.828287  -0.729728   0.000000   0.000000  -0.200136
+   13  H  3  X    0.000000   0.000000   0.065101   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.065101   0.000000
+   15  H  3  Z    0.911924   0.596935   0.000000   0.000000  -0.488288
+
+                      6          7          8          9         10
+
+    6  HE 2  S   -0.574334
+    7  HE 2  S   -1.015045  -0.452750
+    8  HE 2  X    0.000000   0.000000   2.500433
+    9  HE 2  Y    0.000000   0.000000   0.000000   2.500433
+   10  HE 2  Z    0.000259   0.000311   0.000000   0.000000   2.500425
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S   -0.643096
+   12  H  3  S   -0.692485  -0.596334
+   13  H  3  X    0.000000   0.000000   0.916998
+   14  H  3  Y    0.000000   0.000000   0.000000   0.916998
+   15  H  3  Z    0.431335   0.351938   0.000000   0.000000   0.394414
+ LAGRANGE MULTIPLIER MATRIX
+
+             1           2
+
+    1   -3.2246930   0.0000000
+    2    0.0000000  -1.8761371
+    3   -0.0000507   0.0000000
+    4   -0.0002148   0.0000000
+    5    0.0000000   0.0000000
+    6    0.0000000   0.0000000
+    7    0.0009441   0.0000000
+    8    0.0000000   0.0003837
+    9   -0.0006344   0.0000000
+   10    0.0000000   0.0000000
+   11    0.0000000   0.0000000
+   12    0.0000000  -0.0000003
+   13    0.0000000   0.0000000
+   14    0.0000000   0.0000000
+   15    0.0002014   0.0000000
+ NEW ORBITALS
+
+                      1          2          3          4          5
+
+                   -1.4911    -0.8239    -0.2805     0.2157     0.8394
+
+    1  HE 1  S   -0.593144   0.000000  -0.238275   0.043425   0.000000
+    2  HE 1  S   -0.340480   0.000000  -0.696896   0.035413   0.000000
+    3  HE 1  X    0.000000   0.000000   0.000000   0.000000   0.146391
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000   0.015294
+    5  HE 1  Z   -0.021534   0.000000   0.012551  -0.093584   0.000000
+    6  HE 2  S    0.000000  -0.592602   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.513041   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000091   0.000000   0.000000   0.000000
+   11  H  3  S   -0.230184   0.000000   0.449989  -1.227928   0.000000
+   12  H  3  S    0.015056   0.000000   0.985038   1.169504   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.936838
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.097871
+   15  H  3  Z    0.053123   0.000000   0.045381  -0.109311   0.000000
+
+                      6          7          8          9         10
+
+                    0.8394     0.9403     1.4369     1.6375     2.3631
+
+    1  HE 1  S    0.000000   0.712013   0.000000  -0.983583   0.000000
+    2  HE 1  S    0.000000  -1.918302   0.000000   0.343193   0.000000
+    3  HE 1  X    0.015294   0.000000   0.000000   0.000000   1.030067
+    4  HE 1  Y   -0.146391   0.000000   0.000000   0.000000  -0.195642
+    5  HE 1  Z    0.000000  -0.093132   0.000000   0.144009   0.000000
+    6  HE 2  S    0.000000   0.000000   1.149580   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000  -1.187224   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000036   0.000000   0.000000
+   11  H  3  S    0.000000   0.249770   0.000000   0.137294   0.000000
+   12  H  3  S    0.000000   0.850257   0.000000   0.013024   0.000000
+   13  H  3  X    0.097871   0.000000   0.000000   0.000000  -0.474969
+   14  H  3  Y   -0.936838   0.000000   0.000000   0.000000   0.090212
+   15  H  3  Z    0.000000  -0.779982   0.000000  -0.966082   0.000000
+
+                     11         12         13         14         15
+
+                    2.3631     2.6353     2.6354     2.6354     3.5624
+
+    1  HE 1  S    0.000000   0.000000   0.000000   0.000000   0.451345
+    2  HE 1  S    0.000000   0.000000   0.000000   0.000000   1.045317
+    3  HE 1  X    0.195642   0.000000   0.000000   0.000000   0.000000
+    4  HE 1  Y    1.030067   0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.000000   0.000000   0.000000   0.000000   1.503486
+    6  HE 2  S    0.000000  -0.000013   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.000089   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.423547  -0.905874   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.905874   0.423547   0.000000
+   10  HE 2  Z    0.000000  -1.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000  -1.294283
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000  -0.151153
+   13  H  3  X   -0.090212   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y   -0.474969   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   1.195221
+ NEW DENSITY MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    0.703639
+    2  HE 1  S    0.403908   0.231854
+    3  HE 1  X    0.000000   0.000000   0.000000
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.025546   0.014664   0.000000   0.000000   0.000927
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.273064   0.156746   0.000000   0.000000   0.009914
+   12  H  3  S   -0.017860  -0.010252   0.000000   0.000000  -0.000648
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.063019  -0.036175   0.000000   0.000000  -0.002288
+
+                      6          7          8          9         10
+
+    6  HE 2  S    0.702355
+    7  HE 2  S    0.608059   0.526422
+    8  HE 2  X    0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z   -0.000108  -0.000093   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    0.105969
+   12  H  3  S   -0.006931   0.000453
+   13  H  3  X    0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.024456   0.001600   0.000000   0.000000   0.005644
+ *** END OF DEBUG OUTPUT FOR ITERATION                    4
+   4  3  0       -5.7519782469    -0.0000605953   0.000590833   0.000472026
+ *** START OF DEBUG OUTPUT FOR ITERATION                    5
+ SKELETON FOCK MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.383641
+    2  HE 1  S    0.588769   0.927943
+    3  HE 1  X    0.000000   0.000000   1.781382
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.781382
+    5  HE 1  Z   -0.040181  -0.027767   0.000000   0.000000   1.773447
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.209661   0.528877   0.000000   0.000000   0.533898
+   12  H  3  S    0.200452   0.610953   0.000000   0.000000   0.116789
+   13  H  3  X    0.000000   0.000000   0.516817   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.516817   0.000000
+   15  H  3  Z   -0.601592  -0.424380   0.000000   0.000000  -0.589439
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.376594
+    7  HE 2  S    0.575574   0.912617
+    8  HE 2  X    0.000000   0.000000   1.786133
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.786133
+   10  HE 2  Z   -0.000381  -0.000518   0.000000   0.000000   1.786148
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.048984
+   12  H  3  S    0.604296   0.767149
+   13  H  3  X    0.000000   0.000000   1.196364
+   14  H  3  Y    0.000000   0.000000   0.000000   1.196364
+   15  H  3  Z   -0.057516  -0.027931   0.000000   0.000000   1.136692
+ SYMMETRIZED FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.383641
+    2  HE 1  S    0.588769   0.927943
+    3  HE 1  X    0.000000   0.000000   1.781382
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.781382
+    5  HE 1  Z   -0.040181  -0.027767   0.000000   0.000000   1.773447
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.209661   0.528877   0.000000   0.000000   0.533898
+   12  H  3  S    0.200452   0.610953   0.000000   0.000000   0.116789
+   13  H  3  X    0.000000   0.000000   0.516817   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.516817   0.000000
+   15  H  3  Z   -0.601592  -0.424380   0.000000   0.000000  -0.589439
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.376594
+    7  HE 2  S    0.575574   0.912617
+    8  HE 2  X    0.000000   0.000000   1.786133
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.786133
+   10  HE 2  Z   -0.000381  -0.000518   0.000000   0.000000   1.786148
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.048984
+   12  H  3  S    0.604296   0.767149
+   13  H  3  X    0.000000   0.000000   1.196364
+   14  H  3  Y    0.000000   0.000000   0.000000   1.196364
+   15  H  3  Z   -0.057516  -0.027931   0.000000   0.000000   1.136692
+
+ EHF1 =      -5.100490742327 EHF2 =      -9.403403631398 EHF =      -7.251947186863
+ TOTAL FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S   -1.217494
+    2  HE 1  S   -1.410080  -1.013390
+    3  HE 1  X    0.000000   0.000000   1.905001
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.905001
+    5  HE 1  Z   -0.212632  -0.234089   0.000000   0.000000   1.729859
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S   -0.959200  -0.832946   0.000000   0.000000  -0.252773
+   12  H  3  S   -0.828239  -0.729632   0.000000   0.000000  -0.200135
+   13  H  3  X    0.000000   0.000000   0.065147   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.065147   0.000000
+   15  H  3  Z    0.911871   0.596852   0.000000   0.000000  -0.488330
+
+                      6          7          8          9         10
+
+    6  HE 2  S   -0.574296
+    7  HE 2  S   -1.015011  -0.452691
+    8  HE 2  X    0.000000   0.000000   2.500500
+    9  HE 2  Y    0.000000   0.000000   0.000000   2.500500
+   10  HE 2  Z    0.000259   0.000311   0.000000   0.000000   2.500492
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S   -0.643020
+   12  H  3  S   -0.692426  -0.596269
+   13  H  3  X    0.000000   0.000000   0.917064
+   14  H  3  Y    0.000000   0.000000   0.000000   0.917064
+   15  H  3  Z    0.431303   0.351899   0.000000   0.000000   0.394503
+ LAGRANGE MULTIPLIER MATRIX
+
+             1           2
+
+    1   -3.2244522   0.0000000
+    2    0.0000000  -1.8760386
+    3   -0.0000152   0.0000000
+    4    0.0000005   0.0000000
+    5    0.0000000   0.0000000
+    6    0.0000000   0.0000000
+    7    0.0000597   0.0000000
+    8    0.0000000   0.0000516
+    9   -0.0000504   0.0000000
+   10    0.0000000   0.0000000
+   11    0.0000000   0.0000000
+   12    0.0000000   0.0000000
+   13    0.0000000   0.0000000
+   14    0.0000000   0.0000000
+   15   -0.0000054   0.0000000
+ NEW ORBITALS
+
+                      1          2          3          4          5
+
+                   -1.4911    -0.8239    -0.2805     0.2157     0.8394
+
+    1  HE 1  S   -0.593163   0.000000  -0.238272   0.043425   0.000000
+    2  HE 1  S   -0.340455   0.000000  -0.696894   0.035413   0.000000
+    3  HE 1  X    0.000000   0.000000   0.000000   0.000000   0.146391
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000   0.015294
+    5  HE 1  Z   -0.021531   0.000000   0.012551  -0.093584   0.000000
+    6  HE 2  S    0.000000  -0.592616   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.513027   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000091   0.000000   0.000000   0.000000
+   11  H  3  S   -0.230185   0.000000   0.449990  -1.227928   0.000000
+   12  H  3  S    0.015050   0.000000   0.985037   1.169504   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.936838
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.097871
+   15  H  3  Z    0.053126   0.000000   0.045381  -0.109311   0.000000
+
+                      6          7          8          9         10
+
+                    0.8394     0.9403     1.4369     1.6375     2.3631
+
+    1  HE 1  S    0.000000   0.712005   0.000000  -0.983578   0.000000
+    2  HE 1  S    0.000000  -1.918306   0.000000   0.343196   0.000000
+    3  HE 1  X    0.015294   0.000000   0.000000   0.000000   1.030067
+    4  HE 1  Y   -0.146391   0.000000   0.000000   0.000000  -0.195642
+    5  HE 1  Z    0.000000  -0.093133   0.000000   0.144010   0.000000
+    6  HE 2  S    0.000000   0.000000   1.149573   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000  -1.187230   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000036   0.000000   0.000000
+   11  H  3  S    0.000000   0.249767   0.000000   0.137296   0.000000
+   12  H  3  S    0.000000   0.850257   0.000000   0.013023   0.000000
+   13  H  3  X    0.097871   0.000000   0.000000   0.000000  -0.474969
+   14  H  3  Y   -0.936838   0.000000   0.000000   0.000000   0.090212
+   15  H  3  Z    0.000000  -0.779981   0.000000  -0.966082   0.000000
+
+                     11         12         13         14         15
+
+                    2.3631     2.6353     2.6354     2.6354     3.5624
+
+    1  HE 1  S    0.000000   0.000000   0.000000   0.000000   0.451346
+    2  HE 1  S    0.000000   0.000000   0.000000   0.000000   1.045317
+    3  HE 1  X    0.195642   0.000000   0.000000   0.000000   0.000000
+    4  HE 1  Y    1.030067   0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.000000   0.000000   0.000000   0.000000   1.503486
+    6  HE 2  S    0.000000  -0.000013   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.000089   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.423547  -0.905874   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.905874   0.423547   0.000000
+   10  HE 2  Z    0.000000  -1.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000  -1.294283
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000  -0.151153
+   13  H  3  X   -0.090212   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y   -0.474969   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   1.195221
+ NEW DENSITY MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    0.703685
+    2  HE 1  S    0.403890   0.231819
+    3  HE 1  X    0.000000   0.000000   0.000000
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.025543   0.014661   0.000000   0.000000   0.000927
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.273074   0.156735   0.000000   0.000000   0.009912
+   12  H  3  S   -0.017855  -0.010248   0.000000   0.000000  -0.000648
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.063025  -0.036174   0.000000   0.000000  -0.002288
+
+                      6          7          8          9         10
+
+    6  HE 2  S    0.702387
+    7  HE 2  S    0.608056   0.526393
+    8  HE 2  X    0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z   -0.000108  -0.000093   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    0.105970
+   12  H  3  S   -0.006929   0.000453
+   13  H  3  X    0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.024458   0.001599   0.000000   0.000000   0.005645
+ *** END OF DEBUG OUTPUT FOR ITERATION                    5
+   5  4  0       -5.7519785759    -0.0000003290   0.000045059   0.000029856
+ *** START OF DEBUG OUTPUT FOR ITERATION                    6
+ SKELETON FOCK MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.383649
+    2  HE 1  S    0.588776   0.927956
+    3  HE 1  X    0.000000   0.000000   1.781396
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.781396
+    5  HE 1  Z   -0.040181  -0.027767   0.000000   0.000000   1.773461
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.209664   0.528884   0.000000   0.000000   0.533902
+   12  H  3  S    0.200456   0.610960   0.000000   0.000000   0.116791
+   13  H  3  X    0.000000   0.000000   0.516820   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.516820   0.000000
+   15  H  3  Z   -0.601595  -0.424385   0.000000   0.000000  -0.589443
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.376600
+    7  HE 2  S    0.575579   0.912626
+    8  HE 2  X    0.000000   0.000000   1.786143
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.786143
+   10  HE 2  Z   -0.000381  -0.000518   0.000000   0.000000   1.786158
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.048990
+   12  H  3  S    0.604301   0.767153
+   13  H  3  X    0.000000   0.000000   1.196365
+   14  H  3  Y    0.000000   0.000000   0.000000   1.196365
+   15  H  3  Z   -0.057520  -0.027935   0.000000   0.000000   1.136695
+ SYMMETRIZED FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.383649
+    2  HE 1  S    0.588776   0.927956
+    3  HE 1  X    0.000000   0.000000   1.781396
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.781396
+    5  HE 1  Z   -0.040181  -0.027767   0.000000   0.000000   1.773461
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.209664   0.528884   0.000000   0.000000   0.533902
+   12  H  3  S    0.200456   0.610960   0.000000   0.000000   0.116791
+   13  H  3  X    0.000000   0.000000   0.516820   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.516820   0.000000
+   15  H  3  Z   -0.601595  -0.424385   0.000000   0.000000  -0.589443
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.376600
+    7  HE 2  S    0.575579   0.912626
+    8  HE 2  X    0.000000   0.000000   1.786143
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.786143
+   10  HE 2  Z   -0.000381  -0.000518   0.000000   0.000000   1.786158
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.048990
+   12  H  3  S    0.604301   0.767153
+   13  H  3  X    0.000000   0.000000   1.196365
+   14  H  3  Y    0.000000   0.000000   0.000000   1.196365
+   15  H  3  Z   -0.057520  -0.027935   0.000000   0.000000   1.136695
+
+ EHF1 =      -5.100456428235 EHF2 =      -9.403437949373 EHF =      -7.251947188804
+ TOTAL FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S   -1.217487
+    2  HE 1  S   -1.410073  -1.013378
+    3  HE 1  X    0.000000   0.000000   1.905015
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.905015
+    5  HE 1  Z   -0.212633  -0.234089   0.000000   0.000000   1.729873
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S   -0.959197  -0.832939   0.000000   0.000000  -0.252769
+   12  H  3  S   -0.828235  -0.729625   0.000000   0.000000  -0.200133
+   13  H  3  X    0.000000   0.000000   0.065150   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.065150   0.000000
+   15  H  3  Z    0.911868   0.596847   0.000000   0.000000  -0.488334
+
+                      6          7          8          9         10
+
+    6  HE 2  S   -0.574290
+    7  HE 2  S   -1.015005  -0.452682
+    8  HE 2  X    0.000000   0.000000   2.500511
+    9  HE 2  Y    0.000000   0.000000   0.000000   2.500511
+   10  HE 2  Z    0.000259   0.000311   0.000000   0.000000   2.500503
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S   -0.643014
+   12  H  3  S   -0.692421  -0.596264
+   13  H  3  X    0.000000   0.000000   0.917065
+   14  H  3  Y    0.000000   0.000000   0.000000   0.917065
+   15  H  3  Z    0.431298   0.351895   0.000000   0.000000   0.394506
+ LAGRANGE MULTIPLIER MATRIX
+
+             1           2
+
+    1   -3.2244328   0.0000000
+    2    0.0000000  -1.8760236
+    3    0.0000001   0.0000000
+    4    0.0000002   0.0000000
+    5    0.0000000   0.0000000
+    6    0.0000000   0.0000000
+    7   -0.0000003   0.0000000
+    8    0.0000000   0.0000010
+    9   -0.0000005   0.0000000
+   10    0.0000000   0.0000000
+   11    0.0000000   0.0000000
+   12    0.0000000   0.0000000
+   13    0.0000000   0.0000000
+   14    0.0000000   0.0000000
+   15   -0.0000021   0.0000000
+ NEW ORBITALS
+
+                      1          2          3          4          5
+
+                   -1.4911    -0.8239    -0.2805     0.2157     0.8394
+
+    1  HE 1  S   -0.593163   0.000000  -0.238272   0.043425   0.000000
+    2  HE 1  S   -0.340455   0.000000  -0.696894   0.035413   0.000000
+    3  HE 1  X    0.000000   0.000000   0.000000   0.000000   0.146391
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000   0.015294
+    5  HE 1  Z   -0.021531   0.000000   0.012551  -0.093584   0.000000
+    6  HE 2  S    0.000000  -0.592616   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.513027   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000091   0.000000   0.000000   0.000000
+   11  H  3  S   -0.230185   0.000000   0.449990  -1.227928   0.000000
+   12  H  3  S    0.015050   0.000000   0.985037   1.169504   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.936838
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.097871
+   15  H  3  Z    0.053126   0.000000   0.045381  -0.109311   0.000000
+
+                      6          7          8          9         10
+
+                    0.8394     0.9403     1.4369     1.6375     2.3631
+
+    1  HE 1  S    0.000000   0.712005   0.000000  -0.983578   0.000000
+    2  HE 1  S    0.000000  -1.918306   0.000000   0.343196   0.000000
+    3  HE 1  X    0.015294   0.000000   0.000000   0.000000   1.030067
+    4  HE 1  Y   -0.146391   0.000000   0.000000   0.000000  -0.195642
+    5  HE 1  Z    0.000000  -0.093133   0.000000   0.144010   0.000000
+    6  HE 2  S    0.000000   0.000000   1.149573   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000  -1.187230   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000036   0.000000   0.000000
+   11  H  3  S    0.000000   0.249767   0.000000   0.137296   0.000000
+   12  H  3  S    0.000000   0.850257   0.000000   0.013023   0.000000
+   13  H  3  X    0.097871   0.000000   0.000000   0.000000  -0.474969
+   14  H  3  Y   -0.936838   0.000000   0.000000   0.000000   0.090212
+   15  H  3  Z    0.000000  -0.779981   0.000000  -0.966082   0.000000
+
+                     11         12         13         14         15
+
+                    2.3631     2.6353     2.6354     2.6354     3.5624
+
+    1  HE 1  S    0.000000   0.000000   0.000000   0.000000   0.451346
+    2  HE 1  S    0.000000   0.000000   0.000000   0.000000   1.045317
+    3  HE 1  X    0.195642   0.000000   0.000000   0.000000   0.000000
+    4  HE 1  Y    1.030067   0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.000000   0.000000   0.000000   0.000000   1.503486
+    6  HE 2  S    0.000000  -0.000013   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.000089   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.423547  -0.905874   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.905874   0.423547   0.000000
+   10  HE 2  Z    0.000000  -1.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000  -1.294283
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000  -0.151153
+   13  H  3  X   -0.090212   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y   -0.474969   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   1.195221
+ NEW DENSITY MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    0.703684
+    2  HE 1  S    0.403890   0.231819
+    3  HE 1  X    0.000000   0.000000   0.000000
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.025542   0.014660   0.000000   0.000000   0.000927
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.273074   0.156735   0.000000   0.000000   0.009912
+   12  H  3  S   -0.017855  -0.010248   0.000000   0.000000  -0.000648
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.063025  -0.036174   0.000000   0.000000  -0.002288
+
+                      6          7          8          9         10
+
+    6  HE 2  S    0.702388
+    7  HE 2  S    0.608056   0.526393
+    8  HE 2  X    0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z   -0.000108  -0.000093   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    0.105970
+   12  H  3  S   -0.006929   0.000453
+   13  H  3  X    0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.024458   0.001599   0.000000   0.000000   0.005645
+ *** END OF DEBUG OUTPUT FOR ITERATION                    6
+   6  5  0       -5.7519785779    -0.0000000019   0.000000623   0.000001068
+ *** START OF DEBUG OUTPUT FOR ITERATION                    7
+ SKELETON FOCK MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.383649
+    2  HE 1  S    0.588776   0.927955
+    3  HE 1  X    0.000000   0.000000   1.781396
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.781396
+    5  HE 1  Z   -0.040181  -0.027766   0.000000   0.000000   1.773461
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.209664   0.528884   0.000000   0.000000   0.533902
+   12  H  3  S    0.200456   0.610960   0.000000   0.000000   0.116791
+   13  H  3  X    0.000000   0.000000   0.516820   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.516820   0.000000
+   15  H  3  Z   -0.601595  -0.424385   0.000000   0.000000  -0.589443
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.376600
+    7  HE 2  S    0.575579   0.912626
+    8  HE 2  X    0.000000   0.000000   1.786143
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.786143
+   10  HE 2  Z   -0.000381  -0.000518   0.000000   0.000000   1.786158
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.048990
+   12  H  3  S    0.604301   0.767153
+   13  H  3  X    0.000000   0.000000   1.196365
+   14  H  3  Y    0.000000   0.000000   0.000000   1.196365
+   15  H  3  Z   -0.057520  -0.027935   0.000000   0.000000   1.136695
+ SYMMETRIZED FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S    1.383649
+    2  HE 1  S    0.588776   0.927955
+    3  HE 1  X    0.000000   0.000000   1.781396
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.781396
+    5  HE 1  Z   -0.040181  -0.027766   0.000000   0.000000   1.773461
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.209664   0.528884   0.000000   0.000000   0.533902
+   12  H  3  S    0.200456   0.610960   0.000000   0.000000   0.116791
+   13  H  3  X    0.000000   0.000000   0.516820   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.516820   0.000000
+   15  H  3  Z   -0.601595  -0.424385   0.000000   0.000000  -0.589443
+
+                      6          7          8          9         10
+
+    6  HE 2  S    1.376600
+    7  HE 2  S    0.575579   0.912626
+    8  HE 2  X    0.000000   0.000000   1.786143
+    9  HE 2  Y    0.000000   0.000000   0.000000   1.786143
+   10  HE 2  Z   -0.000381  -0.000518   0.000000   0.000000   1.786158
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    1.048990
+   12  H  3  S    0.604301   0.767153
+   13  H  3  X    0.000000   0.000000   1.196365
+   14  H  3  Y    0.000000   0.000000   0.000000   1.196365
+   15  H  3  Z   -0.057520  -0.027935   0.000000   0.000000   1.136695
+
+ EHF1 =      -5.100456244655 EHF2 =      -9.403438132955 EHF =      -7.251947188805
+ TOTAL FOCK OPERATOR
+
+                      1          2          3          4          5
+
+    1  HE 1  S   -1.217487
+    2  HE 1  S   -1.410073  -1.013378
+    3  HE 1  X    0.000000   0.000000   1.905015
+    4  HE 1  Y    0.000000   0.000000   0.000000   1.905015
+    5  HE 1  Z   -0.212633  -0.234089   0.000000   0.000000   1.729873
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S   -0.959197  -0.832939   0.000000   0.000000  -0.252769
+   12  H  3  S   -0.828235  -0.729625   0.000000   0.000000  -0.200133
+   13  H  3  X    0.000000   0.000000   0.065150   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.065150   0.000000
+   15  H  3  Z    0.911868   0.596847   0.000000   0.000000  -0.488334
+
+                      6          7          8          9         10
+
+    6  HE 2  S   -0.574290
+    7  HE 2  S   -1.015005  -0.452682
+    8  HE 2  X    0.000000   0.000000   2.500511
+    9  HE 2  Y    0.000000   0.000000   0.000000   2.500511
+   10  HE 2  Z    0.000259   0.000311   0.000000   0.000000   2.500503
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S   -0.643014
+   12  H  3  S   -0.692421  -0.596264
+   13  H  3  X    0.000000   0.000000   0.917065
+   14  H  3  Y    0.000000   0.000000   0.000000   0.917065
+   15  H  3  Z    0.431298   0.351895   0.000000   0.000000   0.394506
+ LAGRANGE MULTIPLIER MATRIX
+
+             1           2
+
+    1   -3.2244329   0.0000000
+    2    0.0000000  -1.8760233
+    3    0.0000000   0.0000000
+    4    0.0000000   0.0000000
+    5    0.0000000   0.0000000
+    6    0.0000000   0.0000000
+    7    0.0000000   0.0000000
+    8    0.0000000   0.0000000
+    9   -0.0000001   0.0000000
+   10    0.0000000   0.0000000
+   11    0.0000000   0.0000000
+   12    0.0000000   0.0000000
+   13    0.0000000   0.0000000
+   14    0.0000000   0.0000000
+   15   -0.0000002   0.0000000
+ NEW ORBITALS
+
+                      1          2          3          4          5
+
+                   -1.4911    -0.8239    -0.2805     0.2157     0.8394
+
+    1  HE 1  S   -0.593163   0.000000  -0.238272   0.043425   0.000000
+    2  HE 1  S   -0.340455   0.000000  -0.696894   0.035413   0.000000
+    3  HE 1  X    0.000000   0.000000   0.000000   0.000000   0.146391
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000   0.015294
+    5  HE 1  Z   -0.021531   0.000000   0.012551  -0.093584   0.000000
+    6  HE 2  S    0.000000  -0.592616   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.513027   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000091   0.000000   0.000000   0.000000
+   11  H  3  S   -0.230185   0.000000   0.449990  -1.227928   0.000000
+   12  H  3  S    0.015050   0.000000   0.985037   1.169504   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.936838
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.097871
+   15  H  3  Z    0.053126   0.000000   0.045381  -0.109311   0.000000
+
+                      6          7          8          9         10
+
+                    0.8394     0.9403     1.4369     1.6375     2.3631
+
+    1  HE 1  S    0.000000   0.712005   0.000000  -0.983578   0.000000
+    2  HE 1  S    0.000000  -1.918306   0.000000   0.343196   0.000000
+    3  HE 1  X    0.015294   0.000000   0.000000   0.000000   1.030067
+    4  HE 1  Y   -0.146391   0.000000   0.000000   0.000000  -0.195642
+    5  HE 1  Z    0.000000  -0.093133   0.000000   0.144010   0.000000
+    6  HE 2  S    0.000000   0.000000   1.149573   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000  -1.187230   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000036   0.000000   0.000000
+   11  H  3  S    0.000000   0.249767   0.000000   0.137296   0.000000
+   12  H  3  S    0.000000   0.850257   0.000000   0.013023   0.000000
+   13  H  3  X    0.097871   0.000000   0.000000   0.000000  -0.474969
+   14  H  3  Y   -0.936838   0.000000   0.000000   0.000000   0.090212
+   15  H  3  Z    0.000000  -0.779981   0.000000  -0.966082   0.000000
+
+                     11         12         13         14         15
+
+                    2.3631     2.6353     2.6354     2.6354     3.5624
+
+    1  HE 1  S    0.000000   0.000000   0.000000   0.000000   0.451346
+    2  HE 1  S    0.000000   0.000000   0.000000   0.000000   1.045317
+    3  HE 1  X    0.195642   0.000000   0.000000   0.000000   0.000000
+    4  HE 1  Y    1.030067   0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.000000   0.000000   0.000000   0.000000   1.503486
+    6  HE 2  S    0.000000  -0.000013   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000  -0.000089   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.423547  -0.905874   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.905874   0.423547   0.000000
+   10  HE 2  Z    0.000000  -1.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000  -1.294283
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000  -0.151153
+   13  H  3  X   -0.090212   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y   -0.474969   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   1.195221
+ NEW DENSITY MATRIX
+
+                      1          2          3          4          5
+
+    1  HE 1  S    0.703684
+    2  HE 1  S    0.403890   0.231819
+    3  HE 1  X    0.000000   0.000000   0.000000
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.025542   0.014660   0.000000   0.000000   0.000927
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.273074   0.156735   0.000000   0.000000   0.009912
+   12  H  3  S   -0.017855  -0.010248   0.000000   0.000000  -0.000648
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.063025  -0.036174   0.000000   0.000000  -0.002288
+
+                      6          7          8          9         10
+
+    6  HE 2  S    0.702388
+    7  HE 2  S    0.608056   0.526393
+    8  HE 2  X    0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z   -0.000108  -0.000093   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    0.105970
+   12  H  3  S   -0.006929   0.000453
+   13  H  3  X    0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.024458   0.001599   0.000000   0.000000   0.005645
+ *** END OF DEBUG OUTPUT FOR ITERATION                    7
+   7  6  0       -5.7519785779     0.0000000000   0.000000043   0.000000107
+
+          -----------------
+          DENSITY CONVERGED
+          -----------------
+
+ FINAL XCHF1 ENERGY IS   1.230324642788972E-316
+
+     TIME TO FORM FOCK OPERATORS=       0.0 SECONDS (       0.0 SEC/ITER)
+     TIME TO SOLVE SCF EQUATIONS=       0.0 SECONDS (       0.0 SEC/ITER)
+
+ FINAL RHF ENERGY IS       -5.7519785779 AFTER   7 ITERATIONS
+
+ LZ VALUE ANALYSIS FOR THE MOS
+ ----------------------------------------
+ MO     1 (    1) HAS LZ(WEIGHT)= 0.00(100.0%) 
+ MO     2 (    2) HAS LZ(WEIGHT)= 0.00(100.0%) 
+ MO     3 (    3) HAS LZ(WEIGHT)= 0.00(100.0%) 
+ MO     4 (    4) HAS LZ(WEIGHT)= 0.00(100.0%) 
+ MO     5 (    5) HAS LZ(WEIGHT)=-1.00( 50.0%)  1.00( 50.0%) 
+ MO     6 (    5) HAS LZ(WEIGHT)=-1.00( 50.0%)  1.00( 50.0%) 
+ MO     7 (    6) HAS LZ(WEIGHT)= 0.00(100.0%) 
+ MO     8 (    7) HAS LZ(WEIGHT)= 0.00(100.0%) 
+ MO     9 (    8) HAS LZ(WEIGHT)= 0.00(100.0%) 
+ MO    10 (    9) HAS LZ(WEIGHT)=-1.00( 50.0%)  1.00( 50.0%) 
+ MO    11 (    9) HAS LZ(WEIGHT)=-1.00( 50.0%)  1.00( 50.0%) 
+ MO    12 (   10) HAS LZ(WEIGHT)= 0.00(100.0%) 
+ MO    13 (   11) HAS LZ(WEIGHT)=-1.00( 50.0%)  1.00( 50.0%) 
+ MO    14 (   11) HAS LZ(WEIGHT)=-1.00( 50.0%)  1.00( 50.0%) 
+ MO    15 (   12) HAS LZ(WEIGHT)= 0.00(100.0%) 
+
+          ------------
+          EIGENVECTORS
+          ------------
+
+                      1          2          3          4          5
+                   -1.6122    -0.9380    -0.2451     0.2340     0.8700
+                     A          A          A          A          A   
+    1  HE 1  S    0.593163   0.000000  -0.238431  -0.004089   0.000000
+    2  HE 1  S    0.340455   0.000000  -0.713362  -0.157752   0.000000
+    3  HE 1  X    0.000000   0.000000   0.000000   0.000000   0.195092
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000  -0.016751
+    5  HE 1  Z    0.021531   0.000000   0.022543   0.109135   0.000000
+    6  HE 2  S    0.000000   0.592616   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.513027   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000  -0.000091   0.000000   0.000000   0.000000
+   11  H  3  S    0.230185   0.000000   0.421403   1.233711   0.000000
+   12  H  3  S   -0.015050   0.000000   1.021164  -1.093655   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.915056
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000  -0.078570
+   15  H  3  Z   -0.053126   0.000000   0.023779   0.065491   0.000000
+
+                      6          7          8          9         10
+                    0.8700     0.8850     1.3736     1.6172     2.2455
+                     A          A          A          A          A   
+    1  HE 1  S    0.000000  -0.782074   0.000000   0.919041   0.000000
+    2  HE 1  S    0.000000   1.904808   0.000000  -0.272222   0.000000
+    3  HE 1  X    0.016751   0.000000   0.000000   0.000000   1.039940
+    4  HE 1  Y    0.195092   0.000000   0.000000   0.000000   0.034069
+    5  HE 1  Z    0.000000   0.089492   0.000000  -0.183942   0.000000
+    6  HE 2  S    0.000000   0.000000  -1.149573   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   1.187230   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000  -0.000063   0.000000   0.000000
+   11  H  3  S    0.000000  -0.137006   0.000000  -0.086661   0.000000
+   12  H  3  S    0.000000  -0.903962   0.000000  -0.058021   0.000000
+   13  H  3  X    0.078570   0.000000   0.000000   0.000000  -0.526479
+   14  H  3  Y    0.915056   0.000000   0.000000   0.000000  -0.017248
+   15  H  3  Z    0.000000   0.710123   0.000000   0.975278   0.000000
+
+                     11         12         13         14         15
+                    2.2455     2.5005     2.5005     2.5005     3.4563
+                     A          A          A          A          A   
+    1  HE 1  S    0.000000   0.000000   0.000000   0.000000   0.472870
+    2  HE 1  S    0.000000   0.000000   0.000000   0.000000   1.068230
+    3  HE 1  X   -0.034069   0.000000   0.000000   0.000000   0.000000
+    4  HE 1  Y    1.039940   0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.000000   0.000000   0.000000   0.000000   1.498178
+    6  HE 2  S    0.000000  -0.000018   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000121   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.978085   0.208207   0.000000
+    9  HE 2  Y    0.000000   0.000000  -0.208207   0.978085   0.000000
+   10  HE 2  Z    0.000000   1.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000  -1.319392
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000  -0.156917
+   13  H  3  X    0.017248   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y   -0.526479   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   1.234484
+
+          --------------
+          DENSITY MATRIX
+          --------------
+
+                      1          2          3          4          5
+
+    1  HE 1  S    0.703684
+    2  HE 1  S    0.403890   0.231819
+    3  HE 1  X    0.000000   0.000000   0.000000
+    4  HE 1  Y    0.000000   0.000000   0.000000   0.000000
+    5  HE 1  Z    0.025542   0.014660   0.000000   0.000000   0.000927
+    6  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    7  HE 2  S    0.000000   0.000000   0.000000   0.000000   0.000000
+    8  HE 2  X    0.000000   0.000000   0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+   11  H  3  S    0.273074   0.156735   0.000000   0.000000   0.009912
+   12  H  3  S   -0.017855  -0.010248   0.000000   0.000000  -0.000648
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.063025  -0.036174   0.000000   0.000000  -0.002288
+
+                      6          7          8          9         10
+
+    6  HE 2  S    0.702388
+    7  HE 2  S    0.608056   0.526393
+    8  HE 2  X    0.000000   0.000000   0.000000
+    9  HE 2  Y    0.000000   0.000000   0.000000   0.000000
+   10  HE 2  Z   -0.000108  -0.000093   0.000000   0.000000   0.000000
+   11  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   12  H  3  S    0.000000   0.000000   0.000000   0.000000   0.000000
+   13  H  3  X    0.000000   0.000000   0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z    0.000000   0.000000   0.000000   0.000000   0.000000
+
+                     11         12         13         14         15
+
+   11  H  3  S    0.105970
+   12  H  3  S   -0.006929   0.000453
+   13  H  3  X    0.000000   0.000000   0.000000
+   14  H  3  Y    0.000000   0.000000   0.000000   0.000000
+   15  H  3  Z   -0.024458   0.001599   0.000000   0.000000   0.005645
+
+          --------------------
+          NUCLEAR EIGENVECTORS
+          --------------------
+
+                        1
+
+                     -0.1666
+
+    1  PROT 3  S    1.000000
+ ...... END OF RHF CALCULATION ......
+ STEP CPU TIME =     0.01 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS  80.00%
+
+  --------------------------------------------------------------------
+  PROPERTY VALUES FOR THE NEO-RHF   SELF-CONSISTENT FIELD WAVEFUNCTION
+  --------------------------------------------------------------------
+
+                    -----------------
+                    ENERGY COMPONENTS
+                    -----------------
+
+               NEO WAVEFUNCTION NORMALIZATION =       1.0000000000
+
+                          ONE ELECTRON ENERGY =      -7.8299097519
+                          TWO ELECTRON ENERGY =       2.1514909370
+                           ONE NUCLEUS ENERGY =       1.4068933722
+                           TWO NUCLEUS ENERGY =       0.0000000000
+                MIXED ELECTRON-NUCLEUS ENERGY =      -1.5735283739
+           CLASSICAL NUCLEAR REPULSION ENERGY =       0.0930752388
+                                      ----------------------------
+                                 TOTAL ENERGY =      -5.7519785779
+
+           ELECTRON-ELECTRON POTENTIAL ENERGY =       2.1514909370
+  CLASSICAL NUCLEUS-ELECTRON POTENTIAL ENERGY =     -13.6038322859
+   CLASSICAL NUCLEUS-NUCLEUS POTENTIAL ENERGY =       0.0930752388
+                                      ----------------------------
+            TOTAL ELECTRONIC POTENTIAL ENERGY =     -11.3592661101
+              TOTAL ELECTRONIC KINETIC ENERGY =       5.7739225339
+                 TOTAL NUCLEAR KINETIC ENERGY =       0.0084534314
+                           VIRIAL RATIO (V/T) =       1.9673395414
+
+          ---------------------------------------
+          MULLIKEN AND LOWDIN POPULATION ANALYSES
+          ---------------------------------------
+
+     MULLIKEN ATOMIC POPULATION IN EACH MOLECULAR ORBITAL
+
+                      1          2
+
+                  2.000000   2.000000
+
+    1             1.673061   0.000000
+    2             0.000000   2.000000
+    3             0.326939   0.000000
+
+               ----- POPULATIONS IN EACH AO -----
+                             MULLIKEN      LOWDIN
+              1  HE 1  S      1.07696     0.92428
+              2  HE 1  S      0.59082     0.53976
+              3  HE 1  X      0.00000     0.00000
+              4  HE 1  Y      0.00000     0.00000
+              5  HE 1  Z      0.00528     0.00291
+              6  HE 2  S      1.08800     1.06804
+              7  HE 2  S      0.91200     0.93196
+              8  HE 2  X      0.00000     0.00000
+              9  HE 2  Y      0.00000     0.00000
+             10  HE 2  Z      0.00000     0.00000
+             11  H  3  S      0.29083     0.28008
+             12  H  3  S     -0.01705     0.11289
+             13  H  3  X      0.00000     0.00000
+             14  H  3  Y      0.00000     0.00000
+             15  H  3  Z      0.05316     0.14009
+
+          ----- MULLIKEN ATOMIC OVERLAP POPULATIONS -----
+          (OFF-DIAGONAL ELEMENTS NEED TO BE MULTIPLIED BY 2)
+
+             1           2           3
+
+    1    1.4486987
+    2    0.0000000   2.0000000
+    3    0.2243619   0.0000000   0.1025776
+
+          TOTAL MULLIKEN AND LOWDIN ATOMIC POPULATIONS
+       ATOM         MULL.POP.    CHARGE          LOW.POP.     CHARGE
+    1 HE            1.673061    0.326939         1.466942    0.533058
+    2 HE            2.000000    0.000000         2.000000    0.000000
+    3 H             0.326939    0.673061         0.533058    0.466942
+
+
+ ..... NUCLEAR POPULATION ANALYSES .....
+
+     MULLIKEN ATOMIC POPULATION IN EACH NUC MOLECULAR ORBITAL
+
+                      1
+
+                  1.000000
+
+    3             1.000000
+
+               ----- POPULATIONS IN EACH NUC AO -----
+                               MULLIKEN      LOWDIN
+              1  PROT 3  S      1.00000     1.00000
+
+          ----- MULLIKEN NUCLEI OVERLAP POPULATIONS -----
+          (OFF-DIAGONAL ELEMENTS NEED TO BE MULTIPLIED BY 2)
+
+             3
+
+    3    1.0000000
+
+          TOTAL MULLIKEN AND LOWDIN NUC ATOMIC POPULATIONS
+       NUC          MULL.POP.    CHARGE          LOW.POP.     CHARGE
+    3 PROTON        1.000000    0.673061         1.000000    0.466942
+
+ ..... END OF NUCLEAR POPULATION ANALYSES .....
+
+
+          -------------------------------
+          BOND ORDER AND VALENCE ANALYSIS     BOND ORDER THRESHOLD=0.050
+          -------------------------------
+
+                   BOND                       BOND                       BOND
+  ATOM PAIR DIST  ORDER      ATOM PAIR DIST  ORDER      ATOM PAIR DIST  ORDER
+    1   3  0.784  0.547
+
+                       TOTAL       BONDED        FREE
+      ATOM            VALENCE     VALENCE     VALENCE
+    1 HE                0.547       0.547       0.000
+    2 HE                0.000       0.000       0.000
+    3 H                 0.547       0.547       0.000
+
+          ---------------------
+          ELECTROSTATIC MOMENTS
+          ---------------------
+
+ POINT   1           X           Y           Z (BOHR)    CHARGE
+                 0.000000    0.000000   17.848847        1.00 (A.U.)
+         DX          DY          DZ         /D/  (DEBYE)
+     0.000000    0.000000  -46.253096   46.253096
+ MEMORY ASSIGNMENT (EXPECTATION VALUE XYZ):
+           IELM   =********    IEMW   =********    LAST   =********
+
+          -----------------------------------------------
+          EXPECTATION VALUE OF THE QM NUCLEAR COORDINATES
+          -----------------------------------------------
+
+      NUC                            COORDINATES (BOHR)
+                        X                   Y                   Z
+      PROTON       0.0000000000        0.0000000000        0.0792043820
+
+ ...... END OF PROPERTY EVALUATION ......
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS  80.00%
+               580000  WORDS OF DYNAMIC MEMORY USED
+ EXECUTION OF GAMESS TERMINATED NORMALLY Mon Mar  7 16:43:45 2011
+ DDI: 263624 bytes (0.3 MB / 0 MWords) used by master data server.
+
+ ----------------------------------------
+ CPU timing information for all processes
+ ========================================
+ 0: 0.43 + 0.05 = 0.49
+ ----------------------------------------
+ ddikick.x: exited gracefully.
+----- accounting info -----
+Files used on the master node shspc2.chem.psu.edu were:
+-rw-r--r-- 1 chet users    5540 Mar  7 16:43 ./heh---he.dat
+-rw-r--r-- 1 chet users    1560 Mar  7 16:43 ./heh---he.F05
+-rw-r--r-- 1 chet users  180024 Mar  7 16:43 ./heh---he.F08
+-rw-r--r-- 1 chet users 1276088 Mar  7 16:43 ./heh---he.F10
+-rw-r--r-- 1 chet users  180024 Mar  7 16:43 ./heh---he.F67
+-rw-r--r-- 1 chet users    1560 Mar  7 16:43 ./heh---he.inp
+-rw-r--r-- 1 chet users  136280 Mar  7 16:43 ./heh---he.log
+Mon Mar  7 16:43:48 EST 2011
+0.122u 0.076s 0:03.25 5.8%	0+0k 0+0io 0pf+0w

@@ -1,0 +1,520 @@
+ 
+ nat   =                     2
+ npebf =                    14
+ nebf  =                    10
+ npbf  =                     1
+ ngtg1 =                     3
+ ngee  =                 10000
+ ng1   =                   100
+ ng2   =                 10000
+ ng3   =               1000000
+ ng4   =             100000000
+ ng1prm=                   196
+ ng2prm=                 38416
+ ng3prm=               7529536
+ 
+ PMASS   =   1836.00000000000     
+ nelec   =                     2
+ NUCST   =                     1
+ LNEOHF  = F
+ read_CE = T
+ read_CP = T
+ READ_GAM2= F
+ READ_GAM3= F
+ READ_GAM4= F
+ NG4CHK  =                    40
+ LG4DSCF = T
+ 
+ 
+ ELECTRONIC BASIS FUNCTIONS:
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0   38.360000  0.023809  0.000000  0.000000 -1.402013
+
+   2     1    0  0  0    5.770000  0.154891  0.000000  0.000000 -1.402013
+
+   3     1    0  0  0    1.240000  0.469987  0.000000  0.000000 -1.402013
+
+   4     2    0  0  0    0.297600  1.000000  0.000000  0.000000 -1.402013
+
+   5     3    1  0  0    1.275000  1.000000  0.000000  0.000000 -1.402013
+
+   6     4    0  1  0    1.275000  1.000000  0.000000  0.000000 -1.402013
+
+   7     5    0  0  1    1.275000  1.000000  0.000000  0.000000 -1.402013
+
+   8     6    0  0  0   13.010000  0.019685  0.000000  0.000000  0.079204
+
+   9     6    0  0  0    1.962000  0.137977  0.000000  0.000000  0.079204
+
+  10     6    0  0  0    0.444600  0.478148  0.000000  0.000000  0.079204
+
+  11     7    0  0  0    0.122000  1.000000  0.000000  0.000000  0.079204
+
+  12     8    1  0  0    0.727000  1.000000  0.000000  0.000000  0.079204
+
+  13     9    0  1  0    0.727000  1.000000  0.000000  0.000000  0.079204
+
+  14    10    0  0  1    0.727000  1.000000  0.000000  0.000000  0.079204
+ ELECTRONIC BASIS FUNCTIONS:
+ CONTRACT COEFF HAVE BEEN NORMALIZED
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0   38.360000  0.441353  0.000000  0.000000 -1.402013
+
+   2     1    0  0  0    5.770000  0.693497  0.000000  0.000000 -1.402013
+
+   3     1    0  0  0    1.240000  0.664184  0.000000  0.000000 -1.402013
+
+   4     2    0  0  0    0.297600  0.287167  0.000000  0.000000 -1.402013
+
+   5     3    1  0  0    1.275000  1.931203  0.000000  0.000000 -1.402013
+
+   6     4    0  1  0    1.275000  1.931203  0.000000  0.000000 -1.402013
+
+   7     5    0  0  1    1.275000  1.931203  0.000000  0.000000 -1.402013
+
+   8     6    0  0  0   13.010000  0.163548  0.000000  0.000000  0.079204
+
+   9     6    0  0  0    1.962000  0.277418  0.000000  0.000000  0.079204
+
+  10     6    0  0  0    0.444600  0.315749  0.000000  0.000000  0.079204
+
+  11     7    0  0  0    0.122000  0.147123  0.000000  0.000000  0.079204
+
+  12     8    1  0  0    0.727000  0.956881  0.000000  0.000000  0.079204
+
+  13     9    0  1  0    0.727000  0.956881  0.000000  0.000000  0.079204
+
+  14    10    0  0  1    0.727000  0.956881  0.000000  0.000000  0.079204
+ 
+ NUCLEAR BASIS FUNCTIONS:
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0   10.347000  1.000000  0.000000  0.000000  0.079204
+ 
+ NUCLEAR BASIS FUNCTIONS:
+ CONTRACT COEFF HAVE BEEN NORMALIZED
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0   10.347000  4.111695  0.000000  0.000000  0.079204
+ 
+ CONTRACTED ELECTRONIC OVERLAP MATRIX
+ 
+
+             1           2           3           4           5
+
+    1    1.0000000
+    2    0.6341677   1.0000000
+    3    0.0000000   0.0000000   1.0000000
+    4    0.0000000   0.0000000   0.0000000   1.0000000
+    5    0.0000000   0.0000000   0.0000000   0.0000000   1.0000000
+    6    0.3303256   0.6109477   0.0000000   0.0000000   0.3676050
+    7    0.3000075   0.7158773   0.0000000   0.0000000   0.0970789
+    8    0.0000000   0.0000000   0.3285144   0.0000000   0.0000000
+    9    0.0000000   0.0000000   0.0000000   0.3285144   0.0000000
+   10   -0.5123554  -0.3993745   0.0000000   0.0000000  -0.3389103
+
+             6           7           8           9          10
+
+    6    1.0000000
+    7    0.6848603   1.0000000
+    8    0.0000000   0.0000000   1.0000000
+    9    0.0000000   0.0000000   0.0000000   1.0000000
+   10    0.0000000   0.0000000   0.0000000   0.0000000   1.0000000
+ 
+ NUCLEAR OVERLAP MATRIX
+ 
+
+             1
+
+    1    1.0000000
+ 
+ **************************************
+  CALCULATING ELEC+NUC CORE INTEGRALS  
+ **************************************
+ 
+ 
+ **************************************
+     Computing GAM_ee Integrals    
+ 
+ nebf =                    10
+ npebf=                    14
+ ngee =                 10000
+ **************************************
+ 
+ 
+ **************************************
+        GAM_1 Integrals    
+ 
+ METHOD = MD
+ npebf  =                    14
+ nebf   =                    10
+ npbf   =                     1
+ ng1    =                   100
+  Available processors:            8
+  Available threads               16
+  Threads in use                   1
+ **************************************
+ 
+  Hello from process                      0
+  Hello from process                      5
+  Hello from process                     14
+  Hello from process                      9
+ Threads in use          16
+  Hello from process                      2
+  Hello from process                      7
+  Hello from process                      6
+  Hello from process                     15
+  Hello from process                     10
+  Hello from process                      8
+  Hello from process                     12
+  Hello from process                     13
+  Hello from process                      4
+  Hello from process                      3
+  Hello from process                      1
+  Hello from process                     11
+ TIME TO CALCULATE GAM_1 INTEGRALS:   0.249413013458252     
+ 
+ **************************************
+          GAM_2 Integrals    
+ 
+ METHOD   = MD
+ npebf    =                    14
+ nebf     =                    10
+ npbf     =                     1
+ nprim_g2 =                 38416
+ ng2      =                 10000
+  Available processors:            8
+  Available threads               16
+  Threads in use                   1
+ **************************************
+ 
+  Hello from process                      8
+  Hello from process                     13
+  Hello from process                      3
+  Hello from process                      2
+  Hello from process                      6
+  Hello from process                     11
+  Hello from process                      0
+ Threads in use          16
+  Hello from process                     10
+  Hello from process                     15
+  Hello from process                      9
+  Hello from process                      7
+  Hello from process                      5
+  Hello from process                     12
+  Hello from process                     14
+  Hello from process                      1
+  Hello from process                      4
+ TIME TO CALCULATE GAM_2 INTEGRALS:    33.3087561130524     
+ BACK FROM start
+ READ IN NUC REPULSION
+ READ IN NUC OVLAP
+ READ IN ELEC OVLAP
+ READ IN GAM_ECORE
+ READ IN GAM_PCORE
+ READ IN GAM_EP
+ READ IN GAM_EE
+
+       ** BEGIN NEOXC SELF-CONSISTENT-FIELD CALCULATION **
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -342.101033854128     
+ E_TRP=  -342.101033854128     
+ 
+ S_total=   123.276570312886     
+ S_TRP=   122.276570312886     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF ELEC OVLP PROBLEM
+ SE_TOTAL=  0.999999999533319     
+ SP_TOTAL=   1.00000000000000     
+
+           INITIAL GUESS ENERGETICS:            
+
+      -----------------------------------------------
+               NEOXCHF ENERGETIC COMPONENTS          
+      -----------------------------------------------
+                E_NUC=         0.0000000000
+              E_ECORE=        -3.7612625812
+              E_PCORE=         1.3586945232
+                 E_EP=        -1.5253294238
+                 E_EE=         1.0310794327
+               E_GAM1=       -82.7077666269
+               E_GAM2=      -259.2266323266
+               E_GAM3=         0.0000000000
+               E_GAM4=         0.0000000000
+              S_TOTAL=       123.2765703129
+              E_TOTAL=        -2.7972161793
+
+
+ ITER     TOTAL ENERGY        E CHANGE     E DENSITY CHANGE   P DENSITY CHANGE    ORB GRAD
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -342.101033854128     
+ E_TRP=  -342.101033854128     
+ 
+ S_total=   123.276570312886     
+ S_TRP=   122.276570312886     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF ELEC OVLP PROBLEM
+ SE_TOTAL=  0.999999999533319     
+ SP_TOTAL=   1.00000000000000     
+   1       -2.7972161793    -2.7972161793     0.7578848986     1.0000000000     0.0000000000
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -226.658520652056     
+ E_TRP=  -226.658520652056     
+ 
+ S_total=   83.4692502386306     
+ S_TRP=   82.4692502386306     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -226.658520652056     
+ E_TRP=  -226.658520652056     
+ 
+ S_total=   83.4692502386306     
+ S_TRP=   82.4692502386306     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+          ---------------START SECOND ORDER SCF---------------
+ SOSCF IS SCALING ROTATION ANGLE MATRIX, SQCDF=    0.289378
+   2       -2.7484725072     0.0487436721     0.4258171770     0.0000000000     0.2714741111
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -309.173032066846     
+ E_TRP=  -309.173032066846     
+ 
+ S_total=   112.870071407720     
+ S_TRP=   111.870071407720     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -309.173032066846     
+ E_TRP=  -309.173032066846     
+ 
+ S_total=   112.870071407720     
+ S_TRP=   111.870071407720     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+   3       -2.7625450253    -0.0140725181     0.2379408315     0.0000000000     0.2705144040
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -276.947926065932     
+ E_TRP=  -276.947926065932     
+ 
+ S_total=   96.0894229285784     
+ S_TRP=   95.0894229285784     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -276.947926065932     
+ E_TRP=  -276.947926065932     
+ 
+ S_total=   96.0894229285784     
+ S_TRP=   95.0894229285784     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+   4       -2.9117255574    -0.1491805321     0.0367255142     0.0000000000     0.0242227533
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -273.168447556100     
+ E_TRP=  -273.168447556100     
+ 
+ S_total=   94.7135750567222     
+ S_TRP=   93.7135750567222     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -273.168447556100     
+ E_TRP=  -273.168447556100     
+ 
+ S_total=   94.7135750567222     
+ S_TRP=   93.7135750567222     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+   5       -2.9140360337    -0.0023104763     0.0023792046     0.0000000000     0.0024496835
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -273.562388148139     
+ E_TRP=  -273.562388148139     
+ 
+ S_total=   94.8485542592302     
+ S_TRP=   93.8485542592302     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -273.562388148139     
+ E_TRP=  -273.562388148139     
+ 
+ S_total=   94.8485542592302     
+ S_TRP=   93.8485542592302     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+   6       -2.9140406826    -0.0000046489     0.0001619952     0.0000000000     0.0003365806
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -273.496083971318     
+ E_TRP=  -273.496083971318     
+ 
+ S_total=   94.8257911930444     
+ S_TRP=   93.8257911930444     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -273.496083971318     
+ E_TRP=  -273.496083971318     
+ 
+ S_total=   94.8257911930444     
+ S_TRP=   93.8257911930444     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+   7       -2.9140408612    -0.0000001786     0.0000390892     0.0000000000     0.0000401240
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -273.494010266229     
+ E_TRP=  -273.494010266229     
+ 
+ S_total=   94.8250783455017     
+ S_TRP=   93.8250783455017     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -273.494010266229     
+ E_TRP=  -273.494010266229     
+ 
+ S_total=   94.8250783455017     
+ S_TRP=   93.8250783455017     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+   8       -2.9140408624    -0.0000000012     0.0000039542     0.0000000000     0.0000017708
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -273.494192434335     
+ E_TRP=  -273.494192434335     
+ 
+ S_total=   94.8251408556113     
+ S_TRP=   93.8251408556113     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+ 
+ >>>IN CHECK_MY_FOCK<<<
+ 
+ E_check=  -273.494192434335     
+ E_TRP=  -273.494192434335     
+ 
+ S_total=   94.8251408556113     
+ S_TRP=   93.8251408556113     
+ 
+ NUC and ELEC Fock matrices are symmetric
+ NEOHF NORMALIZED TO UNITY
+   9       -2.9140408624     0.0000000000     0.0000000818     0.0000000000     0.0000000228
+
+ FINAL NEOXCHF ENERGY IS       -2.9140408624 AFTER   9 ITERATIONS
+
+      -----------------------------------------------
+               NEOXCHF ENERGETIC COMPONENTS          
+      -----------------------------------------------
+                E_NUC=         0.0000000000
+              E_ECORE=        -3.7947712456
+              E_PCORE=         1.3586945232
+                 E_EP=        -1.3063751292
+                 E_EE=         0.9646284402
+               E_GAM1=       -74.2830431446
+               E_GAM2=      -199.2634686837
+               E_GAM3=         0.0000000000
+               E_GAM4=         0.0000000000
+              S_TOTAL=        94.8251408556
+              E_TOTAL=        -2.9140408624
+
+
+        ELECTRONIC ORBITALS AND EIGENVALUES:         
+
+                        1          2          3          4          5
+
+                     -0.6115    -0.2900     0.7367     1.0840     1.9094
+
+    1  LABEL        0.544349  -0.258139  -0.150158  -1.010710   0.000000
+    2  LABEL        0.505078  -0.629025   0.051852   1.916197   0.000000
+    3  LABEL        0.000000   0.000000   0.000000   0.000000  -0.363021
+    4  LABEL        0.000000   0.000000   0.000000   0.000000   0.379818
+    5  LABEL       -0.048126   0.120692  -0.307132   0.188755   0.000000
+    6  LABEL        0.065134   0.370322  -1.073078  -0.110509   0.000000
+    7  LABEL        0.023934   1.016020   1.053081  -0.928997   0.000000
+    8  LABEL        0.000000   0.000000   0.000000   0.000000  -0.480607
+    9  LABEL        0.000000   0.000000   0.000000   0.000000   0.502845
+   10  LABEL       -0.004695  -0.006035  -0.114532   0.479412   0.000000
+
+                        6          7          8          9         10
+
+                      1.9094     3.1718     3.4381     3.4381     6.0140
+
+    1  LABEL        0.000000  -0.528942   0.000000   0.000000   0.633860
+    2  LABEL        0.000000   0.072509   0.000000   0.000000   1.078269
+    3  LABEL       -0.379818   0.000000  -0.909575   0.132683   0.000000
+    4  LABEL       -0.363021   0.000000   0.132683   0.909575   0.000000
+    5  LABEL        0.000000   0.406721   0.000000   0.000000   1.409610
+    6  LABEL        0.000000  -0.280406   0.000000   0.000000  -1.461495
+    7  LABEL        0.000000   0.265477   0.000000   0.000000  -0.094095
+    8  LABEL       -0.502845   0.000000   0.789852  -0.115218   0.000000
+    9  LABEL       -0.480607   0.000000  -0.115218  -0.789852   0.000000
+   10  LABEL        0.000000  -0.884167   0.000000   0.000000   1.400824
+
+          NUCLEAR ORBITALS AND EIGENVALUES:          
+
+                        1
+
+                     -0.0009
+
+    1  LABEL        1.000000
+ BACK FROM xcscf

@@ -1,0 +1,51 @@
+3 =NGTG
+3.467  8.275
+5.407  1.2366
+5.046  0.1928
+2 =NAT
+2.0   0.00   0.00  -0.927385  HE
+2.0   0.00   0.00   0.927385  HE
+6   =NEBF Number of contracted basis functions
+12  =NPEBF Number of primitive basis functions
+1   1   0   0   0     38.360000000   0.0238090      0.00   0.00  -0.927385
+2   1   0   0   0      5.770000000   0.1548910      0.00   0.00  -0.927385
+3   1   0   0   0      1.240000000   0.4699870      0.00   0.00  -0.927385
+4   2   0   0   0      0.297600000   1.0000000      0.00   0.00  -0.927385
+5   3   0   0   0     38.360000000   0.0238090      0.00   0.00   0.927385
+6   3   0   0   0      5.770000000   0.1548910      0.00   0.00   0.927385
+7   3   0   0   0      1.240000000   0.4699870      0.00   0.00   0.927385
+8   4   0   0   0      0.297600000   1.0000000      0.00   0.00   0.927385
+9   5   0   0   0     13.010000000   0.0196850      0.00   0.00   0.0000000000
+10  5   0   0   0      1.962000000   0.1379770      0.00   0.00   0.0000000000
+11  5   0   0   0      0.444600000   0.4781480      0.00   0.00   0.0000000000
+12  6   0   0   0      0.122000000   1.0000000      0.00   0.00   0.0000000000
+1 =NPBF Number of QM particle basis functions
+1   1   0   0   0      4.1643   1.0000000      0.00   0.00   0.0000000000
+1836.0d+00 =PMASS
+4       =nelec
+2       =NAE number of alpha electrons
+2       =NBE number of beta electrons
+1       =NUCST what nuclear state to use to form nuc density
+.false. =LNEOHF  only perform neo-hf calculation
+.false. =LXCUHF activates XCUHF code instead of standard XCHF
+.false. =LXCROHF activates XCROHF code instead of XCHF
+.false. =LRXCHF activates RXCHF code instead of XCHF
+.true.  =read_CE optional read in elec vectors from guessCE.inp
+.false. =read_CP optional read in nuc vectors from guessCP.inp
+.false. =read_GAM2  |
+.false. =read_GAM3  | Options to read integrals from file
+.false. =read_GAM4  |
+10      =NG4CHK Number of domains for 5-particle integrals
+.true.  =LGAM4 TRUE: Use 5-particle contributions 
+.false. =LG4DSCF Direct SCF for 5-particle integrals
+.true.  =LG4IC in-core 5-particle integrals
+10      =NG3CHK Number of domains for 4-particle integrals
+.false. =LG3DSCF Direct SCF for 4-particle integrals
+.true.  =LG3IC1 in-core 4-particle integrals: loop over contracted BF
+.false. =LG3IC2 in-core 4-particle integrals: loop over primitive BF
+1       =NG2CHK Number of domains for 3-particle integrals
+.false. =LG2DSCF  Direct SCF for 3-particle integrals
+.true.  =LG2IC1 in-core 3-particle integrals: loop over contracted BF
+.false. =LCMF Activates on-the-fly Fock matrix checking
+.true.  =LSOSCF
+

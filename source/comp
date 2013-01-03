@@ -1,0 +1,17 @@
+#!/bin/bash
+
+FIL=$@
+
+F77=ifort
+OPT='-openmp -parallel -fpp -traceback -check all -integer-size 64 -c'
+
+set echo
+
+echo Compiling $FIL with $F77 with options $OPT ...
+
+$F77 $OPT $FIL
+
+echo Done.
+
+unset echo
+

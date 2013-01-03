@@ -1,0 +1,62 @@
+0.0000
+0.0000
+2
+0 0 0   0.900000000    0.0   0.0   0.00000
+0 0 0  2.384          0.0   0.0   0.00000
+2
+0 0 0   0.600000000     0.0   0.0    0.000000
+0 0 0  2.184           0.0   0.0    0.000000
+0.0   0.0   -2.1259417362
+2.0
+5
+.false.
+.false.
+.true.
+.true.
+.true.
+
+1.0000
+1.0000
+4
+0 0 0   0.400000000    0.0   0.0   0.00000 
+0 0 0   0.700000000    0.0   0.0   0.00000
+0 0 0   0.900000000    0.0   0.0   0.00000
+0 0 1  2.384          0.0   0.0   0.00000
+4
+0 0 0   0.330000000     0.0   0.0    0.000000
+0 0 0   0.800000000     0.0   0.0    0.000000
+0 0 0   0.600000000     0.0   0.0    0.000000
+0 0 1  2.184           0.0   0.0    0.000000
+0.0   0.0   -2.1259417362
+2.0
+5
+.false.
+.false.
+.true.
+.true.
+.true.
+
+0.5977
+1.5977
+ |  IP  JP  IE1  JE1  IE2  JE2  IE3 JE3  |
+ AC vs MD ERROR xgVEEg2:       -0.0622421757 INDICES:   1  1  6  6  6  6  6  1
+
+
+C INPUT FILE FORMAT:
+C
+C gamma1
+C gamma2
+C Nbra
+C I J K A x y z   (x y z are basis func centers)
+C I J K A x y z
+C Nket
+C L M N B x y z
+C L M N B x y z
+C cmatx cmaty cmatz ==> coordinates of classical nucleus
+C ZNUC ==> Charge of classical nucleus
+NQUAD_COULOMB
+USE_RI ==> logical switch
+ORTHABS ==> logical switch to activate orthnormalization of ABS
+USE_MD
+USE_AE
+USE_AC

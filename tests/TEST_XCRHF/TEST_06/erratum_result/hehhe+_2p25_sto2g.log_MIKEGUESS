@@ -1,0 +1,1390 @@
+----- GAMESS execution script -----
+This job is running on host shspc2.chem.psu.edu
+under operating system Linux at Sat Jan 15 15:13:13 EST 2011
+Available scratch disk space (Kbyte units) at beginning of the job is
+Filesystem           1K-blocks      Used Available Use% Mounted on
+/dev/mapper/isw_djejifhhbg_ARRAYp5
+                     899556120   1188612 851935644   1% /scr
+cp hehhe+_2p25_sto2g.inp ./hehhe+_2p25_sto2g.F05
+unset echo
+setenv ERICFMT /scr/chet/gamess_neoxc_sockets/ericfmt.dat
+setenv MCPPATH /scr/chet/gamess_neoxc_sockets/mcpdata
+setenv EXTBAS /scr/chet/gamess_neoxc_sockets/extbasis
+setenv NUCBAS ./hehhe+_2p25_sto2g.F05
+setenv MAKEFP ./hehhe+_2p25_sto2g.efp
+setenv GAMMA ./hehhe+_2p25_sto2g.gamma
+setenv TRAJECT ./hehhe+_2p25_sto2g.trj
+setenv RESTART ./hehhe+_2p25_sto2g.rst
+setenv INPUT ./hehhe+_2p25_sto2g.F05
+setenv PUNCH ./hehhe+_2p25_sto2g.dat
+setenv AOINTS ./hehhe+_2p25_sto2g.F08
+setenv MOINTS ./hehhe+_2p25_sto2g.F09
+setenv DICTNRY ./hehhe+_2p25_sto2g.F10
+setenv DRTFILE ./hehhe+_2p25_sto2g.F11
+setenv CIVECTR ./hehhe+_2p25_sto2g.F12
+setenv CASINTS ./hehhe+_2p25_sto2g.F13
+setenv CIINTS ./hehhe+_2p25_sto2g.F14
+setenv WORK15 ./hehhe+_2p25_sto2g.F15
+setenv WORK16 ./hehhe+_2p25_sto2g.F16
+setenv CSFSAVE ./hehhe+_2p25_sto2g.F17
+setenv FOCKDER ./hehhe+_2p25_sto2g.F18
+setenv WORK19 ./hehhe+_2p25_sto2g.F19
+setenv DASORT ./hehhe+_2p25_sto2g.F20
+setenv DFTINTS ./hehhe+_2p25_sto2g.F21
+setenv DFTGRID ./hehhe+_2p25_sto2g.F22
+setenv JKFILE ./hehhe+_2p25_sto2g.F23
+setenv ORDINT ./hehhe+_2p25_sto2g.F24
+setenv EFPIND ./hehhe+_2p25_sto2g.F25
+setenv PCMDATA ./hehhe+_2p25_sto2g.F26
+setenv PCMINTS ./hehhe+_2p25_sto2g.F27
+setenv SVPWRK1 ./hehhe+_2p25_sto2g.F26
+setenv SVPWRK2 ./hehhe+_2p25_sto2g.F27
+setenv MLTPL ./hehhe+_2p25_sto2g.F28
+setenv MLTPLT ./hehhe+_2p25_sto2g.F29
+setenv DAFL30 ./hehhe+_2p25_sto2g.F30
+setenv SOINTX ./hehhe+_2p25_sto2g.F31
+setenv SOINTY ./hehhe+_2p25_sto2g.F32
+setenv SOINTZ ./hehhe+_2p25_sto2g.F33
+setenv SORESC ./hehhe+_2p25_sto2g.F34
+setenv GCILIST ./hehhe+_2p25_sto2g.F37
+setenv HESSIAN ./hehhe+_2p25_sto2g.F38
+setenv QMMMTEI ./hehhe+_2p25_sto2g.F39
+setenv SOCCDAT ./hehhe+_2p25_sto2g.F40
+setenv AABB41 ./hehhe+_2p25_sto2g.F41
+setenv BBAA42 ./hehhe+_2p25_sto2g.F42
+setenv BBBB43 ./hehhe+_2p25_sto2g.F43
+setenv MCQD50 ./hehhe+_2p25_sto2g.F50
+setenv MCQD51 ./hehhe+_2p25_sto2g.F51
+setenv MCQD52 ./hehhe+_2p25_sto2g.F52
+setenv MCQD53 ./hehhe+_2p25_sto2g.F53
+setenv MCQD54 ./hehhe+_2p25_sto2g.F54
+setenv MCQD55 ./hehhe+_2p25_sto2g.F55
+setenv MCQD56 ./hehhe+_2p25_sto2g.F56
+setenv MCQD57 ./hehhe+_2p25_sto2g.F57
+setenv MCQD58 ./hehhe+_2p25_sto2g.F58
+setenv MCQD59 ./hehhe+_2p25_sto2g.F59
+setenv MCQD60 ./hehhe+_2p25_sto2g.F60
+setenv MCQD61 ./hehhe+_2p25_sto2g.F61
+setenv MCQD62 ./hehhe+_2p25_sto2g.F62
+setenv MCQD63 ./hehhe+_2p25_sto2g.F63
+setenv MCQD64 ./hehhe+_2p25_sto2g.F64
+setenv NMRINT1 ./hehhe+_2p25_sto2g.F61
+setenv NMRINT2 ./hehhe+_2p25_sto2g.F62
+setenv NMRINT3 ./hehhe+_2p25_sto2g.F63
+setenv NMRINT4 ./hehhe+_2p25_sto2g.F64
+setenv NMRINT5 ./hehhe+_2p25_sto2g.F65
+setenv NMRINT6 ./hehhe+_2p25_sto2g.F66
+setenv DCPHFH2 ./hehhe+_2p25_sto2g.F67
+setenv DCPHF21 ./hehhe+_2p25_sto2g.F68
+setenv ELNUINT ./hehhe+_2p25_sto2g.F67
+setenv NUNUINT ./hehhe+_2p25_sto2g.F68
+setenv GVVPT ./hehhe+_2p25_sto2g.F69
+setenv NUMOIN ./hehhe+_2p25_sto2g.F69
+setenv NUMOCAS ./hehhe+_2p25_sto2g.F70
+setenv NUELMO ./hehhe+_2p25_sto2g.F71
+setenv NUELCAS ./hehhe+_2p25_sto2g.F72
+setenv GMCREF ./hehhe+_2p25_sto2g.F70
+setenv GMCO2R ./hehhe+_2p25_sto2g.F71
+setenv GMCROC ./hehhe+_2p25_sto2g.F72
+setenv GMCOOC ./hehhe+_2p25_sto2g.F73
+setenv GMCCC0 ./hehhe+_2p25_sto2g.F74
+setenv GMCHMA ./hehhe+_2p25_sto2g.F75
+setenv GMCEI1 ./hehhe+_2p25_sto2g.F76
+setenv GMCEI2 ./hehhe+_2p25_sto2g.F77
+setenv GMCEOB ./hehhe+_2p25_sto2g.F78
+setenv GMCEDT ./hehhe+_2p25_sto2g.F79
+setenv GMCERF ./hehhe+_2p25_sto2g.F80
+setenv GMCHCR ./hehhe+_2p25_sto2g.F81
+setenv GMCGJK ./hehhe+_2p25_sto2g.F82
+setenv GMCGAI ./hehhe+_2p25_sto2g.F83
+setenv GMCGEO ./hehhe+_2p25_sto2g.F84
+setenv GMCTE1 ./hehhe+_2p25_sto2g.F85
+setenv GMCTE2 ./hehhe+_2p25_sto2g.F86
+setenv GMCHEF ./hehhe+_2p25_sto2g.F87
+setenv GMCMOL ./hehhe+_2p25_sto2g.F88
+setenv GMCMOS ./hehhe+_2p25_sto2g.F89
+setenv GMCWGT ./hehhe+_2p25_sto2g.F90
+setenv GMCRM2 ./hehhe+_2p25_sto2g.F91
+setenv GMCRM1 ./hehhe+_2p25_sto2g.F92
+setenv GMCR00 ./hehhe+_2p25_sto2g.F93
+setenv GMCRP1 ./hehhe+_2p25_sto2g.F94
+setenv GMCRP2 ./hehhe+_2p25_sto2g.F95
+setenv GMCVEF ./hehhe+_2p25_sto2g.F96
+setenv GMCDIN ./hehhe+_2p25_sto2g.F97
+setenv GMC2SZ ./hehhe+_2p25_sto2g.F98
+setenv GMCCCS ./hehhe+_2p25_sto2g.F99
+unset echo
+In the right spot
+shspc2.chem.psu.edu
+/scr/chet/gamess_neoxc_sockets/ddikick.x /scr/chet/gamess_neoxc_sockets/gamess.XCHF.x hehhe+_2p25_sto2g -ddi 1 1 shspc2.chem.psu.edu -scr .
+
+ Distributed Data Interface kickoff program.
+ Initiating 1 compute processes on 1 nodes to run the following command:
+ /scr/chet/gamess_neoxc_sockets/gamess.XCHF.x hehhe+_2p25_sto2g 
+
+          ******************************************************
+          *         GAMESS VERSION = 25 MAR 2010 (R2)          *
+          *             FROM IOWA STATE UNIVERSITY             *
+          * M.W.SCHMIDT, K.K.BALDRIDGE, J.A.BOATZ, S.T.ELBERT, *
+          *   M.S.GORDON, J.H.JENSEN, S.KOSEKI, N.MATSUNAGA,   *
+          *          K.A.NGUYEN, S.J.SU, T.L.WINDUS,           *
+          *       TOGETHER WITH M.DUPUIS, J.A.MONTGOMERY       *
+          *         J.COMPUT.CHEM.  14, 1347-1363(1993)        *
+          **************** 64 BIT LINUX VERSION ****************
+
+  SINCE 1993, STUDENTS AND POSTDOCS WORKING AT IOWA STATE UNIVERSITY
+  AND ALSO IN THEIR VARIOUS JOBS AFTER LEAVING ISU HAVE MADE IMPORTANT
+  CONTRIBUTIONS TO THE CODE:
+     IVANA ADAMOVIC, CHRISTINE AIKENS, YURI ALEXEEV, POOJA ARORA,
+     ANDREY ASADCHEV, ROB BELL, PRADIPTA BANDYOPADHYAY, JONATHAN BENTZ,
+     BRETT BODE, GALINA CHABAN, WEI CHEN, CHEOL HO CHOI, PAUL DAY, TIM DUDLEY,
+     DMITRI FEDOROV, GRAHAM FLETCHER, MARK FREITAG, KURT GLAESEMANN, DAN KEMP,
+     GRANT MERRILL, JONATHAN MULLIN, TAKESHI NAGATA, SEAN NEDD,
+     HEATHER NETZLOFF, BOSILJKA NJEGIC, RYAN OLSON, MIKE PAK, JIM SHOEMAKER,
+     LYUDMILA SLIPCHENKO, SAROM SOK, JIE SONG, TETSUYA TAKETSUGU,
+     SIMON WEBB, SOOHAENG YOO, FEDERICO ZAHARIEV
+
+  ADDITIONAL CODE HAS BEEN PROVIDED BY COLLABORATORS IN OTHER GROUPS:
+     IOWA STATE UNIVERSITY: JOE IVANIC, LAIMUTIS BYTAUTAS,
+          KLAUS RUEDENBERG
+     UNIVERSITY OF TOKYO: KIMIHIKO HIRAO, TAKAHITO NAKAJIMA,
+          TAKAO TSUNEDA, MUNEAKI KAMIYA, SUSUMU YANAGISAWA,
+          KIYOSHI YAGI, MAHITO CHIBA, SEIKEN TOKURA, NAOAKI KAWAKAMI
+     UNIVERSITY OF AARHUS: FRANK JENSEN
+     UNIVERSITY OF IOWA: VISVALDAS KAIRYS, HUI LI
+     NATIONAL INST. OF STANDARDS AND TECHNOLOGY: WALT STEVENS, DAVID GARMER
+     UNIVERSITY OF PISA: BENEDETTA MENNUCCI, JACOPO TOMASI
+     UNIVERSITY OF MEMPHIS: HENRY KURTZ, PRAKASHAN KORAMBATH
+     UNIVERSITY OF ALBERTA: TOBY ZENG, MARIUSZ KLOBUKOWSKI
+     UNIVERSITY OF NEW ENGLAND: MARK SPACKMAN
+     MIE UNIVERSITY: HIROAKI UMEDA
+     MICHIGAN STATE UNIVERSITY:
+          KAROL KOWALSKI, MARTA WLOCH, JEFFREY GOUR, JESSE LUTZ, PIOTR PIECUCH
+     UNIVERSITY OF SILESIA: MONIKA MUSIAL, STANISLAW KUCHARSKI
+     FACULTES UNIVERSITAIRES NOTRE-DAME DE LA PAIX:
+          OLIVIER QUINET, BENOIT CHAMPAGNE
+     UNIVERSITY OF CALIFORNIA - SANTA BARBARA: BERNARD KIRTMAN
+     INSTITUTE FOR MOLECULAR SCIENCE: KAZUYA ISHIMURA AND SHIGERU NAGASE
+     UNIVERSITY OF NOTRE DAME: DAN CHIPMAN
+     KYUSHU UNIVERSITY:
+          HARUYUKI NAKANO,
+          FENG LONG GU, JACEK KORCHOWIEC, MARCIN MAKOWSKI, AND YURIKO AOKI,
+          HIROTOSHI MORI AND EISAKU MIYOSHI
+     PENNSYLVANIA STATE UNIVERSITY:
+          TZVETELIN IORDANOV, CHET SWALINA, JONATHAN SKONE,
+          SHARON HAMMES-SCHIFFER
+     WASEDA UNIVERSITY:
+          MASATO KOBAYASHI, TOMOKO AKAMA, HIROMI NAKAI
+     UNIVERSITY OF NEBRASKA:
+          PEIFENG SU, DEJUN SI, YALI WANG, HUI LI
+
+ EXECUTION OF GAMESS BEGUN Sat Jan 15 15:13:13 2011
+
+            ECHO OF THE FIRST FEW INPUT CARDS -
+ INPUT CARD> 5                                                                              
+ INPUT CARD> 1   2.0915320                                                                  
+ INPUT CARD> 1   3.6225340                                                                  
+ INPUT CARD> 1   6.2745960                                                                  
+ INPUT CARD> 1  10.8676010                                                                  
+ INPUT CARD> 1  18.8237890                                                                  
+ INPUT CARD>                                                                                
+ INPUT CARD>!                                                                               
+ INPUT CARD>!                                                                               
+ INPUT CARD>!                                                                               
+ INPUT CARD>                                                                                
+ INPUT CARD> $CONTRL SCFTYP=RHF RUNTYP=ENERGY MAXIT=100 EXETYP=RUN                          
+ INPUT CARD>         INTTYP=HONDO ICHARG=1 MULT=1 MPLEVL=0 UNITS=BOHR  $END                 
+ INPUT CARD> $SYSTEM TIMLIM=3000 MWORDS=50 $END                                             
+ INPUT CARD> $INTGRL SCHWRZ=.F. $END                                                        
+ INPUT CARD> $SCF    SOGTOL=1.0d+00 $END                                                    
+ INPUT CARD> $NEO    NEOSCF=DIAGZN BASNUC=READIN NUMULT=2 EXCH=.T.                          
+ INPUT CARD>         NUNIQN=1 IUNIQN(1)=3 NUCST=1                                           
+ INPUT CARD>         XCTYP=XCHF1                                                            
+ INPUT CARD>         XC1G2=MD XC1G3=MD XC1G4=MD                                             
+ INPUT CARD>         BCOEF1(1)=5.046,5.407,3.467                                            
+ INPUT CARD>         GAMMA1(1)=0.1928,1.2366,8.275                                          
+ INPUT CARD>         NGTG1=3 $END                                                           
+ INPUT CARD> $GUESS  GUESS=MOREAD NORB=3 $END                                               
+ INPUT CARD> $GESNMO GUESS=MOREAD NORB=5 $END                                               
+ INPUT CARD> $DATA                                                                          
+ INPUT CARD>                                                                                
+ INPUT CARD> C1                                                                             
+ INPUT CARD> HE          2.0  -0.0000000000  -0.0000000000  -2.1259417362                   
+ INPUT CARD>S   2                                                                           
+ INPUT CARD>  1      2.432879300            0.4301284983                                    
+ INPUT CARD>  2      0.433051300            0.6789135305                                    
+ INPUT CARD>                                                                                
+ INPUT CARD> HE          2.0  -0.0000000000  -0.0000000000   2.1259417362                   
+ INPUT CARD>S   2                                                                           
+ INPUT CARD>  1      2.432879300            0.4301284983                                    
+ INPUT CARD>  2      0.433051300            0.6789135305                                    
+ INPUT CARD>                                                                                
+ INPUT CARD> H           1.0   0.0000000000   0.0000000000   0.000000                       
+ INPUT CARD>S   2                                                                           
+ INPUT CARD>  1      1.309756400            0.4301284983                                    
+ INPUT CARD>  2      0.233136000            0.6789135305                                    
+ INPUT CARD>                                                                                
+ INPUT CARD> $END                                                                           
+ INPUT CARD> $VEC                                                                           
+ INPUT CARD> 1  1 6.41304996E-01 6.41304995E-01 1.70365535E-01                              
+ INPUT CARD> 2  1-7.10545633E-01 7.10545634E-01 1.21431107E-11                              
+ INPUT CARD> 3  1-4.59796106E-01-4.59796106E-01 1.10831856E+00                              
+ INPUT CARD> $END                                                                           
+ INPUT CARD> $VECPRO                                                                        
+   50000000 WORDS OF MEMORY AVAILABLE
+
+
+     RUN TITLE
+     ---------
+                                                                                 
+
+ THE POINT GROUP OF THE MOLECULE IS C1      
+ THE ORDER OF THE PRINCIPAL AXIS IS     0
+
+ ATOM      ATOMIC                      COORDINATES (BOHR)
+           CHARGE         X                   Y                   Z
+ HE          2.0     0.0000000000        0.0000000000       -2.1259417362
+ HE          2.0     0.0000000000        0.0000000000        2.1259417362
+ H           1.0     0.0000000000        0.0000000000        0.0000000000
+
+          INTERNUCLEAR DISTANCES (ANGS.)
+          ------------------------------
+
+                1 HE         2 HE         3 H     
+
+   1 HE      0.0000000    2.2500000 *  1.1250000 *
+   2 HE      2.2500000 *  0.0000000    1.1250000 *
+   3 H       1.1250000 *  1.1250000 *  0.0000000  
+
+  * ... LESS THAN  3.000
+
+
+     ATOMIC BASIS SET
+     ----------------
+ THE CONTRACTED PRIMITIVE FUNCTIONS HAVE BEEN UNNORMALIZED
+ THE CONTRACTED BASIS FUNCTIONS ARE NOW NORMALIZED TO UNITY
+
+  SHELL TYPE  PRIMITIVE        EXPONENT          CONTRACTION COEFFICIENT(S)
+
+ HE        
+
+      1   S       1             2.4328793    0.430128497287
+      1   S       2             0.4330513    0.678913528901
+
+ HE        
+
+      2   S       3             2.4328793    0.430128497287
+      2   S       4             0.4330513    0.678913528901
+
+ H         
+
+      3   S       5             1.3097564    0.430128494703
+      3   S       6             0.2331360    0.678913524822
+
+ TOTAL NUMBER OF BASIS SET SHELLS             =    3
+ NUMBER OF CARTESIAN GAUSSIAN BASIS FUNCTIONS =    3
+ NUMBER OF ELECTRONS                          =    4
+ CHARGE OF MOLECULE                           =    1
+ SPIN MULTIPLICITY                            =    1
+ NUMBER OF OCCUPIED ORBITALS (ALPHA)          =    2
+ NUMBER OF OCCUPIED ORBITALS (BETA )          =    2
+ TOTAL NUMBER OF ATOMS                        =    3
+ THE NUCLEAR REPULSION ENERGY IS        2.8222786626
+
+ THIS MOLECULE IS RECOGNIZED AS BEING LINEAR,
+ ORBITAL LZ DEGENERACY TOLERANCE ETOLLZ= 1.00E-06
+
+
+     ----------------------------------------------------------------
+              NUCLEAR ELECTRONIC ORBITAL (NEO) CALCULATION
+     ----------------------------------------------------------------
+     NEO METHOD DEVELOPMENT IS CARRIED OUT IN THE LABORATORY OF      
+     SHARON HAMMES-SCHIFFER AT THE PENNSYLVANIA STATE UNIVERISTY
+
+     CONTRIBUTORS TO THE CODE: SIMON P. WEBB, TZVETELIN IORDANOV,
+                               MIKE PAK, CHET SWALINA, AND JONATHAN SKONE
+     ----------------------------------------------------------------
+
+
+     $NEO OPTIONS
+     ------------
+     NUNIQN=       1     BASNUC=READIN       NEOSCF=DIAGZN  
+     NEOCI =NONE         NUMULT=       2     NUCST =       1
+     NAUXNB=       0     VNUCEX=       F     NUCOPT=       F
+     NTAUXB=       0     NEOHSS=       F     HSSINI=READH   
+     HSSUPD=POWELLUP     DIRNUC=       F     SYMNUC=       F
+     QMTOLN= 0.0E+00     USRDEX=       F
+     POSNEO=       F     POSPRP=       F
+     NEONCI=       F     LOCORB=       0
+     XCTYP =XCHF1   
+     XC1G2 =MD           XC1G3 =MD           XC1G4 =MD      
+
+
+     NUCLEAR BASIS SET CENTERS
+     -------------------------
+
+ NUC       ATOMIC                      COORDINATES (BOHR)
+           CHARGE         X                   Y                   Z
+ PROTON      1.0     0.0000000000        0.0000000000        0.0000000000
+
+     NUCLEAR BASIS SET
+     -----------------
+ THE CONTRACTED PRIMITIVE FUNCTIONS HAVE BEEN UNNORMALIZED
+ THE CONTRACTED BASIS FUNCTIONS ARE NOW NORMALIZED TO UNITY
+
+ SHELL TYPE PRIMITIVE    EXPONENT          CONTRACTION COEFFICIENTS
+
+ PROTON    
+
+   1   S    2           2.0915320      1.000000000000
+
+   2   S    3           3.6225340      1.000000000000
+
+   3   S    4           6.2745960      1.000000000000
+
+   4   S    5          10.8676010      1.000000000000
+
+   5   S    6          18.8237890      1.000000000000
+
+ TOTAL NUMBER OF NUCLEAR BASIS SET SHELLS     =    5
+ NUMBER OF CARTESIAN GAUSSIAN BASIS FUNCTIONS =    5
+ NUCLEAR SPIN MULTIPLICITY                    =    2
+ NUMBER OF OCCUPIED NUCLEAR ORBITALS (ALPHA)  =    1
+ NUMBER OF OCCUPIED NUCLEAR ORBITALS (BETA )  =    0
+ TOTAL NUMBER OF QUANTUM NUCLEI               =    1
+ THE CORRECTED CLASSICAL NUCLEAR REPULSION ENERGY IS        0.9407595542
+
+     $CONTRL OPTIONS
+     ---------------
+ SCFTYP=RHF          RUNTYP=ENERGY       EXETYP=RUN     
+ MPLEVL=       0     CITYP =NONE         CCTYP =NONE         VBTYP =NONE    
+ DFTTYP=NONE         TDDFT =NONE    
+ MULT  =       1     ICHARG=       1     NZVAR =       0     COORD =UNIQUE  
+ PP    =NONE         RELWFN=NONE         LOCAL =NONE         NUMGRD=       F
+ ISPHER=      -1     NOSYM =       0     MAXIT =     100     UNITS =BOHR    
+ PLTORB=       F     MOLPLT=       F     AIMPAC=       F     FRIEND=        
+ NPRINT=       7     IREST =       0     GEOM  =INPUT   
+ NORMF =       0     NORMP =       0     ITOL  =      20     ICUT  =       9
+ INTTYP=BEST         GRDTYP=BEST         QMTTOL= 1.0E-06
+
+     $SYSTEM OPTIONS
+     ---------------
+  REPLICATED MEMORY=    50000000 WORDS (ON EVERY NODE).
+ DISTRIBUTED MEMDDI=           0 MILLION WORDS IN AGGREGATE,
+ MEMDDI DISTRIBUTED OVER   1 PROCESSORS IS           0 WORDS/PROCESSOR.
+ TOTAL MEMORY REQUESTED ON EACH PROCESSOR=    50000000 WORDS.
+ TIMLIM=        3000.00 MINUTES, OR       2.1 DAYS.
+ PARALL= F  BALTYP=  DLB     KDIAG=    0  COREFL= F
+ MXSEQ2=     300 MXSEQ3=     150
+
+          ----------------
+          PROPERTIES INPUT
+          ----------------
+
+     MOMENTS            FIELD           POTENTIAL          DENSITY
+ IEMOM =       1   IEFLD =       0   IEPOT =       0   IEDEN =       0
+ WHERE =COMASS     WHERE =NUCLEI     WHERE =NUCLEI     WHERE =NUCLEI  
+ OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH    
+ IEMINT=       0   IEFINT=       0                     IEDINT=       0
+                                                       MORB  =       0
+          EXTRAPOLATION IN EFFECT
+ ORBITAL PRINTING OPTION: NPREO=     1     3     2     1
+
+     -------------------------------
+     INTEGRAL TRANSFORMATION OPTIONS
+     -------------------------------
+     NWORD  =         0     CUTOFF = 1.0E-09
+     MPTRAN =         0     DIRTRF =       F
+     AOINTS =DUP     
+
+          ----------------------
+          INTEGRAL INPUT OPTIONS
+          ----------------------
+ NOPK  =       1 NORDER=       0 SCHWRZ=       F
+
+     ------------------------------------------
+     THE POINT GROUP IS C1 , NAXIS= 0, ORDER= 1
+     ------------------------------------------
+
+     DIMENSIONS OF THE SYMMETRY SUBSPACES ARE
+ A   =    3
+
+ ..... DONE SETTING UP THE RUN .....
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS   0.00%
+
+          ********************
+          1 ELECTRON INTEGRALS
+          ********************
+ ...... END OF ONE-ELECTRON INTEGRALS ......
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS   0.00%
+
+          -------------
+          GUESS OPTIONS
+          -------------
+          GUESS =MOREAD            NORB  =       3          NORDER=       0
+          MIX   =       F          PRTMO =       F          PUNMO =       F
+          TOLZ  = 1.0E-08          TOLE  = 1.0E-05
+          SYMDEN=       F          PURIFY=       F
+
+ INITIAL GUESS ORBITALS GENERATED BY MOREAD   ROUTINE.
+
+ SYMMETRIES FOR INITIAL GUESS ORBITALS FOLLOW.   BOTH SET(S).
+     2 ORBITALS ARE OCCUPIED (    0 CORE ORBITALS).
+     1=A        2=A        3=A   
+ ...... END OF INITIAL ORBITAL SELECTION ......
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS   0.00%
+
+                    ----------------------
+                    AO INTEGRAL TECHNOLOGY
+                    ----------------------
+     S,P,L SHELL ROTATED AXIS INTEGRALS, REPROGRAMMED BY
+        KAZUYA ISHIMURA (IMS) AND JOSE SIERRA (SYNSTAR).
+     S,P,D,L SHELL ROTATED AXIS INTEGRALS PROGRAMMED BY
+        KAZUYA ISHIMURA (INSTITUTE FOR MOLECULAR SCIENCE).
+     S,P,D,F,G SHELL TO TOTAL QUARTET ANGULAR MOMENTUM SUM 5,
+        ERIC PROGRAM BY GRAHAM FLETCHER (ELORET AND NASA ADVANCED
+        SUPERCOMPUTING DIVISION, AMES RESEARCH CENTER).
+     S,P,D,F,G,L SHELL GENERAL RYS QUADRATURE PROGRAMMED BY
+        MICHEL DUPUIS (PACIFIC NORTHWEST NATIONAL LABORATORY).
+
+          --------------------
+          2 ELECTRON INTEGRALS
+          --------------------
+
+ THE -PK- OPTION IS OFF, THE INTEGRALS ARE NOT IN SUPERMATRIX FORM.
+ STORING   15000 INTEGRALS/RECORD ON DISK, USING 12 BYTES/INTEGRAL.
+ TWO ELECTRON INTEGRAL EVALUATION REQUIRES   89362 WORDS OF MEMORY.
+ II,JST,KST,LST =  1  1  1  1 NREC =         1 INTLOC =    1
+ II,JST,KST,LST =  2  1  1  1 NREC =         1 INTLOC =    2
+ II,JST,KST,LST =  3  1  1  1 NREC =         1 INTLOC =    7
+ TOTAL NUMBER OF NONZERO TWO-ELECTRON INTEGRALS =                  21
+          1 INTEGRAL RECORDS WERE STORED ON DISK FILE  8.
+  ...... END OF TWO-ELECTRON INTEGRALS .....
+ STEP CPU TIME =     0.02 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS  66.67%
+
+          *******************
+          1 NUCLEUS INTEGRALS
+          *******************
+ ...... END OF ONE-NUCLEUS INTEGRALS ......
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS  66.67%
+
+          --------------------------
+          ELECTRON-NUCLEUS INTEGRALS
+          --------------------------
+
+ THE -PK- OPTION IS OFF, THE INTEGRALS ARE NOT IN SUPERMATRIX FORM.
+ STORING   15000 INTEGRALS/RECORD ON DISK, USING 16 BYTES/INTEGRAL.
+ ELECTRON-NUCLEAR INTEGRAL EVALUATION REQUIRES   89371 WORDS OF MEMORY.
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS  66.67%
+ II,JST,KST,LST =  4  1  1  1 NREC =         1 INTLOC =    1
+ II,JST,KST,LST =  5  1  1  1 NREC =         1 INTLOC =    7
+ II,JST,KST,LST =  6  1  1  1 NREC =         1 INTLOC =   19
+ II,JST,KST,LST =  7  1  1  1 NREC =         1 INTLOC =   37
+ II,JST,KST,LST =  8  1  1  1 NREC =         1 INTLOC =   61
+ TOTAL NUMBER OF NONZERO ELECTRON-NUCLEAR INTEGRALS =                  90
+          1 INTEGRAL RECORDS WERE STORED ON DISK FILE 67.
+  .. END OF ELECTRON-NUCLEAR COULOMB INTEGRALS ..
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =        0.0 (    0.0 MIN)
+ TOTAL WALL CLOCK TIME=        0.0 SECONDS, CPU UTILIZATION IS  66.67%
+
+ **************************************
+    Setup for NEO-XCHF Calculation     
+ **************************************
+
+ bcoef1(                     1 )=   5.04600000000000     
+ gamma1(                     1 )=  0.192800000000000     
+
+ bcoef1(                     2 )=   5.40700000000000     
+ gamma1(                     2 )=   1.23660000000000     
+
+ bcoef1(                     3 )=   3.46700000000000     
+ gamma1(                     3 )=   8.27500000000000     
+
+
+ +--------------------------------------+
+ |  XCHF1 INTEGRAL ROUTINES TO BE USED: | 
+ +--------------------------------------+
+
+  XC1G2 =MD        XC1G3 =MD        XC1G4 =MD      
+
+ +--------------------------------------+
+
+
+ ************************************************
+     ASSEMBLING PRIMITIVE BASIS FUNCTIONS    
+         FOR NEOXC INTEGRAL EVALUATION    
+ ************************************************
+
+
+ IN APBF --> CHECK BASIS SET INFORMATION:
+
+ NUMBER E BASIS FUNCTIONS (PRIMITIVE)   :                    6
+ NUMBER E BASIS FUNCTIONS (CONTRACTED)  :                    3
+ NUMBER E BASIS FUNCTIONS (ACTUAL)      :                    3
+ NUMBER P BASIS FUNCTIONS (FROM ROUTINE):                    5
+ NUMBER P BASIS FUNCTIONS (ACTUAL)      :                    5
+
+ ELECTRONIC BASIS FUNCTIONS:
+
+ PRIMITIVE CONTRACTED SHELL TYPE EXPONENT CONTRACT_COEF
+  INDEX      INDEX    INDEX
+
+     1         1         1        10  2.432879  0.597171
+
+     2         1         1        10  0.433051  0.258303
+
+     3         2         2        10  2.432879  0.597171
+
+     4         2         2        10  0.433051  0.258303
+
+     5         3         3        10  1.309756  0.375320
+
+     6         3         3        10  0.233136  0.162342
+
+ PROTON BASIS FUNCTIONS:
+
+ PRIMITIVE CONTRACTED SHELL TYPE EXPONENT CONTRACT_COEF
+  INDEX      INDEX    INDEX
+
+     1         1         4        10  2.091532  1.239534
+
+     2         2         5        10  3.622534  1.871412
+
+     3         3         6        10  6.274596  2.825527
+
+     4         4         7        10 10.867601  4.265897
+
+     5         5         8        10 18.823789  6.440808
+
+  CHECK NORMALIZATION OF
+  CONTRACTED ELECTRONIC BASIS FUNCTIONS:
+    >>> OVERLAP MATRIX:
+
+
+             1           2           3
+
+    1    1.0000000
+    2    0.0096560   1.0000000
+    3    0.3214664   0.3214664   1.0000000
+
+ STANDARD GAMESS OVERLAP MATRIX:
+
+                      1          2          3
+
+    1  HE 1  S    1.000000
+    2  HE 2  S    0.009656   1.000000
+    3  H  3  S    0.321466   0.321466   1.000000
+ CHECKING NORMALIZATION OF NUC BASIS
+
+             1           2           3           4           5
+
+    1    1.0000000
+    2    0.9456596   1.0000000
+    3    0.8059274   0.9456485   1.0000000
+    4    0.6311458   0.8059275   0.9456597   1.0000000
+    5    0.4647580   0.6311271   0.8059274   0.9456485   1.0000000
+
+ STANDARD GAMESS OVERLAP MATRIX:
+
+             1           2           3           4           5
+
+    1    1.0000000
+    2    0.9456596   1.0000000
+    3    0.8059274   0.9456485   1.0000000
+    4    0.6311458   0.8059275   0.9456597   1.0000000
+    5    0.4647580   0.6311271   0.8059274   0.9456485   1.0000000
+
+ nebf=                    3
+ npebf=                    6
+ npbf=                    5
+ nelec=                    4
+ pmass=   1836.00000000000     
+
+
+ **************************************
+       Computing GAM_1 Integrals    
+
+ METHOD = MD
+ npebf=                    6
+ nebf =                    3
+ npbf =                    5
+ ng1  =                  225
+ **************************************
+
+
+ **************************************
+          GAM_2 Integrals    
+
+ METHOD = MD
+ npebf=                    6
+ nebf=                    3
+ npbf=                    5
+ ng2 =                 2025
+ **************************************
+
+
+ **************************************
+     Computing GAM_3 Integrals    
+
+ METHOD = MD
+ nebf=                    3
+ npebf=                    6
+ npbf=                    5
+ ngam3 =                18225
+ **************************************
+
+
+ *****************************************
+
+ UNPACKING 2-ELECTRON INTEGRALS
+ TO BE USED FOR CALCULATING G5 INTEGRALS
+
+ *****************************************
+
+
+ **************************************
+     Computing GAM_4 Integrals    
+
+ ne =                    3
+ np =                    5
+ ng4=               164025
+ **************************************
+
+ GAM4 integrals skipped=                    0
+ ngam4 integrals greater than 1d-06=                72900
+ number ng4 integrals eq 0       =                91125
+
+          ------------------------
+          NUCLEAR MO GUESS OPTIONS
+          ------------------------
+          GUESS =MOREAD            NORB  =       5          NORDER=       0
+          MIX   =       F          PRTMO =       F          PUNMO =       F
+          TOLZ  = 1.0E-08          TOLE  = 1.0E-05
+          SYMDEN=       F          PURIFY=       F
+
+ INITIAL GUESS NUCLEAR ORBITALS GENERATED BY MOREAD   ROUTINE.
+ .... END OF INITIAL NUCLEAR ORBITAL SELECTION ....
+ STEP CPU TIME =   415.74 TOTAL CPU TIME =      415.8 (    6.9 MIN)
+ TOTAL WALL CLOCK TIME=      417.9 SECONDS, CPU UTILIZATION IS  99.49%
+
+          --------------------------
+                 RHF SCF CALCULATION
+          --------------------------
+
+     NUCLEAR ENERGY =         0.9407595542
+     MAXIT =  100     NPUNCH=    2
+     EXTRAP=T  DAMP=F  SHIFT=F  RSTRCT=F  DIIS=F  DEM=F  SOSCF=T
+     DENSITY MATRIX CONV=  1.00E-05
+     SOSCF WILL OPTIMIZE       2 ORBITAL ROTATIONS, SOGTOL=   1.000
+     MEMORY REQUIRED FOR RHF ITERS=     30113 WORDS.
+
+ ITER EX DEM     TOTAL ENERGY        E CHANGE  DENSITY CHANGE     ORB. GRAD
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -558.307338545570     
+ E_TRP=  -558.307338546191     
+
+ S_total=   88.8440809524968     
+ S_TRP=   87.8440809525691     
+
+
+ S_total=   88.8440809524968     
+ E_ecore=  -9.30090651448457     
+ E_ee=   2.98784640798257     
+ E_pcore=   1.88756315842301     
+ E_ep=  -1.91243821526702     
+ E_gam1=  -38.6218553903725     
+ E_gam2=  -443.008547018948     
+ E_gam3=  -103.147501494092     
+ E_gam4=   26.4954404146861     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.39717560914728     
+ E_total=  -5.41442351032037     
+
+ UPDATE:  In xchf1_fock NUC XC1 DENSITY is:
+
+             1           2           3           4           5
+
+    1   73.8950803
+    2 -172.3674391 402.0637631
+    3  172.2354647-401.7559200 401.4483126
+    4  -91.8986656 214.3625472-214.1984190 114.2885927
+    5   22.5290706 -52.5512413  52.5110051 -28.0179886   6.8686443
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -643.763888120118     
+ E_TRP=  -643.763888120120     
+
+ S_total=   101.404376611606     
+ S_TRP=   100.404376611606     
+
+
+ S_total=   101.404376611606     
+ E_ecore=  -9.30090651448457     
+ E_ee=   2.98784640798257     
+ E_pcore=   1.88786680245982     
+ E_ep=  -1.98330902719680     
+ E_gam1=  -37.3358023963405     
+ E_gam2=  -497.654963672641     
+ E_gam3=  -137.245592032369     
+ E_gam4=   28.5679122059693     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.46774277704025     
+ E_total=  -5.46997901497082     
+
+ UPDATE:  In xchf1_fock ELEC XC1 DENSITY is:
+
+             1           2           3
+
+    1    1.8322944
+    2   -0.1872060   1.8322944
+    3    0.2185125   0.2185125   0.0580488
+   1  0  0       -4.4396925754    -4.4396925754   0.152106603   0.000000000
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -575.318276061084     
+ E_TRP=  -575.318276061083     
+
+ S_total=   90.8122939457120     
+ S_TRP=   89.8122939457119     
+
+
+ S_total=   90.8122939457120     
+ E_ecore=  -9.37768037155877     
+ E_ee=   3.02775266888303     
+ E_pcore=   1.88786680245982     
+ E_ep=  -1.89981940556513     
+ E_gam1=  -35.1666387702770     
+ E_gam2=  -444.355368843658     
+ E_gam3=  -121.785962040173     
+ E_gam4=   26.0016461961291     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.42112075158232     
+ E_total=  -5.46441069853690     
+
+ UPDATE:  In xchf1_fock NUC XC1 DENSITY is:
+
+             1           2           3           4           5
+
+    1    0.0003358
+    2   -0.0018361   0.0100405
+    3    0.0133647  -0.0730818   0.5319415
+    4    0.0071281  -0.0389785   0.2837129   0.1513193
+    5   -0.0005823   0.0031842  -0.0231767  -0.0123614   0.0010098
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -571.505171798529     
+ E_TRP=  -571.505171798534     
+
+ S_total=   90.1979259570515     
+ S_TRP=   89.1979259570514     
+
+
+ S_total=   90.1979259570515     
+ E_ecore=  -9.37768037155877     
+ E_ee=   3.02775266888303     
+ E_pcore=   1.88496227201788     
+ E_ep=  -1.89780820254261     
+ E_gam1=  -35.6248963964470     
+ E_gam2=  -442.302272586015     
+ E_gam3=  -119.527826759933     
+ E_gam4=   25.9626698743906     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.42201407900175     
+ E_total=  -5.46576358222410     
+
+ UPDATE:  In xchf1_fock ELEC XC1 DENSITY is:
+
+             1           2           3
+
+    1    1.9555914
+    2   -0.0639090   1.9555914
+    3    0.0664059   0.0664059   0.0046622
+          ---------------START SECOND ORDER SCF---------------
+   2  1  0       -4.4087245151     0.0309680602   0.184150234   0.110059726
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -654.571712657847     
+ E_TRP=  -654.571712657845     
+
+ S_total=   103.310916132439     
+ S_TRP=   102.310916132438     
+
+
+ S_total=   103.310916132439     
+ E_ecore=  -9.27229526892798     
+ E_ee=   2.97878514652276     
+ E_pcore=   1.88496227201788     
+ E_ep=  -2.00054533378417     
+ E_gam1=  -38.0210641707489     
+ E_gam2=  -507.155183838877     
+ E_gam3=  -138.410177550463     
+ E_gam4=   29.1302959640079     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.46833362997277     
+ E_total=  -5.45609808215269     
+
+ UPDATE:  In xchf1_fock NUC XC1 DENSITY is:
+
+             1           2           3           4           5
+
+    1    0.0068457
+    2   -0.0673069   0.6617584
+    3   -0.0293906   0.2889673   0.1261822
+    4    0.0092018  -0.0904719  -0.0395060   0.0123688
+    5   -0.0018552   0.0182407   0.0079651  -0.0024938   0.0005028
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -662.558969126969     
+ E_TRP=  -662.558969126966     
+
+ S_total=   104.519951098561     
+ S_TRP=   103.519951098561     
+
+
+ S_total=   104.519951098561     
+ E_ecore=  -9.27229526892798     
+ E_ee=   2.97878514652276     
+ E_pcore=   1.88806427863798     
+ E_ep=  -2.00777844537385     
+ E_gam1=  -37.6905190357738     
+ E_gam2=  -512.534697696199     
+ E_gam3=  -141.558451451813     
+ E_gam4=   29.3444132235521     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.47246473494235     
+ E_total=  -5.45852089149011     
+
+ UPDATE:  In xchf1_fock ELEC XC1 DENSITY is:
+
+             1           2           3
+
+    1    1.8013634
+    2   -0.2181370   1.8013634
+    3    0.2505562   0.2505562   0.0793044
+   3  2  0       -4.4413482863    -0.0326237712   0.095785764   0.132069376
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -611.801805950947     
+ E_TRP=  -611.801805950946     
+
+ S_total=   96.2951792548357     
+ S_TRP=   95.2951792548357     
+
+
+ S_total=   96.2951792548357     
+ E_ecore=  -9.34352525166130     
+ E_ee=   3.00525192942778     
+ E_pcore=   1.88806427863798     
+ E_ep=  -1.94290054558240     
+ E_gam1=  -36.4805663233929     
+ E_gam2=  -472.504335901096     
+ E_gam3=  -130.071378242157     
+ E_gam4=   27.3093107826438     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.45235003497920     
+ E_total=  -5.47846188613249     
+
+ UPDATE:  In xchf1_fock NUC XC1 DENSITY is:
+
+             1           2           3           4           5
+
+    1    0.0003188
+    2   -0.0017068   0.0091361
+    3    0.0119191  -0.0638017   0.4455562
+    4    0.0079746  -0.0426874   0.2981057   0.1994519
+    5   -0.0005485   0.0029359  -0.0205028  -0.0137177   0.0009435
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -609.749395993101     
+ E_TRP=  -609.749395993102     
+
+ S_total=   95.9694721091963     
+ S_TRP=   94.9694721091966     
+
+
+ S_total=   95.9694721091963     
+ E_ecore=  -9.34352525166130     
+ E_ee=   3.00525192942778     
+ E_pcore=   1.88641183097994     
+ E_ep=  -1.94137365543229     
+ E_gam1=  -36.6612555197417     
+ E_gam2=  -471.240979732152     
+ E_gam3=  -129.060826934389     
+ E_gam4=   27.2686280176339     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.45247559248714     
+ E_total=  -5.47886176678066     
+
+ UPDATE:  In xchf1_fock ELEC XC1 DENSITY is:
+
+             1           2           3
+
+    1    1.8881263
+    2   -0.1313741   1.8881263
+    3    0.1547704   0.1547704   0.0272706
+   4  3  0       -4.4305815203     0.0107667660   0.002245406   0.002828852
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -608.733197525333     
+ E_TRP=  -608.733197525337     
+
+ S_total=   95.8111432683225     
+ S_TRP=   94.8111432683227     
+
+
+ S_total=   95.8111432683225     
+ E_ecore=  -9.34472445741503     
+ E_ee=   3.00584821976984     
+ E_pcore=   1.88641183097994     
+ E_ep=  -1.94012712555724     
+ E_gam1=  -36.6302808253817     
+ E_gam2=  -470.448554438866     
+ E_gam3=  -128.831013243065     
+ E_gam4=   27.2303662765563     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.45183197802377     
+ E_total=  -5.47887027988483     
+
+ UPDATE:  In xchf1_fock NUC XC1 DENSITY is:
+
+             1           2           3           4           5
+
+    1    0.0002770
+    2   -0.0020494   0.0151627
+    3   -0.0148992   0.1102340   0.8014089
+    4    0.0000580  -0.0004289  -0.0031178   0.0000121
+    5   -0.0000953   0.0007052   0.0051269  -0.0000199   0.0000328
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -608.666178607511     
+ E_TRP=  -608.666178607514     
+
+ S_total=   95.8006989685059     
+ S_TRP=   94.8006989685060     
+
+
+ S_total=   95.8006989685059     
+ E_ecore=  -9.34472445741503     
+ E_ee=   3.00584821976984     
+ E_pcore=   1.88637184821623     
+ E_ep=  -1.94007843303342     
+ E_gam1=  -36.6355343037871     
+ E_gam2=  -470.407540393591     
+ E_gam3=  -128.798476409201     
+ E_gam4=   27.2290790838847     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.45182326826365     
+ E_total=  -5.47887058907754     
+
+ UPDATE:  In xchf1_fock ELEC XC1 DENSITY is:
+
+             1           2           3
+
+    1    1.8899726
+    2   -0.1295277   1.8899726
+    3    0.1525250   0.1525250   0.0264295
+   5  4  0       -4.4301448281     0.0004366922   0.000095337   0.000125271
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -608.709175782948     
+ E_TRP=  -608.709175782951     
+
+ S_total=   95.8073925520718     
+ S_TRP=   94.8073925520718     
+
+
+ S_total=   95.8073925520718     
+ E_ecore=  -9.34467392517420     
+ E_ee=   3.00582292682041     
+ E_pcore=   1.88637184821623     
+ E_ep=  -1.94013112723584     
+ E_gam1=  -36.6368512719222     
+ E_gam2=  -470.441060487804     
+ E_gam3=  -128.808200561581     
+ E_gam4=   27.2306958173784     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.45185072317466     
+ E_total=  -5.47887060583323     
+
+ UPDATE:  In xchf1_fock NUC XC1 DENSITY is:
+
+             1           2           3           4           5
+
+    1    0.0003341
+    2   -0.0024650   0.0181870
+    3   -0.0163150   0.1203725   0.7966972
+    4    0.0002229  -0.0016445  -0.0108840   0.0001487
+    5   -0.0001263   0.0009317   0.0061667  -0.0000842   0.0000477
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -608.711837677422     
+ E_TRP=  -608.711837677420     
+
+ S_total=   95.8078071940464     
+ S_TRP=   94.8078071940464     
+
+
+ S_total=   95.8078071940464     
+ E_ecore=  -9.34467392517420     
+ E_ee=   3.00582292682041     
+ E_pcore=   1.88637342306556     
+ E_ep=  -1.94013306100589     
+ E_gam1=  -36.6366433413661     
+ E_gam2=  -470.442689598190     
+ E_gam3=  -128.809492042350     
+ E_gam4=   27.2307469424247     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.45185108209539     
+ E_total=  -5.47887060631699     
+
+ UPDATE:  In xchf1_fock ELEC XC1 DENSITY is:
+
+             1           2           3
+
+    1    1.8898944
+    2   -0.1296060   1.8898944
+    3    0.1526203   0.1526203   0.0264649
+   6  5  0       -4.4301634960    -0.0000186679   0.000000262   0.000000345
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -608.711719598057     
+ E_TRP=  -608.711719598062     
+
+ S_total=   95.8077888113636     
+ S_TRP=   94.8077888113637     
+
+
+ S_total=   95.8077888113636     
+ E_ecore=  -9.34467406397212     
+ E_ee=   3.00582299627277     
+ E_pcore=   1.88637342306556     
+ E_ep=  -1.94013291629054     
+ E_gam1=  -36.6366397254688     
+ E_gam2=  -470.442597543838     
+ E_gam3=  -128.809465337798     
+ E_gam4=   27.2307425022729     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.45185100672560     
+ E_total=  -5.47887060631705     
+
+ UPDATE:  In xchf1_fock NUC XC1 DENSITY is:
+
+             1           2           3           4           5
+
+    1    0.0003317
+    2   -0.0024478   0.0180621
+    3   -0.0162591   0.1199725   0.7968849
+    4    0.0002158  -0.0015925  -0.0105778   0.0001404
+    5   -0.0001250   0.0009222   0.0061256  -0.0000813   0.0000471
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -608.711712275402     
+ E_TRP=  -608.711712275408     
+
+ S_total=   95.8077876706979     
+ S_TRP=   94.8077876706976     
+
+
+ S_total=   95.8077876706979     
+ E_ecore=  -9.34467406397212     
+ E_ee=   3.00582299627277     
+ E_pcore=   1.88637341873185     
+ E_ep=  -1.94013291097082     
+ E_gam1=  -36.6366402975397     
+ E_gam2=  -470.442593062276     
+ E_gam3=  -128.809461784974     
+ E_gam4=   27.2307423616273     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.45185100573959     
+ E_total=  -5.47887060631701     
+
+ UPDATE:  In xchf1_fock ELEC XC1 DENSITY is:
+
+             1           2           3
+
+    1    1.8898946
+    2   -0.1296058   1.8898946
+    3    0.1526201   0.1526201   0.0264648
+   7  6  0       -4.4301634447     0.0000000512   0.000000000   0.000000000
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -608.711712275402     
+ E_TRP=  -608.711712275408     
+
+ S_total=   95.8077876706979     
+ S_TRP=   94.8077876706976     
+
+
+ S_total=   95.8077876706979     
+ E_ecore=  -9.34467406397212     
+ E_ee=   3.00582299627277     
+ E_pcore=   1.88637341873185     
+ E_ep=  -1.94013291097082     
+ E_gam1=  -36.6366402975397     
+ E_gam2=  -470.442593062276     
+ E_gam3=  -128.809461784974     
+ E_gam4=   27.2307423616273     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.45185100573959     
+ E_total=  -5.47887060631701     
+
+ UPDATE:  In xchf1_fock NUC XC1 DENSITY is:
+
+             1           2           3           4           5
+
+    1    0.0003317
+    2   -0.0024479   0.0180624
+    3   -0.0162593   0.1199736   0.7968844
+    4    0.0002158  -0.0015927  -0.0105787   0.0001404
+    5   -0.0001250   0.0009222   0.0061257  -0.0000813   0.0000471
+
+ >>>IN CHECK_MY_FOCK<<<
+
+ E_check=  -608.711712275406     
+ E_TRP=  -608.711712275410     
+
+ S_total=   95.8077876706984     
+ S_TRP=   94.8077876706980     
+
+
+ S_total=   95.8077876706984     
+ E_ecore=  -9.34467406397212     
+ E_ee=   3.00582299627277     
+ E_pcore=   1.88637341873185     
+ E_ep=  -1.94013291097082     
+ E_gam1=  -36.6366402975395     
+ E_gam2=  -470.442593062278     
+ E_gam3=  -128.809461784977     
+ E_gam4=   27.2307423616266     
+ E_nuc=  0.940759554198736     
+ E_NEOHF=  -5.45185100573958     
+ E_total=  -5.47887060631703     
+
+ UPDATE:  In xchf1_fock ELEC XC1 DENSITY is:
+
+             1           2           3
+
+    1    1.8898946
+    2   -0.1296058   1.8898946
+    3    0.1526201   0.1526201   0.0264648
+   8  7  0       -4.4301634447     0.0000000000   0.000000000   0.000000000
+
+          -----------------
+          DENSITY CONVERGED
+          -----------------
+
+ FINAL XCHF1 ENERGY IS   -5.47887060631703     
+
+     TIME TO FORM FOCK OPERATORS=       9.0 SECONDS (       1.1 SEC/ITER)
+     TIME TO SOLVE SCF EQUATIONS=       0.0 SECONDS (       0.0 SEC/ITER)
+
+ FINAL RHF ENERGY IS       -4.4301634447 AFTER   8 ITERATIONS
+
+ LZ VALUE ANALYSIS FOR THE MOS
+ ----------------------------------------
+ MO     1 (    1) HAS LZ(WEIGHT)= 0.00(100.0%) 
+ MO     2 (    2) HAS LZ(WEIGHT)= 0.00(100.0%) 
+ MO     3 (    3) HAS LZ(WEIGHT)= 0.00(100.0%) 
+
+          ------------
+          EIGENVECTORS
+          ------------
+
+                      1          2          3
+                   -0.8115    -0.8034     0.0124
+                     A          A          A   
+    1  HE 1  S    0.710546   0.663379  -0.427332
+    2  HE 2  S   -0.710546   0.663379  -0.427332
+    3  H  3  S    0.000000   0.115032   1.115420
+
+          --------------------
+          NUCLEAR EIGENVECTORS
+          --------------------
+
+                        1          2          3          4          5
+
+                     -0.0008     0.0116     0.0235     0.0378     0.0529
+
+    1  PROT 3  S    0.018214   0.335239  -0.403546  -6.845725   6.509887
+    2  PROT 3  S   -0.134396  -2.904920  -4.873541  15.502586 -21.148223
+    3  PROT 3  S   -0.892684   1.618941  11.273614 -12.509253  31.470714
+    4  PROT 3  S    0.011850   1.082023  -7.602763   2.353761 -25.598888
+    5  PROT 3  S   -0.006862  -0.163219   1.059473   1.413251   9.292466
+ ...... END OF RHF CALCULATION ......
+ STEP CPU TIME =    11.95 TOTAL CPU TIME =      427.7 (    7.1 MIN)
+ TOTAL WALL CLOCK TIME=      429.8 SECONDS, CPU UTILIZATION IS  99.50%
+
+  --------------------------------------------------------------------
+  PROPERTY VALUES FOR THE NEO-RHF   SELF-CONSISTENT FIELD WAVEFUNCTION
+  --------------------------------------------------------------------
+
+                    -----------------
+                    ENERGY COMPONENTS
+                    -----------------
+
+               NEO WAVEFUNCTION NORMALIZATION =       1.0000000000
+
+                          ONE ELECTRON ENERGY =      -9.3446740640
+                          TWO ELECTRON ENERGY =       4.0275105573
+                           ONE NUCLEUS ENERGY =       1.8863734187
+                           TWO NUCLEUS ENERGY =       0.0000000000
+                MIXED ELECTRON-NUCLEUS ENERGY =      -1.9401329110
+           CLASSICAL NUCLEAR REPULSION ENERGY =       0.9407595542
+                                      ----------------------------
+                                 TOTAL ENERGY =      -4.4301634447
+
+           ELECTRON-ELECTRON POTENTIAL ENERGY =       4.0275105573
+  CLASSICAL NUCLEUS-ELECTRON POTENTIAL ENERGY =     -14.5575939370
+   CLASSICAL NUCLEUS-NUCLEUS POTENTIAL ENERGY =       0.9407595542
+                                      ----------------------------
+            TOTAL ELECTRONIC POTENTIAL ENERGY =      -9.5893238255
+              TOTAL ELECTRONIC KINETIC ENERGY =       5.2129198730
+                 TOTAL NUCLEAR KINETIC ENERGY =       0.0048543103
+                           VIRIAL RATIO (V/T) =       1.8395302554
+
+          ---------------------------------------
+          MULLIKEN AND LOWDIN POPULATION ANALYSES
+          ---------------------------------------
+
+     MULLIKEN ATOMIC POPULATION IN EACH MOLECULAR ORBITAL
+
+                      1          2
+
+                  2.000000   2.000000
+
+    1             1.000000   0.937705
+    2             1.000000   0.937705
+    3             0.000000   0.124589
+
+               ----- POPULATIONS IN EACH AO -----
+                             MULLIKEN      LOWDIN
+              1  HE 1  S      1.93771     1.89070
+              2  HE 2  S      1.93771     1.89070
+              3  H  3  S      0.12459     0.21860
+
+          ----- MULLIKEN ATOMIC OVERLAP POPULATIONS -----
+          (OFF-DIAGONAL ELEMENTS NEED TO BE MULTIPLIED BY 2)
+
+             1           2           3
+
+    1    1.8898946
+    2   -0.0012515   1.8898946
+    3    0.0490622   0.0490622   0.0264648
+
+          TOTAL MULLIKEN AND LOWDIN ATOMIC POPULATIONS
+       ATOM         MULL.POP.    CHARGE          LOW.POP.     CHARGE
+    1 HE            1.937705    0.062295         1.890702    0.109298
+    2 HE            1.937705    0.062295         1.890702    0.109298
+    3 H             0.124589    0.875411         0.218597    0.781403
+
+
+ ..... NUCLEAR POPULATION ANALYSES .....
+
+     MULLIKEN ATOMIC POPULATION IN EACH NUC MOLECULAR ORBITAL
+
+                      1
+
+                  1.000000
+
+    3             1.000000
+
+               ----- POPULATIONS IN EACH NUC AO -----
+                               MULLIKEN      LOWDIN
+              1  PROT 3  S     -0.01501     0.11685
+              2  PROT 3  S      0.12850     0.24983
+              3  PROT 3  S      0.89217     0.32002
+              4  PROT 3  S     -0.01109     0.21794
+              5  PROT 3  S      0.00543     0.09536
+
+          ----- MULLIKEN NUCLEI OVERLAP POPULATIONS -----
+          (OFF-DIAGONAL ELEMENTS NEED TO BE MULTIPLIED BY 2)
+
+             3
+
+    3    1.0000000
+
+          TOTAL MULLIKEN AND LOWDIN NUC ATOMIC POPULATIONS
+       NUC          MULL.POP.    CHARGE          LOW.POP.     CHARGE
+    3 PROTON        1.000000    0.875411         1.000000    0.781403
+
+ ..... END OF NUCLEAR POPULATION ANALYSES .....
+
+
+          -------------------------------
+          BOND ORDER AND VALENCE ANALYSIS     BOND ORDER THRESHOLD=0.050
+          -------------------------------
+
+                   BOND                       BOND                       BOND
+  ATOM PAIR DIST  ORDER      ATOM PAIR DIST  ORDER      ATOM PAIR DIST  ORDER
+    1   3  1.125  0.117        2   3  1.125  0.117
+
+                       TOTAL       BONDED        FREE
+      ATOM            VALENCE     VALENCE     VALENCE
+    1 HE                0.121       0.121       0.000
+    2 HE                0.121       0.121       0.000
+    3 H                 0.234       0.234       0.000
+
+          ---------------------
+          ELECTROSTATIC MOMENTS
+          ---------------------
+
+ POINT   1           X           Y           Z (BOHR)    CHARGE
+                 0.000000    0.000000    0.000000        1.00 (A.U.)
+         DX          DY          DZ         /D/  (DEBYE)
+     0.000000    0.000000    0.000000    0.000000
+
+          -----------------------------------------------
+          EXPECTATION VALUE OF THE QM NUCLEAR COORDINATES
+          -----------------------------------------------
+
+      NUC                            COORDINATES (BOHR)
+                        X                   Y                   Z
+      PROTON       0.0000000000        0.0000000000        0.0000000000
+
+ ...... END OF PROPERTY EVALUATION ......
+ STEP CPU TIME =     0.00 TOTAL CPU TIME =      427.7 (    7.1 MIN)
+ TOTAL WALL CLOCK TIME=      429.8 SECONDS, CPU UTILIZATION IS  99.50%
+               580000  WORDS OF DYNAMIC MEMORY USED
+ EXECUTION OF GAMESS TERMINATED NORMALLY Sat Jan 15 15:20:23 2011
+ DDI: 263624 bytes (0.3 MB / 0 MWords) used by master data server.
+
+ ----------------------------------------
+ CPU timing information for all processes
+ ========================================
+ 0: 338.592 + 89.121 = 427.713
+ ----------------------------------------
+ ddikick.x: exited gracefully.
+unset echo
+----- accounting info -----
+Files used on the master node shspc2.chem.psu.edu were:
+-rw-r--r-- 1 chet users    1949 Jan 15 15:20 ./hehhe+_2p25_sto2g.dat
+-rw-r--r-- 1 chet users    2583 Jan 15 15:13 ./hehhe+_2p25_sto2g.F05
+-rw-r--r-- 1 chet users  180024 Jan 15 15:18 ./hehhe+_2p25_sto2g.F08
+-rw-r--r-- 1 chet users 1308920 Jan 15 15:20 ./hehhe+_2p25_sto2g.F10
+-rw-r--r-- 1 chet users  180024 Jan 15 15:20 ./hehhe+_2p25_sto2g.F67
+-rw-r--r-- 1 chet users    2583 Jan 15 15:10 ./hehhe+_2p25_sto2g.inp
+-rw-r--r-- 1 chet users   50078 Jan 15 15:20 ./hehhe+_2p25_sto2g.log
+Sat Jan 15 15:20:26 EST 2011
+0.138u 0.077s 7:13.14 0.0%	0+0k 0+0io 0pf+0w

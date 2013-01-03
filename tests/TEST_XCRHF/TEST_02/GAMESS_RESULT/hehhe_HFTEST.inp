@@ -1,0 +1,56 @@
+ 1
+ 1  4.95 
+
+i
+!
+!
+!
+
+ $CONTRL SCFTYP=RHF RUNTYP=ENERGY MAXIT=100 EXETYP=RUN
+         INTTYP=HONDO ICHARG=1 MULT=1 MPLEVL=0   $END 
+ $SYSTEM TIMLIM=3000 MWORDS=50 $END 
+ $INTGRL SCHWRZ=.F. $END 
+ $SCF    SOSCF=.T. SOGTOL=1.0d+00 $END
+ $NEO    NEOSCF=DIAGZN BASNUC=READIN NUMULT=2 EXCH=.T.
+         NUNIQN=1 IUNIQN(1)=3 NUCST=1
+         XCTYP=NONE
+         XC1G2=MD XC1G3=MD XC1G4=MD
+         BCOEF1(1)=5.046,5.407,3.467
+         GAMMA1(1)=0.1928,1.2366,8.275
+         NGTG1=3 $END
+ $GUESS  GUESS=HCORE NORB=3 $END
+i$GESNMO GUESS=MOREAD NORB=5 $END
+ $DATA
+
+ C1
+ HE          2.0  -0.0000000000  -0.0000000000  -0.9775000000 
+S   3
+  1     38.3600000              0.0238090        
+  2      5.7700000              0.1548910        
+  3      1.2400000              0.4699870        
+S   1
+  1      0.2976000              1.0000000        
+P   1
+  1      1.2750000              1.0000000        
+
+ HE          2.0  -0.0000000000  -0.0000000000   0.9775000000
+S   3
+  1     38.3600000              0.0238090        
+  2      5.7700000              0.1548910        
+  3      1.2400000              0.4699870        
+S   1
+  1      0.2976000              1.0000000        
+P   1
+  1      1.2750000              1.0000000        
+
+ H           1.0   0.0000000000   0.0000000000   0.0000000000
+S   3
+  1     13.0100000              0.0196850        
+  2      1.9620000              0.1379770        
+  3      0.4446000              0.4781480        
+S   1
+  1      0.1220000              1.0000000        
+P   1
+  1      0.7270000              1.0000000   
+
+ $END

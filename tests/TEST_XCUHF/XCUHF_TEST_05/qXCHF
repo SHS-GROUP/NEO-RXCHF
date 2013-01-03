@@ -1,0 +1,42 @@
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=12
+#PBS -l walltime=48:00:00
+#PBS -l mem=94gb
+#PBS -q lionxf-soh3
+#PBS -j oe
+#PBS -N XCUHF05
+
+ cd $PBS_O_WORKDIR
+
+ echo $PBS_JOBID >> JOB_STATS.txt
+ echo $TMPDIR >> JOB_STATS.txt
+ cat $PBS_NODEFILE >> JOB_STATS.txt
+
+ cp guessC*.inp $TMPDIR
+#cp guessCP.inp $TMPDIR
+ cp basis_definition.inp $TMPDIR
+
+ cd $TMPDIR
+
+ export OMP_NUM_THREADS=12
+ export OMP_STACKSIZE=200MB
+ export OMP_SCHEDULE=GUIDED
+
+#EXEDIR=/gpfs/home/cws161/NEO-XCHF-v1.1
+#EXE=runNEOXCHF 
+#EXE=AAA 
+#$EXEDIR/$EXE.exe > xcOMPout.log
+
+EXE=/gpfs/home/cws161/XCHF_CODE_FROM_SVN/NEO-XCHF/bin/runXCHF.exe
+$EXE > xcOMPout.log
+
+
+ rm GAM_* ENUCR* eovlap* novlap* WORK15 WORK16
+
+ cp xcOMPout.log $PBS_O_WORKDIR
+ cp FinalCE.dat $PBS_O_WORKDIR
+ cp FinalCAE.dat $PBS_O_WORKDIR
+ cp FinalCBE.dat $PBS_O_WORKDIR
+ cp FinalCP.dat $PBS_O_WORKDIR
+

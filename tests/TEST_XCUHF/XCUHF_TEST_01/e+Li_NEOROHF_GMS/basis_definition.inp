@@ -1,0 +1,57 @@
+ 6
+ 1      0.0122474139         
+ 1      0.028901569795359         
+ 1      0.0682022134187861         
+ 1      0.160944265247786         
+ 1      0.379797886574377         
+ 1      0.896250850717081         
+
+!
+!
+! ALPSE= 0.007117
+! BETASE= 3.74191
+!
+! ALPSP= 0.00519
+! BETASP= 2.35981
+!
+! 8 =NEBF
+! 6 =NPBF
+!
+ $contrl scftyp=uhf runtyp=energy exetyp=run QMTTOL=1.0D-10
+         mult=2 icharg=0 coord=unique ispher=-1 $end
+ $system timlim=50000000 mwords=30  $end
+!$basis  gbasis=ACCT extfil=.f.  $end
+ $NEO    NEOSCF=diagzn basnuc=readin nucst=1
+         NUMULT=2 SYMNUC=.f. NEMPLV=0 DIRNUC=.f.
+         NUNIQN=1 IUNIQN(1)=2 IUNIQT(1)=1
+         posneo=.T. posprp=.t. iuniqa(1)=2 $END
+ $guess  guess=hcore norb=109 $end
+!$elmom  iemom=1 $end
+!$elpot  iepot=1 where=pdc output=both   $end
+!$pdc    ptsel=connolly constr=dipole
+!        vdwscl=1.4  vdwinc=0.2  layer=4
+!        ptdens=0.28  maxpdc=10000  $end
+ $data
+
+ C1
+ Li 3.0   0.0   0.0   0.0
+S   1
+   1     0.02663117347                 1.000000
+S   1
+   1     0.0996514543191277            1.000000
+S   1
+   1     0.372886773431287             1.000000
+S   1
+   1     1.39530874637027              1.000000
+S   1
+   1     5.22111975113037              1.000000
+S   1
+   1     19.5369602079522              1.000000
+S   1
+   1     73.1055467717385              1.000000
+S   1
+   1     273.554376520636              1.000000
+
+ P 0.0   0.0   0.0   0.0
+
+ $END
