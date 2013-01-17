@@ -532,10 +532,9 @@ C     x                     GM4ICR,
          CALL COPYDEN(DAE0,DAE,NEBF)
 
 ! Do OCBSE procedure for special electrons
-           call RXCHF_OCBSE2(nebf,nae,nbe,vecAE,vecBE0,FBE,xxse,
-C ARS( 07/01 testing
-     x           elcam,elcbfc,ampeb2c,agebfcc,elcex,
-C )
+           call RXCHF_OCBSE2(nebf,npebf,nae,nbe,vecAE,vecBE0,FBE,xxse,
+     x                       elcam,elcbfc,elcex,
+     x                       ampeb2c,agebfcc,kpestr,kpeend,
      x                       vecBE,BEe)
 
 ! Form special electronic density matrix and store stuff for next it
@@ -1122,10 +1121,9 @@ C )
       return
       end
 !======================================================================
-      subroutine RXCHF_OCBSE2(nebf,nae,nbe,vecAE,vecBE0,FBE,Selec,
-C ARS( 07/01 testing
-     x           elcam,elcbfc,ampeb2c,agebfcc,elcex,
-C )
+      subroutine RXCHF_OCBSE2(nebf,npebf,nae,nbe,vecAE,vecBE0,FBE,Selec,
+     x                        elcam,elcbfc,elcex,
+     x                        ampeb2c,agebfcc,kpestr,kpeend,
      x                        vecBE,BEen)
 ! 
 !     Perform OCBSE procedure for special electrons only
@@ -1135,11 +1133,18 @@ C )
 !======================================================================
       implicit none
 ! Input Variables
-      integer nebf
+      integer nebf,npebf
       integer nae,nbe
       double precision vecAE(nebf,nebf),vecBE0(nebf,nebf)
       double precision FBE(nebf,nebf)
       double precision Selec(nebf,nebf)
+      integer ampeb2c(npebf)               ! Map prim index to contr index
+      integer kpestr(nebf)                 ! Map contr index to prim start
+      integer kpeend(nebf)                 ! Map contr index to prim end
+      integer elcam(npebf,3)               ! Angular mom for electrons
+      double precision agebfcc(npebf)      ! Map prim index to contr coeff
+      double precision elcex(npebf)        ! Exponents: elec basis
+      double precision elcbfc(npebf,3)     ! Basis centers: elec basis
 ! Variables Returned
       double precision vecBE(nebf,nebf)
       double precision BEen(nebf)
@@ -1148,17 +1153,6 @@ C )
       integer noccvirta,noccvirtb
       double precision zero
       parameter(zero=0.0d+00)
-C ARS( 07/01 testing
-      integer mo1,mo2,ie1,je1,iec1,jec1
-      integer i1,j1,k1,l1,m1,n1,a1,b1
-      double precision ans,ovlap,cof_ie1,cof_je1
-      double precision Amat1(3), Bmat1(3)
-      integer ELCAM(nebf,3)  ! Angular mom for electrons
-      double precision ELCBFC(nebf,3) ! Basis centers: elec basis
-      integer AMPEB2C(nebf) ! Map primitive index to contracted
-      double precision AGEBFCC(nebf) ! Map prim index to contract coef
-      double precision ELCEX(nebf) ! Exponents: elec basis
-C )
 
       if (nae.gt.1) then
        nocca=nae/2
@@ -1173,23 +1167,21 @@ C )
       vecBE=zero
       BEen=zero
 
-      call RXCHF_OCBSE_driver2(nebf,nae,nbe,nocca,noccb,
+      call RXCHF_OCBSE_driver2(nebf,npebf,nae,nbe,nocca,noccb,
      x                         nvirt,noccvirta,noccvirtb,
      x                         vecAE,vecBE0,FBE,Selec,
-C ARS( 07/01 testing
-     x           elcam,elcbfc,ampeb2c,agebfcc,elcex,
-C )
+     x                         elcam,elcbfc,elcex,
+     x                         ampeb2c,agebfcc,kpestr,kpeend,
      x                         vecBE,BEen)
 
       return
       end
 !======================================================================
-      subroutine RXCHF_OCBSE_driver2(nebf,nae,nbe,nocca,noccb,
+      subroutine RXCHF_OCBSE_driver2(nebf,npebf,nae,nbe,nocca,noccb,
      x                               nvirt,noccvirta,noccvirtb,
      x                               vecAE,vecBE0,FBE,Selec,
-C ARS( 07/01 testing
-     x           elcam,elcbfc,ampeb2c,agebfcc,elcex,
-C )
+     x                               elcam,elcbfc,elcex,
+     x                               ampeb2c,agebfcc,kpestr,kpeend,
      x                               vecBE,BEen)
 !
 !     OCBSE Procedure:
@@ -1198,18 +1190,37 @@ C )
 !======================================================================
       implicit none
 ! Input Variables
-      integer nebf
+      integer nebf,npebf
       integer nae,nbe
+      integer nocca,noccb,nvirt
+      integer noccvirta,noccvirtb
       double precision vecAE(nebf,nebf),vecBE0(nebf,nebf)
       double precision FBE(nebf,nebf)
       double precision Selec(nebf,nebf)
+      integer ampeb2c(npebf)               ! Map prim index to contr index
+      integer kpestr(nebf)                 ! Map contr index to prim start
+      integer kpeend(nebf)                 ! Map contr index to prim end
+      integer elcam(npebf,3)               ! Angular mom for electrons
+      double precision agebfcc(npebf)      ! Map prim index to contr coeff
+      double precision elcex(npebf)        ! Exponents: elec basis
+      double precision elcbfc(npebf,3)     ! Basis centers: elec basis
 ! Variables Returned
       double precision vecBE(nebf,nebf)
       double precision BEen(nebf)
 ! Local variables
       integer i,j
-      integer nocca,noccb,nvirt
-      integer noccvirta,noccvirtb
+      integer ie1,je1
+      integer iec1,jec1
+      integer ie1_start,je1_start
+      integer ie1_end,je1_end
+      integer mo1,mo2,motodiscard
+      integer i1,j1,k1
+      integer l1,m1,n1
+      double precision a1,b1
+      double precision cof_ie1,cof_je1
+      double precision ans,ovlap,ovlapcheck,maxovlap
+      double precision Amat1(3), Bmat1(3)
+      double precision ovlaparr(nebf),projorb(nebf) ! fix2
       double precision WB(nebf,noccvirtb)
       double precision WBtrans(noccvirtb,nebf)
       double precision wFBEw(noccvirtb,noccvirtb)
@@ -1222,18 +1233,6 @@ C )
       double precision zero
       parameter(zero=0.0d+00)
 
-C ARS( 07/01 testing
-      integer mo1,mo2,ie1,je1,iec1,jec1,motodiscard
-      integer i1,j1,k1,l1,m1,n1
-      double precision ans,ovlap,cof_ie1,cof_je1,a1,b1,maxovlap
-      double precision Amat1(3), Bmat1(3)
-      integer ELCAM(nebf,3)  ! Angular mom for electrons
-      double precision ELCBFC(nebf,3) ! Basis centers: elec basis
-      integer AMPEB2C(nebf) ! Map primitive index to contracted
-      double precision AGEBFCC(nebf) ! Map prim index to contract coef
-      double precision ELCEX(nebf) ! Exponents: elec basis
-      double precision ovlaparr(nebf),projorb(nebf) ! fix2
-C )
       logical debug
       debug=.false.
 
@@ -1249,6 +1248,8 @@ C )
 
 C ARS(
       if (debug) then
+      write(*,*) "nae,nbe:",nae,nbe
+      write(*,*) "nocca,noccb:",nocca,noccb
       write(*,*) "MATRIX vecAE:"
       call PREVNU(vecAE,BEen,nebf,nebf,nebf)
       write(*,*) "MATRIX Previous vecBE:"
@@ -1264,43 +1265,63 @@ C ARS( 07/01 testing
       mo2=1
 
         ovlap=0.0d0
+        ovlapcheck=0.0d0 ! Check calculation below by using Selec
 
-        do ie1=1,nebf
-        do je1=1,nebf
+C Contracted loops
+        do iec1=1,nebf
+        do jec1=1,nebf
 
-          iec1=AMPEB2C(ie1)
-          jec1=AMPEB2C(je1)
-          Cof_ie1=AGEBFCC(ie1)
-          Cof_je1=AGEBFCC(je1)
+          ovlapcheck=ovlapcheck+Selec(iec1,jec1)*
+     x                          vecAE(iec1,mo1)*vecBE0(jec1,mo2)
 
-          A1=ELCEX(ie1)
-          I1=ELCAM(ie1,1)
-          J1=ELCAM(ie1,2)
-          K1=ELCAM(ie1,3)
-          Amat1(1)=ELCBFC(ie1,1)
-          Amat1(2)=ELCBFC(ie1,2)
-          Amat1(3)=ELCBFC(ie1,3)
+C Primitive start/end point for each contracted index
+          ie1_start=kpestr(iec1)
+          je1_start=kpestr(jec1)
 
-          B1=ELCEX(je1)
-          L1=ELCAM(je1,1)
-          M1=ELCAM(je1,2)
-          N1=ELCAM(je1,3)
-          Bmat1(1)=ELCBFC(je1,1)
-          Bmat1(2)=ELCBFC(je1,2)
-          Bmat1(3)=ELCBFC(je1,3)
+          ie1_end=kpeend(iec1)
+          je1_end=kpeend(jec1)
 
-          call gfovlap(I1,J1,K1,A1,Amat1,
-     2                 L1,M1,N1,B1,Bmat1,
-     3                 ans)
+C Primitive loops
+          do ie1=ie1_start,ie1_end
+          do je1=je1_start,je1_end
 
-          ovlap=ovlap+cof_ie1*cof_je1*vecAE(ie1,mo1)*vecBE0(je1,mo2)*ans
+C Primitive contraction coefficients
+            cof_ie1=agebfcc(ie1)
+            cof_je1=agebfcc(je1)
+
+            A1=elcex(ie1)
+            I1=elcam(ie1,1)
+            J1=elcam(ie1,2)
+            K1=elcam(ie1,3)
+            Amat1(1)=elcbfc(ie1,1)
+            Amat1(2)=elcbfc(ie1,2)
+            Amat1(3)=elcbfc(ie1,3)
+
+            B1=elcex(je1)
+            L1=elcam(je1,1)
+            M1=elcam(je1,2)
+            N1=elcam(je1,3)
+            Bmat1(1)=elcbfc(je1,1)
+            Bmat1(2)=elcbfc(je1,2)
+            Bmat1(3)=elcbfc(je1,3)
+
+            call gfovlap(I1,J1,K1,A1,Amat1,
+     x                   L1,M1,N1,B1,Bmat1,
+     x                   ans)
+
+            ovlap=ovlap+cof_ie1*cof_je1*
+     x                  vecAE(iec1,mo1)*vecBE0(jec1,mo2)*
+     x                  ans
+
+          end do
+          end do
 
         end do
         end do
 
         if (debug) then
-         write(*,*) "Overlap (mo1,mo2,ovlap):"
-         write(*,*) mo1,mo2,ovlap
+         write(*,*) "Overlap (mo1,mo2,ovlap,ovlapcheck):"
+         write(*,*) mo1,mo2,ovlap,ovlapcheck
         end if
 
         ovlaparr(mo1)=ovlap
