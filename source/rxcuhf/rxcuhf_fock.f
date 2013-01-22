@@ -72,13 +72,13 @@ C NBE    : num special electrons (=1 with spin alpha)
       double precision S_OMG2
 
 ! Local Variables
-      double precision XFAalpE1(nebf,nebf)
-      double precision XFAalpE2(nebf,nebf)
-      double precision XFAbetE1(nebf,nebf)
-      double precision XFAbetE2(nebf,nebf)
+      double precision XFAalpE(nebf,nebf)
+      double precision XFAbetE(nebf,nebf)
       double precision XFBE(nebf,nebf)
       double precision XFP(npbf,npbf)
 
+      double precision XSAalpE(nebf,nebf)
+      double precision XSAbetE(nebf,nebf)
       double precision XSBE(nebf,nebf)
       double precision XSP(npbf,npbf)
 
@@ -121,10 +121,10 @@ C )
       FBE=zero 
       FP=zero 
 
-      XFAalpE1=zero 
-      XFAalpE2=zero 
-      XFAbetE1=zero 
-      XFAbetE2=zero 
+      XFAalpE=zero 
+      XFAbetE=zero 
+      XSAalpE=zero 
+      XSAbetE=zero 
       XFP=zero 
       XSP=zero 
       XFBE=zero 
@@ -164,8 +164,8 @@ C )
      x                            GM2_1ICR,GM2_2ICR,GM2sICR,
      x                            GM3_1ICR,GM3_2ICR,
      x                            GM4ICR,
-     x                            XFAalpE1,XFAalpE2,
-     x                            XFAbetE1,XFAbetE2,
+     x                            XFAalpE,XFAbetE,
+     x                            XSAalpE,XSAbetE,
      x                            E_AE_OMG2,
      x                            E_AE_OMG3,
      x                            E_AE_OMG4,
@@ -207,46 +207,49 @@ C )
      x                             S_BE_OMG1,
      x                             S_BE_OMG2)
 
-C ARS( continue from here )
       if (rxchfdbg) then
-       write(*,*)
-       write(*,*) 'E_AalpE_ecore=',E_AalpE_ecore
-       write(*,*) 'E_AbetE_ecore=',E_AbetE_ecore
-       write(*,*) 'E_AE_ecore=',E_AalpE_ecore+E_AbetE_ecore
-       write(*,*)
-       write(*,*) 'E_AalpE_GAMee=',E_AalpE_GAMee
-       write(*,*) 'E_AbetE_GAMee=',E_AbetE_GAMee
-       write(*,*) 'E_AE_GAMee=',E_AalpE_GAMee+E_AbetE_GAMee
        write(*,*)
        write(*,*) 'E_P_OMG1  =',E_P_OMG1  
        write(*,*) 'E_BE_OMG1 =',E_BE_OMG1 
        write(*,*)
-       write(*,*) 'E_AE_OMG2 =',E_AE_OMG2
        write(*,*) 'E_P_OMG2  =',E_P_OMG2 
+       write(*,*) 'E_AE_OMG2 =',E_AE_OMG2 
        write(*,*) 'E_BE_OMG2 =',E_BE_OMG2 
+       write(*,*)
+       write(*,*) 'E_P_OMG3  =',E_P_OMG3 
+       write(*,*) 'E_AE_OMG3 =',E_AE_OMG3 
+       write(*,*) 'E_BE_OMG3 =',E_BE_OMG3 
+       write(*,*)
+       write(*,*) 'E_P_OMG4  =',E_P_OMG4 
+       write(*,*) 'E_AE_OMG4 =',E_AE_OMG4 
+       write(*,*) 'E_BE_OMG4 =',E_BE_OMG4 
        write(*,*)
        write(*,*) 'S_P_OMG1  =',S_P_OMG1 
        write(*,*) 'S_BE_OMG1 =',S_BE_OMG1 
        write(*,*)
+       write(*,*) 'S_P_OMG2  =',S_P_OMG2 
+       write(*,*) 'S_AE_OMG2 =',S_AE_OMG2 
+       write(*,*) 'S_BE_OMG2 =',S_BE_OMG2 
+       write(*,*)
       end if
 
-      Psi_HOMG_Psi = E_P_OMG1 + E_P_OMG2  ! (or E_BE_OMG1 + E_BE_OMG2)
-      S_total      = S_P_OMG1             ! (or S_BE_OMG1)
+      Psi_HOMG_Psi = E_P_OMG1 + E_P_OMG2 + E_P_OMG3 + E_P_OMG4
+      S_total      = S_P_OMG1 + S_P_OMG2
 
-      E_ecore = E_AalpE_ecore + E_AbetE_ecore
-      E_GAMee = E_AalpE_GAMee + E_AbetE_GAMee
-      E_OMG1  = E_P_OMG1 / S_total        ! (or E_BE_OMG1 / S_total)
-      E_OMG2  = E_P_OMG2 / S_total        ! (or E_BE_OMG2 / S_total)
-                                          ! (or E_AE_OMG2 / S_total)
+      E_OMG1  = E_P_OMG1 / S_total
+      E_OMG2  = E_P_OMG2 / S_total
+      E_OMG3  = E_P_OMG3 / S_total
+      E_OMG4  = E_P_OMG4 / S_total
+      S_OMG1  = S_P_OMG1
+      S_OMG2  = S_P_OMG2
 
-      E_total = E_ecore + E_GAMee + E_OMG1 + E_OMG2
-
+      E_total = E_OMG1 + E_OMG2 + E_OMG3 + E_OMG4
 
 ! Correct Regular Electron Fock Matrix
-      call RXCHF_Fock_correction1(nebf,S_total,
-     x                            XFAalpE1,XFAalpE2,FAalpE)
-      call RXCHF_Fock_correction1(nebf,S_total,
-     x                            XFAbetE1,XFAbetE2,FAbetE)
+      call RXCHF_Fock_correction1(nebf,Psi_HOMG_Psi,S_total,
+     x                            XFAalpE,XSalpAE,FAalpE)
+      call RXCHF_Fock_correction1(nebf,Psi_HOMG_Psi,S_total,
+     x                            XFAbetE,XSbetAE,FAbetE)
 
 ! Correct QM Particle Fock Matrix
       call RXCHF_Fock_correction2(npbf,Psi_HOMG_Psi,S_total,
@@ -254,7 +257,7 @@ C ARS( continue from here )
 
 ! Correct Special Electron Fock Matrix
       call RXCHF_Fock_correction2(nebf,Psi_HOMG_Psi,S_total,
-     x                           XFBE,XSBE,FBE)
+     x                            XFBE,XSBE,FBE)
 
 ! Fock testing
       if (LCMF) then
@@ -299,22 +302,21 @@ C )
       return
       end
 !======================================================================
-      subroutine RXCUHF_IC_construct_FE(LNEOHF,LADDEXCH,
-     x                                  nelec,NAalpE,NAbetE,NBE,
+      subroutine RXCUHF_IC_construct_FE(LNEOHF,nelec,NAalpE,NAbetE,NBE,
      x                                  nebf,npbf,nebf2,ngee,
      x                                  ng1,ng2,ng3,ng4,
-     x                                  SZG2ICR,
-     x                                  NG2CHK,
+     x                                  SZG2ICR,SZG3ICR,SZG4ICR,
+     x                                  NG2CHK,NG3CHK,NG4CHK,
      x                                  DAalpE,DAbetE,DAtotE,DBE,DP,
-     x                                  GAM_ecore,GAM_ee,
-     x                                  GM2ICR,GM2sICR,
-     x                                  FAalpE1,FAalpE2,
-     x                                  FAbetE1,FAbetE2,
-     x                                  E_AalpE_ecore,
-     x                                  E_AalpE_GAMee,
-     x                                  E_AbetE_ecore,
-     x                                  E_AbetE_GAMee,
-     x                                  E_AE_OMG2)
+     x                                  GM2_1ICR,GM2_2ICR,GM2sICR,
+     x                                  GM3_1ICR,GM3_2ICR,
+     x                                  GM4ICR,
+     x                                  FAalpE,FAbetE,
+     x                                  SAalpE,SAbetE,
+     x                                  E_AE_OMG2,
+     x                                  E_AE_OMG3,
+     x                                  E_AE_OMG4,
+     x                                  S_AE_OMG2)
 
 ! In-core Construct Regular Electronic Fock Matrix
 ! nelec: total number of electrons
@@ -324,90 +326,90 @@ C )
 !======================================================================
       implicit none
 ! Input Variables
-      logical LNEOHF,LADDEXCH
+      logical LNEOHF
       integer nebf,npbf,nebf2,ngee,ng1,ng2,ng3,ng4
-      integer SZG2ICR
-      integer nelec,NAalpE,NAbetE,NBE
-      integer NG2CHK
+      integer SZG2ICR,SZG3ICR,SZG4ICR
+      integer nelec,NBE,NAalpE,NAbetE
+      integer NG2CHK,NG3CHK,NG4CHK
       double precision DAalpE(nebf,nebf)
       double precision DAbetE(nebf,nebf)
       double precision DAtotE(nebf,nebf)
       double precision DBE(nebf,nebf)
       double precision DP(npbf,npbf)
-      double precision GAM_ecore(nebf2)
-      double precision GAM_ee(ngee)
-      double precision GM2ICR(SZG2ICR)    ! Regular OMG2 terms
-      double precision GM2sICR(SZG2ICR)   ! Exchange OMG2 terms
+      double precision GM2_1ICR(SZG2ICR)
+      double precision GM2_2ICR(SZG2ICR)
+      double precision GM2sICR(SZG2ICR)
+      double precision GM3_1ICR(SZG3ICR)
+      double precision GM3_2ICR(SZG3ICR)
+      double precision GM4ICR(SZG4ICR)
 
 ! Variables Returned
-      double precision FAalpE1(nebf,nebf)
-      double precision FAalpE2(nebf,nebf)
-      double precision FAbetE1(nebf,nebf)
-      double precision FAbetE2(nebf,nebf)
-      double precision E_AalpE_ecore
-      double precision E_AalpE_GAMee
-      double precision E_AbetE_ecore
-      double precision E_AbetE_GAMee
+      double precision FAalpE(nebf,nebf)
+      double precision FAbetE(nebf,nebf)
+      double precision SAalpE(nebf,nebf)
+      double precision SAbetE(nebf,nebf)
       double precision E_AE_OMG2
+      double precision E_AE_OMG3
+      double precision E_AE_OMG4
+      double precision S_AE_OMG2
 
 ! Local Variables
       double precision E_AalpE_OMG2
       double precision E_AbetE_OMG2
+      double precision E_AalpE_OMG3
+      double precision E_AbetE_OMG3
+      double precision E_AalpE_OMG4
+      double precision E_AbetE_OMG4
+      double precision S_AalpE_OMG2
+      double precision S_AbetE_OMG2
       double precision zero
       parameter(zero=0.0d+00)
 
 ! Initialize
-      E_AalpE_ecore = zero
-      E_AalpE_GAMee = zero
-      E_AbetE_ecore = zero
-      E_AbetE_GAMee = zero
-      FAalpE1=zero
-      FAalpE2=zero
-      FAbetE1=zero
-      FAbetE2=zero
+      FAalpE=zero
+      FAbetE=zero
+      SAalpE=zero
+      SAbetE=zero
       E_AE_OMG2  = zero
+      E_AE_OMG3  = zero
+      E_AE_OMG4  = zero
+      S_AE_OMG2  = zero
       E_AalpE_OMG2  = zero
       E_AbetE_OMG2  = zero
+      E_AalpE_OMG3  = zero
+      E_AbetE_OMG3  = zero
+      E_AalpE_OMG4  = zero
+      E_AbetE_OMG4  = zero
+      S_AalpE_OMG2  = zero
+      S_AbetE_OMG2  = zero
 
-      call FAE_ecore(nebf,nebf2,GAM_ecore,DAalpE,FAalpE1,E_AalpE_ecore)
-      call FAE_ecore(nebf,nebf2,GAM_ecore,DAbetE,FAbetE1,E_AbetE_ecore)
 
-      if ((NAalpE+NAbetE).gt.1) then
-       call FAE_GAMee(nebf,ngee,GAM_ee,DAalpE,DAtotE,
-     x                FAalpE1,E_AalpE_GAMee)
-       call FAE_GAMee(nebf,ngee,GAM_ee,DAbetE,DAtotE,
-     x                FAbetE1,E_AbetE_GAMee)
-      end if
-
-      if (LADDEXCH) then
-        call RXCUHF_FE_OMG2(NG2CHK,nebf,npbf,ng2,
-     x                      DAalpE,DAbetE,DAtotE,DBE,DP,
-     x                      GM2ICR,GM2sICR,
-     x                      FAalpE2,FAbetE2,
-     x                      E_AE_OMG2)
-      else
-        call RXCHF_FAE_OMG2(NG2CHK,nebf,npbf,ng2,
-     x                      DAalpE,DBE,DP,GM2ICR,FAalpE2,E_AalpE_OMG2)
-        call RXCHF_FAE_OMG2(NG2CHK,nebf,npbf,ng2,
-     x                      DAbetE,DBE,DP,GM2ICR,FAbetE2,E_AbetE_OMG2)
-        E_AE_OMG2=E_AalpE_OMG2+E_AbetE_OMG2
-      end if
+      call RXCUHF_FE_OMG2(NG2CHK,nebf,npbf,ng2,
+     x                    DAalpE,DAbetE,DAtotE,DBE,DP,
+     x                    GM2ICR,GM2sICR,
+     x                    FAalpE2,FAbetE2,
+     x                    E_AE_OMG2)
+      E_AE_OMG2=E_AalpE_OMG2+E_AbetE_OMG2
 
       return
       end
 !======================================================================
-      subroutine RXCUHF_IC_construct_FP(LNEOHF,LADDEXCH,
-     x                                  nelec,NAalpE,NAbetE,NBE,
+      subroutine RXCUHF_IC_construct_FP(LNEOHF,nelec,NAalpE,NAbetE,NBE,
      x                                  nebf,npbf,npbf2,ngee,
      x                                  ng1,ng2,ng3,ng4,
-     x                                  SZG2ICR,
-     x                                  NG2CHK,
+     x                                  SZG2ICR,SZG3ICR,SZG4ICR,
+     x                                  NG2CHK,NG3CHK,NG4CHK,
      x                                  DAalpE,DAbetE,DAtotE,DBE,DP,
-     x                                  GM2ICR,GM2sICR,
+     x                                  GM2_1ICR,GM2_2ICR,GM2sICR,
+     x                                  GM3_1ICR,GM3_2ICR,
+     x                                  GM4ICR,
      x                                  FP,SP,
      x                                  E_P_OMG1, 
      x                                  E_P_OMG2,
-     x                                  S_P_OMG1)
+     x                                  E_P_OMG3, 
+     x                                  E_P_OMG4,
+     x                                  S_P_OMG1,
+     x                                  S_P_OMG2)
 
 ! In-core Construct QM-Particle Fock Matrix
 ! nelec: total number of electrons
@@ -417,25 +419,30 @@ C )
 !======================================================================
       implicit none
 ! Input Variables
-      logical LNEOHF,LADDEXCH
+      logical LNEOHF
       integer nebf,npbf,npbf2,ngee,ng1,ng2,ng3,ng4
-      integer SZG2ICR
+      integer SZG2ICR,SZG3ICR,SZG4ICR
       integer nelec,NAalpE,NAbetE,NBE
-      integer NG2CHK
+      integer NG2CHK,NG3CHK,NG4CHK
       double precision DAalpE(nebf,nebf)
       double precision DAbetE(nebf,nebf)
       double precision DAtotE(nebf,nebf)
       double precision DBE(nebf,nebf)
       double precision DP(npbf,npbf)
-      double precision GM2ICR(SZG2ICR)    ! Regular OMG2 terms
-      double precision GM2sICR(SZG2ICR)   ! Exchange OMG2 terms
+      double precision GM2_1ICR(SZG2ICR),GM2_2ICR(SZG2ICR) 
+      double precision GM2sICR(SZG2ICR)
+      double precision GM3_1ICR(SZG2ICR),GM3_2ICR(SZG2ICR)
+      double precision GM4ICR(SZG4ICR)
 
 ! Variables Returned
       double precision FP(npbf,npbf)
       double precision SP(npbf,npbf)
       double precision E_P_OMG1 
       double precision E_P_OMG2
+      double precision E_P_OMG3
+      double precision E_P_OMG4
       double precision S_P_OMG1
+      double precision S_P_OMG2
 
 ! Local Variables
       double precision zero
@@ -446,7 +453,10 @@ C )
       SP=zero    
       E_P_OMG1  = zero 
       E_P_OMG2  = zero 
+      E_P_OMG3  = zero 
+      E_P_OMG4  = zero 
       S_P_OMG1  = zero
+      S_P_OMG2  = zero
  
       call RXCHF_FP_OMG1(nebf,npbf,ng1,DBE,DP,FP,SP,
      x                   E_P_OMG1,S_P_OMG1)
@@ -463,18 +473,22 @@ C )
       return
       end
 !======================================================================
-      subroutine RXCUHF_IC_construct_FBE(LNEOHF,LADDEXCH,
-     x                                   nelec,NAbetE,NAalpE,NBE,
+      subroutine RXCUHF_IC_construct_FBE(LNEOHF,nelec,NAbetE,NAalpE,NBE,
      x                                   nebf,npbf,nebf2,ngee,
      x                                   ng1,ng2,ng3,ng4,
-     x                                   SZG2ICR,
-     x                                   NG2CHK,
+     x                                   SZG2ICR,SZG3ICR,SZG4ICR,
+     x                                   NG2CHK,NG3CHK,NG4CHK,
      x                                   DAalpE,DAbetE,DAtotE,DBE,DP,
-     x                                   GM2ICR,GM2sICR,
+     x                                   GM2_1ICR,GM2_2ICR,GM2sICR,
+     x                                   GM3_1ICR,GM3_2ICR,
+     x                                   GM4ICR,
      x                                   FBE,SBE,
      x                                   E_BE_OMG1, 
      x                                   E_BE_OMG2,
-     x                                   S_BE_OMG1)
+     x                                   E_BE_OMG3, 
+     x                                   E_BE_OMG4,
+     x                                   S_BE_OMG1,
+     x                                   S_BE_OMG2)
 
 ! In-core Construct special electronic Fock Matrix
 ! nelec: total number of electrons
@@ -484,25 +498,30 @@ C )
 !======================================================================
       implicit none
 ! Input Variables
-      logical LNEOHF,LADDEXCH
+      logical LNEOHF
       integer nebf,npbf,nebf2,ngee,ng1,ng2,ng3,ng4
-      integer SZG2ICR
+      integer SZG2ICR,SZG3ICR,SZG4ICR
       integer nelec,NAalpE,NAbetE,NBE
-      integer NG2CHK
+      integer NG2CHK,NG3CHK,NG4CHK
       double precision DAalpE(nebf,nebf)
       double precision DAbetE(nebf,nebf)
       double precision DAtotE(nebf,nebf)
       double precision DBE(nebf,nebf)
       double precision DP(npbf,npbf)
-      double precision GM2ICR(SZG2ICR)    ! Regular OMG2 terms
-      double precision GM2sICR(SZG2ICR)   ! Exchange OMG2 terms
+      double precision GM2_1ICR(SZG2ICR),GM2_2ICR(SZG2ICR)
+      double precision GM2sICR(SZG2ICR)
+      double precision GM3_1ICR(SZG2ICR),GM3_2ICR(SZG2ICR)
+      double precision GM4ICR(SZG4ICR)
 
 ! Variables Returned
       double precision FBE(nebf,nebf)
       double precision SBE(nebf,nebf)
       double precision E_BE_OMG1 
       double precision E_BE_OMG2
+      double precision E_BE_OMG3 
+      double precision E_BE_OMG4
       double precision S_BE_OMG1
+      double precision S_BE_OMG2
 
 ! Local Variables
       double precision zero
@@ -513,7 +532,10 @@ C )
       SBE=zero    
       E_BE_OMG1  = zero 
       E_BE_OMG2  = zero 
+      E_BE_OMG3  = zero 
+      E_BE_OMG4  = zero 
       S_BE_OMG1  = zero
+      S_BE_OMG2  = zero
  
       call RXCHF_FBE_OMG1(nebf,npbf,ng1,DBE,DP,FBE,SBE,
      x                   E_BE_OMG1,S_BE_OMG1)
