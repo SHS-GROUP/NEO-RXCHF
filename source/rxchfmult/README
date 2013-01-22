@@ -1,0 +1,36 @@
+Nomenclature
+ - XCHF Calculation:
+     NAE: Number of alpha electrons
+     NBE: Number of beta electrons
+ - RXCHF Calculation:
+     NAE: Number of regular electrons
+     NBE: Number of special electrons
+ - RXCUHF Calculation (can ignore for now):
+     NAalpE: Number of alpha regular electrons
+     NAbetE: Number of beta regular electrons
+     NAE: Total number of regular electrons
+     NBE: Number of special electrons
+
+Subdirectory for multiple special electron case is source/rxchfmult/
+ - See basis+definition.inp for example input
+ - Use LRXCHF=.true. and NBE > 1 to active rxchfmult/ routines
+ - rxchfmult_density.f modified from rxchf/rxchf_density.f
+ - rxchfmult_fock.f modified from xchf_independent/xchf1_fock.f
+ - rxchfmult_scf.f modified from rxchf/rxchf_scf.f
+
+Main SCF driver (rxchfmult_scf.f)
+ - OCBSE support (restricted regular and special electronic solutions)
+ - OCBSE2 support (restricted special electronic solutions)
+ - Current user-input OCBSE (which specifies OCBSE2), i.e. must re-hardwire for OCBSE
+ - OCBSE2 "fix" needs to be updated for NBE > 1
+ - Guess orbital routines should be fine to use as guess for special electrons the virtual space of the regular electrons
+
+Main Fock routines (rxchfmult_fock.f)
+ - LNEOHF flag specifies force NEO-HF calculation when .true. or XCHF calculation when .false.
+ - Will call routines found in xchf_independent/xchf1_fock.f - to modify I would copy these into rxchfmult_fock.f and rename
+
+Main driver (xcneo_HYBRID.f)
+ - Modified to select multrxchf driver in rxchfmult_scf.f when LRXCHF=.true. and NBE > 1
+ - Need to adapt the rest of this driver to calculate and pass appropriate integrals needed for this case
+ - Only integrals calculated now are the standard RXCHF integrals
+

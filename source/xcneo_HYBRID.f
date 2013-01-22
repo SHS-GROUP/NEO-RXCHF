@@ -45,8 +45,8 @@
       integer nat
       integer ngtg1
       integer nelec
-      integer NAE
-      integer NBE
+      integer NAE               ! Number of regular electrons
+      integer NBE               ! Number of special electrons
       double precision pmass    ! Mass of nonelectron quantum particle 
 !-------Basis Set Info-------)
       double precision,allocatable :: GM2ICR(:)
@@ -239,8 +239,8 @@ c     write(*,*)'ng4prm=',ng4prm
       write(*,*)
       write(*,*)'PMASS   =',PMASS
       write(*,*)'nelec   =',nelec
-      write(*,*)'NAE     =',NAE
-      write(*,*)'NBE     =',NBE
+      write(*,*)'NAE     =',NAE," Number of regular electrons"
+      write(*,*)'NBE     =',NBE," Number of special electrons"
       write(*,*)'NUCST   =',NUCST
       write(*,*)'LNEOHF  =',LNEOHF
       write(*,*)'LXCUHF  =',LXCUHF
@@ -680,17 +680,31 @@ C   - Multiply all GM2_1ICR by 1/2
 
          elseif(LRXCHF) then
 
-            call xcrxchf(nelec,NAE,NBE,NPRA,NEBFLT,NUCST,
-     x                   npebf,nebf,nebf2,npbf,npbf2,ngee,
-     x                   ngtg1,ng1,ng2,ng3,ng4,NG2CHK,NG3CHK,NG4CHK,
-     x                   read_CE,read_CP,
-     x                   LNEOHF,LGAM4,LCMF,LSOSCF,LOCBSE,
-     x                   ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
-     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                   SZG2ICR,GM2_1ICR,GM2_2ICR,GM2sICR,
-     x                   LG3IC1,SZG3IC1,GM3_1IC1,GM3_2IC1,
-     x                   LG4IC,SZG4IC,GM4ICR)
+          if (nbe.eq.1) then     ! call RXCHF routine
+           call xcrxchf(nelec,NAE,NBE,NPRA,NEBFLT,NUCST,
+     x                  npebf,nebf,nebf2,npbf,npbf2,ngee,
+     x                  ngtg1,ng1,ng2,ng3,ng4,NG2CHK,NG3CHK,NG4CHK,
+     x                  read_CE,read_CP,
+     x                  LNEOHF,LGAM4,LCMF,LSOSCF,LOCBSE,
+     x                  ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
+     x                  KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                  ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                  SZG2ICR,GM2_1ICR,GM2_2ICR,GM2sICR,
+     x                  LG3IC1,SZG3IC1,GM3_1IC1,GM3_2IC1,
+     x                  LG4IC,SZG4IC,GM4ICR)
+          else                   ! call RXCHFmult routine
+           call multrxchf(nelec,NAE,NBE,NPRA,NEBFLT,NUCST,
+     x                    npebf,nebf,nebf2,npbf,npbf2,ngee,
+     x                    ngtg1,ng1,ng2,ng3,ng4,NG2CHK,NG3CHK,NG4CHK,
+     x                    read_CE,read_CP,
+     x                    LNEOHF,LGAM4,LCMF,LSOSCF,LOCBSE,
+     x                    ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
+     x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                    SZG2ICR,GM2_1ICR,GM2_2ICR,GM2sICR,
+     x                    LG3IC1,SZG3IC1,GM3_1IC1,GM3_2IC1,
+     x                    LG4IC,SZG4IC,GM4ICR)
+           end if
 
          else
 

@@ -29,3 +29,7 @@ cd ../rxchf/
 ../comp *.f
 mv *.o ../../object
 
+cd ../rxchfmult/
+../comp *.f
+mv *.o ../../object
+
