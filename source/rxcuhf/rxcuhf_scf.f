@@ -865,7 +865,7 @@ C   => It should be initialized to be orthogonal to alpha regular electrons
 !       vecAbetE:  Regular electron coefficients from current iteration
 !       vecBE:     Special electron coefficients from current iteration
 !     Expands special electronic solution in orthogonal space to
-!       min{NAalpE,NAbetE}
+!       NAalpE regular electrons (special electron has spin alpha)
 !======================================================================
       implicit none
 ! Input Variables

@@ -165,7 +165,7 @@ C )
      x                            GM3_1ICR,GM3_2ICR,
      x                            GM4ICR,
      x                            XFAalpE,XFAbetE,
-     x                            XSAalpE,XSAbetE,
+     x                            XSAalpE,
      x                            E_AE_OMG2,
      x                            E_AE_OMG3,
      x                            E_AE_OMG4,
@@ -249,7 +249,7 @@ C )
       call RXCHF_Fock_correction1(nebf,Psi_HOMG_Psi,S_total,
      x                            XFAalpE,XSalpAE,FAalpE)
       call RXCHF_Fock_correction1(nebf,Psi_HOMG_Psi,S_total,
-     x                            XFAbetE,XSbetAE,FAbetE)
+     x                            XFAbetE,XSbetAE,FAbetE)    ! XSbetAE=zero
 
 ! Correct QM Particle Fock Matrix
       call RXCHF_Fock_correction2(npbf,Psi_HOMG_Psi,S_total,
@@ -312,7 +312,7 @@ C )
      x                                  GM3_1ICR,GM3_2ICR,
      x                                  GM4ICR,
      x                                  FAalpE,FAbetE,
-     x                                  SAalpE,SAbetE,
+     x                                  SAalpE,
      x                                  E_AE_OMG2,
      x                                  E_AE_OMG3,
      x                                  E_AE_OMG4,
@@ -347,21 +347,12 @@ C )
       double precision FAalpE(nebf,nebf)
       double precision FAbetE(nebf,nebf)
       double precision SAalpE(nebf,nebf)
-      double precision SAbetE(nebf,nebf)
       double precision E_AE_OMG2
       double precision E_AE_OMG3
       double precision E_AE_OMG4
       double precision S_AE_OMG2
 
 ! Local Variables
-      double precision E_AalpE_OMG2
-      double precision E_AbetE_OMG2
-      double precision E_AalpE_OMG3
-      double precision E_AbetE_OMG3
-      double precision E_AalpE_OMG4
-      double precision E_AbetE_OMG4
-      double precision S_AalpE_OMG2
-      double precision S_AbetE_OMG2
       double precision zero
       parameter(zero=0.0d+00)
 
@@ -369,27 +360,35 @@ C )
       FAalpE=zero
       FAbetE=zero
       SAalpE=zero
-      SAbetE=zero
       E_AE_OMG2  = zero
       E_AE_OMG3  = zero
       E_AE_OMG4  = zero
       S_AE_OMG2  = zero
-      E_AalpE_OMG2  = zero
-      E_AbetE_OMG2  = zero
-      E_AalpE_OMG3  = zero
-      E_AbetE_OMG3  = zero
-      E_AalpE_OMG4  = zero
-      E_AbetE_OMG4  = zero
-      S_AalpE_OMG2  = zero
-      S_AbetE_OMG2  = zero
-
 
       call RXCUHF_FE_OMG2(NG2CHK,nebf,npbf,ng2,
      x                    DAalpE,DAbetE,DAtotE,DBE,DP,
-     x                    GM2ICR,GM2sICR,
-     x                    FAalpE2,FAbetE2,
-     x                    E_AE_OMG2)
-      E_AE_OMG2=E_AalpE_OMG2+E_AbetE_OMG2
+     x                    GM2_1ICR,GM2_2ICR,GM2sICR,
+     x                    FAalpE,FAbetE,SAalpE,
+     x                    E_AE_OMG2,S_AE_OMG2)
+
+      if ((NAalpE+NAbetE).gt.1) then
+
+         call RXCUHF_FE_OMG3(NG3CHK,nebf,npbf,ng3,
+     x                       DAalpE,DAbetE,DAtotE,DBE,DP,
+     x                       GM3_1ICR,GM3_2ICR,
+     x                       FAalpE,FAbetE,E_AE_OMG3)
+
+         if ((NAalpE+NAbetE).gt.2) then
+
+C Unsupported
+C            call RXCUHF_FE_OMG4(NG4CHK,nebf,npbf,ng4,
+C     x                          DAalpE,DAbetE,DAtotE,DBE,DP,
+C     x                          GM4ICR,FAalpE,FAbetE,E_P_OMG4)
+            return
+
+         end if
+
+      end if
 
       return
       end
@@ -461,13 +460,26 @@ C )
       call RXCHF_FP_OMG1(nebf,npbf,ng1,DBE,DP,FP,SP,
      x                   E_P_OMG1,S_P_OMG1)
 
-      if (LADDEXCH) then
-        call RXCUHF_FP_OMG2(NG2CHK,nebf,npbf,ng2,NAalpE,NBE,
-     x                      DAalpE,DAtotE,DBE,DP,
-     x                      GM2ICR,GM2sICR,FP,E_P_OMG2)
-      else
-        call RXCHF_FP_OMG2(NG2CHK,nebf,npbf,ng2,NAalpE+NAbetE,NBE,
-     x                     DAtotE,DBE,DP,GM2ICR,FP,E_P_OMG2)
+      call RXCUHF_FP_OMG2(NG2CHK,nebf,npbf,ng2,NAalpE,NBE,
+     x                    DAalpE,DAtotE,DBE,DP,
+     x                    GM2_1ICR,GM2_2ICR,GM2sICR,
+     x                    FP,SP,E_P_OMG2,S_P_OMG2)
+
+      if ((NAalpE+NAbetE).gt.1) then
+
+         call RXCUHF_FP_OMG3(NG3CHK,nebf,npbf,ng3,
+     x                       DAalpE,DAbetE,DAtotE,DBE,DP,
+     x                       GM3_1ICR,GM3_2ICR,FP,E_P_OMG3)
+
+         if ((NAalpE+NAbetE).gt.2) then
+
+C Unsupported
+C            call RXCUHF_FP_OMG4(NG4CHK,nebf,npbf,ng4,
+C     x                          DAE,DBE,DP,GM4ICR,FP,E_P_OMG4)
+            return
+
+         end if
+
       end if
 
       return
@@ -540,14 +552,28 @@ C )
       call RXCHF_FBE_OMG1(nebf,npbf,ng1,DBE,DP,FBE,SBE,
      x                   E_BE_OMG1,S_BE_OMG1)
 
-      if (LADDEXCH) then
-        call RXCUHF_FBE_OMG2(NG2CHK,nebf,npbf,ng2,NAalpE,NBE,
-     x                       DAalpE,DAtotE,DBE,DP,
-     x                       GM2ICR,GM2sICR,FBE,E_BE_OMG2)
-      else
-        call RXCHF_FBE_OMG2(NG2CHK,nebf,npbf,ng2,NAalpE+NAbetE,NBE,
-     x                      DAtotE,DBE,DP,GM2ICR,FBE,E_BE_OMG2)
+      call RXCUHF_FBE_OMG2(NG2CHK,nebf,npbf,ng2,NAalpE,NBE,
+     x                     DAalpE,DAtotE,DBE,DP,
+     x                     GM2_1ICR,GM2_2ICR,GM2sICR,
+     x                     FBE,SBE,E_BE_OMG2,S_BE_OMG2)
+
+      if ((NAalpE+NAbetE).gt.1) then
+
+         call RXCUHF_FBE_OMG3(NG3CHK,nebf,npbf,ng3,
+     x                        DAalpE,DAbetE,DAtotE,DBE,DP,
+     x                        GM3_1ICR,GM3_2ICR,FBE,E_BE_OMG3)
+
+         if ((NAalpE+NAbetE).gt.2) then
+
+C Unsupported
+C            call RXCHF_FBE_OMG4(NG4CHK,nebf,npbf,ng4,
+C     x                          DAE,DBE,DP,GM4ICR,FBE,E_BE_OMG4)
+            return
+
+         end if
+
       end if
+
 
       return
       end
