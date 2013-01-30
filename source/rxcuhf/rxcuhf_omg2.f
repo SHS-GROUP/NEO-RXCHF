@@ -101,7 +101,7 @@
          call RXCUHF_thread_FEOMG2(istart,iend,ng2_seg,ng2,nebf,npbf,
      x                             loop_map,DAalpE,DAbetE,DAtotE,DBE,DP,
      x                             GM2_1ICR,GM2_2ICR,GM2sICR,
-     x                             XFAalpE,XFAbetE,XSalpAE,
+     x                             XFAalpE,XFAbetE,XSAalpE,
      x                             E_AE_OMG2,S_AE_OMG2)
 
       end do !end loop over chunks
@@ -128,7 +128,7 @@
       subroutine RXCUHF_thread_FEOMG2(istart,iend,ng2_seg,ng2,nebf,npbf,
      x                             loop_map,DAalpE,DAbetE,DAtotE,DBE,DP,
      x                                GM2_1ICR,GM2_2ICR,GM2sICR,
-     x                                XFAalpE,XFAbetE,XSalpAE,
+     x                                XFAalpE,XFAbetE,XSAalpE,
      x                                E_AE_OMG2,S_AE_OMG2)
 !======================================================================
       implicit none
@@ -197,7 +197,7 @@
 !$ompx private(val1,val2,Sval)
 !$ompx reduction(+:XFAalpE)
 !$ompx reduction(+:XFAbetE)
-!$ompx reduction(+:XSalpAE)
+!$ompx reduction(+:XSAalpE)
 !$ompx reduction(+:E_AE_OMG2)
 !$ompx reduction(+:S_AE_OMG2)
 
@@ -226,7 +226,7 @@ C ARS( particle 1: special e ; particle 2: regular e ; index 3: prot )
      x                                         (val1-val2)
 
          XSAalpE(iec2,jec2)=XSAalpE(iec2,jec2)+DP(ip,jp)*DBE(iec1,jec1)*
-                                               (Sval)
+     x                                         (Sval)
          
 !----------------Form-Beta-Fock-Matrix--------------------!
 

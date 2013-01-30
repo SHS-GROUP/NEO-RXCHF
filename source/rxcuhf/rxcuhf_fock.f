@@ -247,9 +247,9 @@ C )
 
 ! Correct Regular Electron Fock Matrix
       call RXCHF_Fock_correction1(nebf,Psi_HOMG_Psi,S_total,
-     x                            XFAalpE,XSalpAE,FAalpE)
+     x                            XFAalpE,XSAalpE,FAalpE)
       call RXCHF_Fock_correction1(nebf,Psi_HOMG_Psi,S_total,
-     x                            XFAbetE,XSbetAE,FAbetE)    ! XSbetAE=zero
+     x                            XFAbetE,XSAbetE,FAbetE)    ! XSbetAE=zero
 
 ! Correct QM Particle Fock Matrix
       call RXCHF_Fock_correction2(npbf,Psi_HOMG_Psi,S_total,

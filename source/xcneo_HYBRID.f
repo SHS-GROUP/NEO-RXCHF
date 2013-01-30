@@ -226,10 +226,12 @@ c     ng4prm=npebf*npebf*npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
       end if
 
       if((LRXCHF).and.(nae.eq.1)) LRXCUHF=.false.  ! So that PsH hacks work
+
       if(LRXCHF.and.LRXCUHF) then
        LRXCHF=.false.
        write(*,*) "Overriding LRXCHF since LRXCUHF=.TRUE."
       end if
+
       if(LNEOHF.and.LRXCHF) then
        LRXCHF=.false.
        write(*,*) "Overriding LRXCHF since LNEOHF=.TRUE."
@@ -238,6 +240,18 @@ c     ng4prm=npebf*npebf*npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
        LRXCUHF=.false.
        LXCUHF=.false.
        write(*,*) "Overriding LRXCUHF since LNEOHF=.TRUE."
+      end if
+
+      if ((LRXCHF).and.(LXCUHF)) then
+       write(*,*) "Cannot have LRXCHF and LXCUHF"
+       write(*,*) "Exiting..."
+       return
+      end if
+
+      if ((LRXCUHF).and.(LXCUHF)) then
+       write(*,*) "Cannot have LRXCUHF and LXCUHF"
+       write(*,*) "Exiting..."
+       return
       end if
 
       if(LRXCUHF) then

@@ -54,12 +54,12 @@
       logical LCMF
 !     logical LG3DSCF
 !     logical LG2IC1
-!     logical LG3IC1
-!     logical LG4IC
+      logical LG3IC1
+      logical LG4IC
 !     logical LG2DSCF
       integer SZG2ICR
-C      integer SZG3IC1
-C      integer SZG4IC
+      integer SZG3IC1
+      integer SZG4IC
       integer NG2CHK,NG3CHK,NG4CHK
       integer nelec
       integer NBE

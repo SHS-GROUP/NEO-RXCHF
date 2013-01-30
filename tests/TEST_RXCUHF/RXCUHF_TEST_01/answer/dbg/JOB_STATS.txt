@@ -1,0 +1,18 @@
+17412.shscluster.chem.psu.edu
+/scr/andrew/17412.shscluster.chem.psu.edu
+n0
+rxcuhf_test
+total 2.4M
+-rw-r--r-- 1 andrew users   25 Jan 24 13:00 ENUCRP.dat
+-rw-r--r-- 1 andrew users 4.2K Jan 24 13:00 FinalCAE.dat
+-rw-r--r-- 1 andrew users 4.2K Jan 24 13:00 FinalCBE.dat
+-rw-r--r-- 1 andrew users  612 Jan 24 13:00 FinalCP.dat
+-rw-r--r-- 1 andrew users 8.0K Jan 24 13:00 GAM_ecr.ufm
+-rw-r--r-- 1 andrew users 2.0M Jan 24 13:00 GAM_ee.ufm
+-rw-r--r-- 1 andrew users 288K Jan 24 13:00 GAM_ep.ufm
+-rw-r--r-- 1 andrew users 1.2K Jan 24 13:00 GAM_pcr.ufm
+-rw-r--r-- 1 andrew users 4.1K Jan 24 13:00 WORK15
+-rw-r--r-- 1 andrew users 2.3K Jan 24 13:00 WORK16
+-rw-r--r-- 1 andrew users 3.0K Jan 24 13:00 basis_definition.inp
+-rw-r--r-- 1 andrew users 8.0K Jan 24 13:00 eovlap.ufm
+-rw-r--r-- 1 andrew users 1.2K Jan 24 13:00 novlap.ufm
