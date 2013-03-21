@@ -1,15 +1,16 @@
 !======================================================================
       subroutine multrxchf(nelec,NAE,NBE,NPRA,NEBFLT,NUCST,
-     x                   npebf,nebf,nebf2,npbf,npbf2,ngee,
-     x                   ngtg1,ng1,ng2,ng3,ng4,NG2CHK,NG3CHK,NG4CHK,
-     x                   read_CE,read_CP,
-     x                   LNEOHF,LGAM4,LCMF,LSOSCF,LOCBSE,
-     x                   ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
-     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                   SZG2ICR,GM2_1ICR,GM2_2ICR,GM2sICR,
-     x                   LG3IC1,SZG3IC1,GM3_1IC1,GM3_2IC1,
-     x                   LG4IC,SZG4IC,GM4ICR)
+     x                    npebf,nebf,nebf2,npbf,npbf2,ngee,
+     x                    ngtg1,ng1,ng2,ng3,ng4,NG2CHK,NG3CHK,NG4CHK,
+     x                    read_CE,read_CP,
+     x                    LNEOHF,LGAM4,LG4DSCF,LG3DSCF,LG2DSCF,LCMF,
+     x                    LSOSCF,LOCBSE,
+     x                    ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
+     x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                    LG2IC1,SZG2ICR,GM2ICR,GM2SICR,
+     x                    LG3IC1,SZG3IC1,GM3IC1,
+     x                    LG4IC,SZG4IC,GM4ICR)
 
 !
 !     --- PERFORM A NUCLEAR-ELECTRONIC RESTRICTED XC HARTREE-FOCK
@@ -49,11 +50,11 @@
       logical read_CP
       logical LGAM4
       logical LCMF
-!     logical LG3DSCF
-!     logical LG2IC1
+      logical LG3DSCF
+      logical LG2IC1
       logical LG3IC1
       logical LG4IC
-!     logical LG2DSCF
+      logical LG2DSCF
       integer SZG2ICR
       integer SZG3IC1
       integer SZG4IC

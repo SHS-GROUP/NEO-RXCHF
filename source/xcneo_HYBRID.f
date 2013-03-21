@@ -400,7 +400,7 @@ c     write(*,*)'ng4prm=',ng4prm
 
          if(.NOT.LNEOHF) then
 
-          if (LRXCHF) then
+          if ((LRXCHF).and.(nbe.eq.1)) then
             call RXCHF_GAM1_OMP_MD(nebf,npebf,npbf,ng1,ng1prm,nat,ngtg1,
      x                       pmass,cat,zan,bcoef1,gamma1,
      x                       AMPEB2C,AGEBFCC,AGNBFCC,
@@ -423,7 +423,7 @@ c     write(*,*)'ng4prm=',ng4prm
                    if(allocated(GM2sICR)) deallocate(GM2sICR)
                    allocate( GM2sICR(SZG2ICR),stat=istat )
 
-                   if (LRXCHF) then
+                   if ((LRXCHF).and.(nbe.eq.1)) then
 
                        if(allocated(GM2_1ICR)) deallocate(GM2_1ICR)
                        allocate( GM2_1ICR(SZG2ICR),stat=istat )
@@ -471,7 +471,7 @@ C   - Multiply all GM2_1ICR by 1/2
 !    x                             AMPEB2C,AGEBFCC,AGNBFCC,
 !    x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
-                   if (LRXCHF) then
+                   if ((LRXCHF).and.(nbe.eq.1)) then
                        call RXCHF_GAM2_CONV(NG2CHK,nebf,npebf,npbf,
      x                           ng2,ng2prm,nat,ngtg1,
      x                           pmass,cat,zan,bcoef1,gamma1,
@@ -503,7 +503,7 @@ C   - Multiply all GM2_1ICR by 1/2
 
                      SZG3IC1=ng3
 
-                   if (LRXCHF) then
+                   if ((LRXCHF).and.(nbe.eq.1)) then
 
                        if(allocated(GM3_1IC1)) deallocate(GM3_1IC1)
                        allocate( GM3_1IC1(SZG3IC1),stat=istat )
@@ -697,12 +697,13 @@ C   - Multiply all GM2_1ICR by 1/2
      x                    npebf,nebf,nebf2,npbf,npbf2,ngee,
      x                    ngtg1,ng1,ng2,ng3,ng4,NG2CHK,NG3CHK,NG4CHK,
      x                    read_CE,read_CP,
-     x                    LNEOHF,LGAM4,LCMF,LSOSCF,LOCBSE,
+     x                    LNEOHF,LGAM4,LG4DSCF,LG3DSCF,LG2DSCF,LCMF,
+     x                    LSOSCF,LOCBSE,
      x                    ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
      x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                    SZG2ICR,GM2_1ICR,GM2_2ICR,GM2sICR,
-     x                    LG3IC1,SZG3IC1,GM3_1IC1,GM3_2IC1,
+     x                    LG2IC1,SZG2ICR,GM2ICR,GM2SICR,
+     x                    LG3IC1,SZG3IC1,GM3IC1,
      x                    LG4IC,SZG4IC,GM4ICR)
            end if
 
