@@ -50,6 +50,7 @@
       logical read_CP
       logical LGAM4
       logical LCMF
+      logical LG4DSCF
       logical LG3DSCF
       logical LG2IC1
       logical LG3IC1
@@ -97,12 +98,10 @@
       double precision gamma1(ngtg1)
 !-----DIRECT-SCF-RELATED-----------------------------------------------)
 
-      double precision GM2_1ICR(SZG2ICR)
-      double precision GM2_2ICR(SZG2ICR)
-      double precision GM2sICR(SZG2ICR)
-      double precision GM3_1IC1(SZG3IC1)
-      double precision GM3_2IC1(SZG3IC1)
-      double precision GM4ICR(SZG4IC)
+      double precision GM2ICR(SZG2ICR)  ! POSSIBLE IN-CORE GAM2 INTEGRALS
+      double precision GM2SICR(SZG2ICR) ! POSSIBLE IN-CORE GAM2 INTEGRALS
+      double precision GM3IC1(SZG3IC1)  ! POSSIBLE IN-CORE GAM3 INTEGRALS
+      double precision GM4ICR(SZG4IC)   ! POSSIBLE IN-CORE GAM4 INTEGRALS
 
 ! Local variables
       double precision zero,one
@@ -147,8 +146,20 @@
       double precision E_exch
       double precision E_UHF
 
-!     double precision S_gam1s
+      double precision E_gam1
+      double precision E_gam2
+      double precision E_gam3
+      double precision E_gam4
+
+      double precision S_gam1s
       double precision S_total
+      double precision S_gam0
+      double precision S_gam1
+      double precision S_gam2
+
+      double precision DE(NEBF,NEBF)
+!     double precision S_gam1s
+!      double precision S_total
 !     double precision S_OMG0
       double precision S_OMG1
       double precision S_OMG2
