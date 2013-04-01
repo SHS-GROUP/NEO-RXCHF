@@ -1,0 +1,10 @@
+
+======
+TEST01
+======
+
+System:      He (2 electrons) separated by 50 Ang from PsH (2 electron + 1 positron)
+Level:       NEO-RXCHF with PsH parameters (6s/6s basis set, NGTG=2) from 2012 JCP, and STO-2G for helium
+Compare to:  Corresponding RHF calculation for He(STO-2G) and XCHF calculation for PsH(ngtg=2 data from 2012 JCP)
+
+

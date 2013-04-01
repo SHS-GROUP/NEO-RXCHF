@@ -132,12 +132,24 @@
       double precision diffBE
       double precision diffP
 
-      double precision E_ecore
-      double precision E_pcore
-      double precision E_ee
-      double precision E_ep
+C      double precision E_ecore
+C      double precision E_pcore
+C      double precision E_ee
+C      double precision E_ep
       double precision E_nuc
-      double precision E_total
+C      double precision E_total
+
+      double precision XFE_ecore
+      double precision XFE_pcore
+      double precision XFE_ee
+      double precision XFE_ep
+      double precision XFE_total
+
+      double precision HFE_ecore
+      double precision HFE_pcore
+      double precision HFE_ee
+      double precision HFE_ep
+      double precision HFE_total
 
       double precision E_OMG1
       double precision E_OMG2
@@ -146,16 +158,34 @@
       double precision E_exch
       double precision E_UHF
 
-      double precision E_gam1
-      double precision E_gam2
-      double precision E_gam3
-      double precision E_gam4
+C      double precision E_gam1
+C      double precision E_gam2
+C      double precision E_gam3
+C      double precision E_gam4
+
+      double precision HFE_gam1
+      double precision HFE_gam2
+      double precision HFE_gam3
+      double precision HFE_gam4
+
+      double precision XFE_gam1
+      double precision XFE_gam2
+      double precision XFE_gam3
+      double precision XFE_gam4
 
       double precision S_gam1s
-      double precision S_total
-      double precision S_gam0
-      double precision S_gam1
-      double precision S_gam2
+C      double precision S_total
+C      double precision S_gam0
+C      double precision S_gam1
+C      double precision S_gam2
+      double precision HFS_total
+      double precision HFS_gam0
+      double precision HFS_gam1
+      double precision HFS_gam2
+      double precision XFS_total
+      double precision XFS_gam0
+      double precision XFS_gam1
+      double precision XFS_gam2
 
       double precision DE(NEBF,NEBF)
 !     double precision S_gam1s
@@ -190,8 +220,12 @@
 !     double precision fpDUMMY(npbf,npbf)
 !     double precision xpDUMMY(npbf,npbf)
 
-      double precision E_total_old
-      double precision Delta_E_tot
+C      double precision E_total_old
+C      double precision Delta_E_tot
+      double precision HFE_total_old
+      double precision HFDelta_E_tot
+      double precision XFE_total_old
+      double precision XFDelta_E_tot
 
       logical LDIFFE
 
@@ -240,30 +274,33 @@ C      double precision XB(NPRB)
 !--------SOSCF-RELATED-VARIABLES------------)
 
 !--------OUTPUT-FORMATTING---------------------------------------------(
- 9000 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
-     * 'ALPHA DENS       BETA DENS        QMP DENS ')
+ 9000 FORMAT(/' ITER      TOTAL ENERGY        HF ENERGY    XF ENERGY  ',
+     * 'E CHANGE (HF)    E CHANGE (XF)  ALPHA DENS       BETA DENS  ',
+     * 'QMP DENS ')
 
- 9050 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
-     * 'ALPHA DENS       BETA DENS        QMP DENS         ',
-     * 'ORBGRAD_A ')
+ 9050 FORMAT(/' ITER      TOTAL ENERGY        HF ENERGY    XF ENERGY  ',
+     * 'E CHANGE (HF)    E CHANGE (XF)  ALPHA DENS       BETA DENS  ',
+     * 'QMP DENS         ORBGRAD_A ')
 
- 9100 FORMAT(1X,I3,F20.10,F17.10,3F17.10)
+ 9100 FORMAT(1X,I3,2(F20.10),2(F17.10),3F17.10)
 
- 9150 FORMAT(1X,I3,F20.10,F17.10,4F17.10)
+ 9150 FORMAT(1X,I3,2(F20.10),2(F17.10),4F17.10)
 
  9200 FORMAT(/1X,'FINAL NEORXCHF ENERGY IS',F20.10,' AFTER',I4,
      *           ' ITERATIONS')
 
  9300 FORMAT(/6X,'-----------------------------------------------',/,
-     x        6X,'         NEORXCHF ENERGETIC COMPONENTS          ',/,
+     x        6X,'         NEOXCHF ENERGETIC COMPONENTS          ',/,
      x        6X,'-----------------------------------------------',/,
      x       12X,'    E_NUC=',1X,F20.10/
-     x       12X,'   E_OMG1=',1X,F20.10/
-     x       12X,'   E_OMG2=',1X,F20.10/
-     x       12X,'   E_OMG3=',1X,F20.10/
-     x       12X,'   E_OMG4=',1X,F20.10/
-     x       12X,'   S_OMG1=',1X,F20.10/
-     x       12X,'   S_OMG2=',1X,F20.10/
+     x       12X,'  E_ECORE=',1X,F20.10/
+     x       12X,'  E_PCORE=',1X,F20.10/
+     x       12X,'     E_EP=',1X,F20.10/
+     x       12X,'     E_EE=',1X,F20.10/
+     x       12X,'   E_GAM1=',1X,F20.10/
+     x       12X,'   E_GAM2=',1X,F20.10/
+     x       12X,'   E_GAM3=',1X,F20.10/
+     x       12X,'   E_GAM4=',1X,F20.10/
      x       12X,'  S_TOTAL=',1X,F20.10/
      x       12X,'  E_TOTAL=',1X,F20.10/)
 
@@ -393,7 +430,9 @@ C      LOCBSE2=.true.
       WRITE(*,9500)
 !     WRITE(*,9000)
 !
-      E_total_old=0.0d+00
+C      E_total_old=0.0d+00
+      HFE_total_old=0.0d+00
+      XFE_total_old=0.0d+00
       ORBGRDA=0.0d+00
 C      ORBGRDB=0.0d+00
 
@@ -426,9 +465,9 @@ C Call NEO-HF Fock build for nelec=nae
      x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                   FAE,FP,
-     x                   E_total,E_nuc,E_ecore,E_pcore,E_ep,
-     x                   E_ee,E_gam1,E_gam2,E_gam3,E_gam4,
-     x                   S_total,S_gam1,S_gam2)
+     x                   HFE_total,E_nuc,HFE_ecore,HFE_pcore,HFE_ep,
+     x                   HFE_ee,HFE_gam1,HFE_gam2,HFE_gam3,HFE_gam4,
+     x                   HFS_total,HFS_gam1,HFS_gam2)
 C Call XCHF Fock build for nelec=nbe
          call rxchfmult_xchf_fock(.false.,LGAM4,LG4DSCF,LG4IC,
      x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
@@ -443,18 +482,29 @@ C Call XCHF Fock build for nelec=nbe
      x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                   FBE,FP,
-     x                   E_total,E_nuc,E_ecore,E_pcore,E_ep,
-     x                   E_ee,E_gam1,E_gam2,E_gam3,E_gam4,
-     x                   S_total,S_gam1,S_gam2)
+     x                   XFE_total,E_nuc,XFE_ecore,XFE_pcore,XFE_ep,
+     x                   XFE_ee,XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,
+     x                   XFS_total,XFS_gam1,XFS_gam2)
 
-         E_total=E_total+E_nuc
+         HFE_total=HFE_total+E_nuc
+         XFE_total=XFE_total+E_nuc
        end if
 
 !--------------FORM-FOCK-MATRICES-AND-CALC-ENERGY-COMPONENTS-----------)
          if(I.eq.1) then
             WRITE(*,9400)
-            WRITE(*,9300) E_nuc,E_OMG1,E_OMG2,E_OMG3,E_OMG4,
-     x                    S_OMG1,S_OMG2,S_total,E_total
+
+      write(*,*) "HF Part:"
+      WRITE(*,9300) E_nuc,HFE_ecore,HFE_pcore,HFE_ep,HFE_ee,
+     x HFE_gam1,HFE_gam2,HFE_gam3,HFE_gam4,HFS_total,HFE_total
+
+      write(*,*) "XCHF Part:"
+      WRITE(*,9300) E_nuc,XFE_ecore,XFE_pcore,XFE_ep,XFE_ee,
+     x XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,XFS_total,XFE_total
+
+C            WRITE(*,9300) E_nuc,E_OMG1,E_OMG2,E_OMG3,E_OMG4,
+C     x                    S_OMG1,S_OMG2,S_total,E_total
+
             if(LSOSCF) then 
                WRITE(*,9050)
             else
@@ -499,9 +549,9 @@ C Call NEO-HF Fock build for nelec=nae
      x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                   FAE,FP,
-     x                   E_total,E_nuc,E_ecore,E_pcore,E_ep,
-     x                   E_ee,E_gam1,E_gam2,E_gam3,E_gam4,
-     x                   S_total,S_gam1,S_gam2)
+     x                   HFE_total,E_nuc,HFE_ecore,HFE_pcore,HFE_ep,
+     x                   HFE_ee,HFE_gam1,HFE_gam2,HFE_gam3,HFE_gam4,
+     x                   HFS_total,HFS_gam1,HFS_gam2)
 C Call XCHF Fock build for nelec=nbe
          call rxchfmult_xchf_fock(.false.,LGAM4,LG4DSCF,LG4IC,
      x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
@@ -516,11 +566,12 @@ C Call XCHF Fock build for nelec=nbe
      x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                   FBE,FP,
-     x                   E_total,E_nuc,E_ecore,E_pcore,E_ep,
-     x                   E_ee,E_gam1,E_gam2,E_gam3,E_gam4,
-     x                   S_total,S_gam1,S_gam2)
+     x                   XFE_total,E_nuc,XFE_ecore,XFE_pcore,XFE_ep,
+     x                   XFE_ee,XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,
+     x                   XFS_total,XFS_gam1,XFS_gam2)
 
-           E_total=E_total+E_nuc
+         HFE_total=HFE_total+E_nuc
+         XFE_total=XFE_total+E_nuc
 
          else if (LOCBSE2) then
 ! Do OCBSE2 procedure (restricted solutions for special electrons)
@@ -595,9 +646,9 @@ C Call NEO-HF Fock build for nelec=nae
      x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                   FAE,FP,
-     x                   E_total,E_nuc,E_ecore,E_pcore,E_ep,
-     x                   E_ee,E_gam1,E_gam2,E_gam3,E_gam4,
-     x                   S_total,S_gam1,S_gam2)
+     x                   HFE_total,E_nuc,HFE_ecore,HFE_pcore,HFE_ep,
+     x                   HFE_ee,HFE_gam1,HFE_gam2,HFE_gam3,HFE_gam4,
+     x                   HFS_total,HFS_gam1,HFS_gam2)
 C Call XCHF Fock build for nelec=nbe
          call rxchfmult_xchf_fock(.false.,LGAM4,LG4DSCF,LG4IC,
      x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
@@ -612,11 +663,12 @@ C Call XCHF Fock build for nelec=nbe
      x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                   FBE,FP,
-     x                   E_total,E_nuc,E_ecore,E_pcore,E_ep,
-     x                   E_ee,E_gam1,E_gam2,E_gam3,E_gam4,
-     x                   S_total,S_gam1,S_gam2)
+     x                   XFE_total,E_nuc,XFE_ecore,XFE_pcore,XFE_ep,
+     x                   XFE_ee,XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,
+     x                   XFS_total,XFS_gam1,XFS_gam2)
 
-           E_total=E_total+E_nuc
+         HFE_total=HFE_total+E_nuc
+         XFE_total=XFE_total+E_nuc
 
          else
 
@@ -707,15 +759,20 @@ C         END IF
          CALL COPYDEN(DP0,DP,NPBF)
 
 !        --> CALCULATE CHANGE IN TOTAL ENERGY
-         Delta_E_tot=E_total-E_total_old
-         E_total_old=E_total
+C         Delta_E_tot=E_total-E_total_old
+C         E_total_old=E_total
+         HFDelta_E_tot=HFE_total-HFE_total_old
+         HFE_total_old=HFE_total
+         XFDelta_E_tot=XFE_total-XFE_total_old
+         XFE_total_old=XFE_total
 
 !        --> PRINT SUMMARY OF THIS ITERATION
          if(LSOSCF) then
-            WRITE(*,9150) I,E_total,Delta_E_tot,DIFFAE,DIFFBE,DIFFP,
-     x                    ORBGRDA
+            WRITE(*,9150) I,HFE_total,XFE_total,HFDelta_E_tot,
+     x                    XFDelta_E_tot,DIFFAE,DIFFBE,DIFFP,ORBGRDA
          else
-            WRITE(*,9100) I,E_total,Delta_E_tot,DIFFAE,DIFFBE,DIFFP
+            WRITE(*,9100) I,HFE_total,XFE_total,HFDelta_E_tot,
+     x                    XFDelta_E_tot,DIFFAE,DIFFBE,DIFFP
          end if
 ! Output the vectors for this iteration for restart if necessary:
          call write_MOs(860,nebf,VECAE)
@@ -740,7 +797,9 @@ C         END IF
 
       WRITE(*,*)
       WRITE(*,*)'WARNING:  ITERATION LIMIT EXCEEDED'
-      E_TOTAL=zero
+C      E_TOTAL=zero
+      HFE_TOTAL=zero
+      XFE_TOTAL=zero
       WRITE(*,*)
 !     STOP
 !
@@ -751,11 +810,20 @@ C         END IF
          close(NFT15)
       end if
 
-!     PRINT FINAL ENERGY AND PUNCH THE ORBITALS
-      WRITE(*,9200) E_TOTAL,I
+!     PRINT FINAL ENERGY AND PUNCH THE ORBITALS (for XCHF part)
+C      WRITE(*,9200) E_TOTAL,I
+      WRITE(*,9200) XFE_TOTAL,I
 !
-        WRITE(*,9300) E_nuc,E_OMG1,E_OMG2,E_OMG3,E_OMG4,
-     x                S_OMG1,S_OMG2,S_total,E_total
+      write(*,*) "HF Part:"
+      WRITE(*,9300) E_nuc,HFE_ecore,HFE_pcore,HFE_ep,HFE_ee,
+     x HFE_gam1,HFE_gam2,HFE_gam3,HFE_gam4,HFS_total,HFE_total
+
+      write(*,*) "XCHF Part:"
+      WRITE(*,9300) E_nuc,XFE_ecore,XFE_pcore,XFE_ep,XFE_ee,
+     x XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,XFS_total,XFE_total
+
+C        WRITE(*,9300) E_nuc,E_OMG1,E_OMG2,E_OMG3,E_OMG4,
+C     x                S_OMG1,S_OMG2,S_total,E_total
 
 !  OUTPUT ELEC AND NUC EIGENVALUES AND EIGENVECTORS
       WRITE(*,9610)
@@ -940,7 +1008,7 @@ C         END IF
       AEen=zero
       BEen=zero
 
-      call RXCHFmult_OCBSE_driver(nebf,nae,nbe,nocca,noccb,
+      call RXCHF_OCBSE_driver(nebf,nae,nbe,nocca,noccb,
      x                        nvirt,noccvirta,noccvirtb,
      x                        vecAE0,vecBE0,FAE,FBE,Selec,
      x                        vecAE,vecBE,AEen,BEen)
@@ -1022,7 +1090,7 @@ C         END IF
 !       - Construct transformation matrix for special electrons
 !       - Transform FBE and diagonalize to obtain vecBE
 !
-!  ******* CURRENTLY ONLY WORKS FOR NBE = 1 *******
+!  Switching to virtual space (no remnant of occupied in proj basis)
 !
 !======================================================================
       implicit none
@@ -1096,134 +1164,12 @@ C ARS(
       end if
 C )
 
-C ARS( 07/01 testing
-      maxovlap=0.0d0
-      do mo1=1,nebf
-      mo2=1
-
-        ovlap=0.0d0
-        ovlapcheck=0.0d0 ! Check calculation below by using Selec
-
-C Contracted loops
-        do iec1=1,nebf
-        do jec1=1,nebf
-
-          ovlapcheck=ovlapcheck+Selec(iec1,jec1)*
-     x                          vecAE(iec1,mo1)*vecBE0(jec1,mo2)
-
-C Primitive start/end point for each contracted index
-          ie1_start=kpestr(iec1)
-          je1_start=kpestr(jec1)
-
-          ie1_end=kpeend(iec1)
-          je1_end=kpeend(jec1)
-
-C Primitive loops
-          do ie1=ie1_start,ie1_end
-          do je1=je1_start,je1_end
-
-C Primitive contraction coefficients
-            cof_ie1=agebfcc(ie1)
-            cof_je1=agebfcc(je1)
-
-            A1=elcex(ie1)
-            I1=elcam(ie1,1)
-            J1=elcam(ie1,2)
-            K1=elcam(ie1,3)
-            Amat1(1)=elcbfc(ie1,1)
-            Amat1(2)=elcbfc(ie1,2)
-            Amat1(3)=elcbfc(ie1,3)
-
-            B1=elcex(je1)
-            L1=elcam(je1,1)
-            M1=elcam(je1,2)
-            N1=elcam(je1,3)
-            Bmat1(1)=elcbfc(je1,1)
-            Bmat1(2)=elcbfc(je1,2)
-            Bmat1(3)=elcbfc(je1,3)
-
-            call gfovlap(I1,J1,K1,A1,Amat1,
-     x                   L1,M1,N1,B1,Bmat1,
-     x                   ans)
-
-            ovlap=ovlap+cof_ie1*cof_je1*
-     x                  vecAE(iec1,mo1)*vecBE0(jec1,mo2)*
-     x                  ans
-
-          end do
-          end do
-
-        end do
-        end do
-
-        if (debug) then
-         write(*,*) "Overlap (mo1,mo2,ovlap,ovlapcheck):"
-         write(*,*) mo1,mo2,ovlap,ovlapcheck
-        end if
-
-        ovlaparr(mo1)=ovlap
-        if ((mo1.gt.1).and.(dabs(ovlap).gt.maxovlap)) then
-         maxovlap=dabs(ovlap)
-         motodiscard=mo1
-        end if
-
-      end do
-
-      if (debug) then
-       write(*,*) "Discarding MO: ",motodiscard," which had overlap",
-     x            maxovlap
-      end if
-C )
-
 !!!!!!!!!!!!!!!! Solve for special electronic solution !!!!!!!!!!!!!!!!
 
 ! Form special electronic transformation matrix
-      do i=1,nvirt
+      do i=1,noccvirtb
         do j=1,nebf
-C ARS( 07/01 testing
-C          WB(j,i)=vecAE(j,nocca+i)
-          if (i.ne.(motodiscard-nocca)) then
-           WB(j,i)=vecAE(j,nocca+i)
-          else
-           WB(j,i)=vecAE(j,nebf)
-          end if
-C )
-        end do
-      end do
-
-C ARS( 07/01 testing
-C FIX2
-      do j=1,nebf
-        projorb(j)=vecBE0(j,1)
-        do i=1,nebf
-          if (i.ne.motodiscard) then
-           projorb(j)=projorb(j)-ovlaparr(i)*vecAE(j,i)
-          end if
-        end do
-      end do
-
-      ovlap=0.0d0
-      do i=1,nebf
-      do j=1,nebf
-        ovlap=ovlap+projorb(i)*projorb(j)*Selec(i,j)
-      end do
-      end do
-C )
-
-      do i=1,noccb
-        do j=1,nebf
-C ARS( 07/01 testing
-C          WB(j,i+nvirt)=vecBE0(j,i)
-C
-C *** ONLY WORKS FOR noccb=1 ***
-C FIX1
-C
-C          WB(j,i+nvirt)=vecAE(j,motodiscard)
-C
-C FIX2
-C
-          WB(j,i+nvirt)=projorb(j)/dsqrt(ovlap)
-C )
+          WB(j,i)=vecAE(j,nocca+i)
         end do
       end do
 
