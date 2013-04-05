@@ -274,13 +274,13 @@ C      double precision XB(NPRB)
 !--------SOSCF-RELATED-VARIABLES------------)
 
 !--------OUTPUT-FORMATTING---------------------------------------------(
- 9000 FORMAT(/' ITER      TOTAL ENERGY        HF ENERGY    XF ENERGY  ',
-     * 'E CHANGE (HF)    E CHANGE (XF)  ALPHA DENS       BETA DENS  ',
-     * 'QMP DENS ')
+ 9000 FORMAT(/' ITER      HF ENERGY             XF ENERGY       ',
+     * 'E CHANGE (HF)    E CHANGE (XF)     ALPHA DENS       BETA DENS  ',
+     * '    QMP DENS ')
 
- 9050 FORMAT(/' ITER      TOTAL ENERGY        HF ENERGY    XF ENERGY  ',
-     * 'E CHANGE (HF)    E CHANGE (XF)  ALPHA DENS       BETA DENS  ',
-     * 'QMP DENS         ORBGRAD_A ')
+ 9050 FORMAT(/' ITER      HF ENERGY             XF ENERGY       ',
+     * 'E CHANGE (HF)    E CHANGE (XF)     ALPHA DENS       BETA DENS ',
+     * '    QMP DENS         ORBGRAD_A ')
 
  9100 FORMAT(1X,I3,2(F20.10),2(F17.10),3F17.10)
 
