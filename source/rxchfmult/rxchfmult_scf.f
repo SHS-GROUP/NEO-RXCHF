@@ -774,6 +774,16 @@ C         E_total_old=E_total
             WRITE(*,9100) I,HFE_total,XFE_total,HFDelta_E_tot,
      x                    XFDelta_E_tot,DIFFAE,DIFFBE,DIFFP
          end if
+C ARS( debug: print out MOs here
+      if (LCMF) then
+       WRITE(*,9610)
+       call PREVNU(vecAE,AEE,nebf,nebf,nebf)
+       WRITE(*,9620)
+       call PREVNU(vecBE,BEE,nebf,nebf,nebf)
+       WRITE(*,9700)
+       call PREVNU(vecp,EP,npbf,npbf,npbf)
+      end if
+C )
 ! Output the vectors for this iteration for restart if necessary:
          call write_MOs(860,nebf,VECAE)
          call write_MOs(861,nebf,VECBE)
