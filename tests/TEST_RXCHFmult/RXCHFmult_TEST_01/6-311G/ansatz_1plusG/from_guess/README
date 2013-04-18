@@ -1,0 +1,37 @@
+Start from converged orbitals:
+ - guessCAE.inp : Converged GAMESS He run
+ - guessCBE.inp : Converged XCHF PsH run
+ - guessCP.inp  : Converged XCHF PsH run
+
+Regular electrons (He) answer:
+ E = E_He + E_nuc + E_core^p + E_ep + E_ec
+
+     E_He     : He energy
+     E_nuc    : Classical repulsion between He and H nuclei
+     E_core^p : Positron core energy
+     E_ep     : Interaction between reg elecs and positron (-E_nuc in large d)
+     E_ec     : Interaction between reg elecs and H nucleus (-E_nuc in large d)
+
+ => E = E_He + E_core^p - E_nuc
+
+ E_He     = -2.8356798736 (from GAMESS)
+ E_nuc    =  0.0052917725
+ E_core^p =  0.3627467029
+
+ =>     E = -2.4782249432 (matches RXCHF calculation)
+
+
+Special electrons (PsH) answer:
+ E = E_PsH + E_nuc + E_ec + E_pc
+
+     E_PsH    : PsH energy
+     E_nuc    : Classical repulsion between He and H nuclei
+     E_ec     : Interaction between sp elecs and He nucleus (-2E_nuc in large d)
+     E_pc     : Interaction between positron and He nucleus (E_nuc in large d)
+
+ => E = E_PsH
+
+ E_PsH    = -0.7351388067 (from XCHF)
+
+ =>     E = -0.7351388067 (matches RXCHF calculation)
+

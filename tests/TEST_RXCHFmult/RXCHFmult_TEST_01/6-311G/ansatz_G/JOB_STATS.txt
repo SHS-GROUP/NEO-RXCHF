@@ -1,0 +1,30 @@
+18737.shscluster.chem.psu.edu
+/scr/andrew/18737.shscluster.chem.psu.edu
+n32
+n32
+n32
+n32
+n32
+n32
+n32
+n32
+n32
+n32
+n32
+n32
+test
+total 540K
+-rw-r--r-- 1 andrew users   25 Apr 17 15:26 ENUCRP.dat
+-rw-r--r-- 1 andrew users 1.3K Apr 17 15:42 FinalCAE.dat
+-rw-r--r-- 1 andrew users 1.3K Apr 17 15:42 FinalCBE.dat
+-rw-r--r-- 1 andrew users  612 Apr 17 15:42 FinalCP.dat
+-rw-r--r-- 1 andrew users  92K Apr 17 15:26 GAM_1.ufm
+-rw-r--r-- 1 andrew users  92K Apr 17 15:26 GAM_1s.ufm
+-rw-r--r-- 1 andrew users 2.6K Apr 17 15:26 GAM_ecr.ufm
+-rw-r--r-- 1 andrew users 206K Apr 17 15:26 GAM_ee.ufm
+-rw-r--r-- 1 andrew users  92K Apr 17 15:26 GAM_ep.ufm
+-rw-r--r-- 1 andrew users 1.2K Apr 17 15:26 GAM_pcr.ufm
+-rw-r--r-- 1 andrew users  648 Apr 17 15:42 WORK15
+-rw-r--r-- 1 andrew users 2.7K Apr 17 15:26 basis_definition.inp
+-rw-r--r-- 1 andrew users 2.6K Apr 17 15:26 eovlap.ufm
+-rw-r--r-- 1 andrew users 1.2K Apr 17 15:26 novlap.ufm

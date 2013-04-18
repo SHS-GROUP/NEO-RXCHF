@@ -392,6 +392,24 @@ C      LOCBSE2=.true.
          write(*,*)'BACK FROM guess_prot'
          write(*,*)
       end if
+
+C ARS( debug: print out initial guess MOs here
+      if (LCMF) then
+       write(*,*)
+       write(*,*) "------------------"
+       write(*,*) "INITIAL GUESS MOs:"
+       write(*,*) "------------------"
+       write(*,*)
+       WRITE(*,9610)
+       call PREVNU(vecAE0,AEE,nebf,nebf,nebf)
+       WRITE(*,9620)
+       call PREVNU(vecBE0,BEE,nebf,nebf,nebf)
+C vecP not defined yet
+C       WRITE(*,9700)
+C       call PREVNU(vecp,EP,npbf,npbf,npbf)
+       write(*,*)
+      end if
+C )
 !-------------INITIAL-GUESSES------------------------------------------)
 
 !-------------SETUP-FOR-POSSIBLE-SOSCF---------------------------------(
@@ -486,8 +504,9 @@ C Call XCHF Fock build for nelec=nbe
      x                   XFE_ee,XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,
      x                   XFS_total,XFS_gam1,XFS_gam2)
 
-         HFE_total=HFE_total+E_nuc
-         XFE_total=XFE_total+E_nuc
+C ARS( E_nuc already added in fock build routine in both HF/XCHF )
+C         HFE_total=HFE_total+E_nuc
+C         XFE_total=XFE_total+E_nuc
        end if
 
 !--------------FORM-FOCK-MATRICES-AND-CALC-ENERGY-COMPONENTS-----------)
@@ -570,8 +589,9 @@ C Call XCHF Fock build for nelec=nbe
      x                   XFE_ee,XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,
      x                   XFS_total,XFS_gam1,XFS_gam2)
 
-         HFE_total=HFE_total+E_nuc
-         XFE_total=XFE_total+E_nuc
+C ARS( E_nuc already added in fock build routine in both HF/XCHF )
+C         HFE_total=HFE_total+E_nuc
+C         XFE_total=XFE_total+E_nuc
 
          else if (LOCBSE2) then
 ! Do OCBSE2 procedure (restricted solutions for special electrons)
@@ -667,8 +687,9 @@ C Call XCHF Fock build for nelec=nbe
      x                   XFE_ee,XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,
      x                   XFS_total,XFS_gam1,XFS_gam2)
 
-         HFE_total=HFE_total+E_nuc
-         XFE_total=XFE_total+E_nuc
+C ARS( E_nuc already added in fock build routine in both HF/XCHF )
+C         HFE_total=HFE_total+E_nuc
+C         XFE_total=XFE_total+E_nuc
 
          else
 
@@ -1149,7 +1170,7 @@ C     x                S_OMG1,S_OMG2,S_total,E_total
       parameter(zero=0.0d+00)
 
       logical debug
-      debug=.false.
+      debug=.true. 
 
 ! Initialize
       WB=zero
@@ -1247,3 +1268,4 @@ C )
 
       return
       end
+

@@ -1,0 +1,92 @@
+#!/bin/bash
+
+EXEDIR=/home/andrew/RXCHF_working/RXCHF_exch/bin
+
+JOBNAME=$1
+NODES=$2
+USER=`whoami`
+
+EXE=test
+
+THREADS=$NODES
+if [ $NODES -gt 12 ]; then
+ NODES=12
+fi
+
+qsub <<  eof
+#PBS -N $JOBNAME
+#PBS -q batch
+#PBS -l nodes=1:ppn=$NODES
+#PBS -l walltime=500:00:00
+#PBS -m n
+#PBS -o std.out
+#PBS -j oe
+
+cd \$PBS_O_WORKDIR
+
+echo \$PBS_JOBID >> JOB_STATS.txt
+export TMPDIR=/scr/$USER/\$PBS_JOBID
+mkdir \$TMPDIR
+echo \$TMPDIR >> JOB_STATS.txt
+cat \$PBS_NODEFILE >> JOB_STATS.txt
+echo $EXE >> JOB_STATS.txt
+
+if [ -e guessCE.inp ] ; then
+  cp guessCE.inp \$TMPDIR
+fi
+
+if [ -e guessCAE.inp ] ; then
+  cp guessCAE.inp \$TMPDIR
+fi
+
+if [ -e guessCAalpE.inp ] ; then
+  cp guessCAalpE.inp \$TMPDIR
+fi
+
+if [ -e guessCAbetE.inp ] ; then
+  cp guessCAbetE.inp \$TMPDIR
+fi
+
+if [ -e guessCBE.inp ] ; then
+  cp guessCBE.inp \$TMPDIR
+fi
+
+if [ -e guessCP.inp ] ; then
+  cp guessCP.inp \$TMPDIR
+fi
+
+cp basis_definition.inp \$TMPDIR
+
+cd \$TMPDIR
+
+export OMP_NUM_THREADS=$THREADS
+export OMP_STACKSIZE=200MB
+export OMP_SCHEDULE=GUIDED
+
+$EXEDIR/$EXE.exe >& \$PBS_O_WORKDIR/xcOMPout.log
+
+ls -lh >> \$PBS_O_WORKDIR/JOB_STATS.txt
+
+if [ -e FinalCE.dat ] ; then
+  cp FinalCE.dat \$PBS_O_WORKDIR
+fi
+
+if [ -e FinalCAE.dat ] ; then
+  cp FinalCAE.dat \$PBS_O_WORKDIR
+fi
+
+if [ -e FinalCBE.dat ] ; then
+  cp FinalCBE.dat \$PBS_O_WORKDIR
+fi
+
+if [ -e FinalCP.dat ] ; then
+  cp FinalCP.dat \$PBS_O_WORKDIR
+fi
+
+cp FinalC*.dat \$PBS_O_WORKDIR
+
+cd \$PBS_O_WORKDIR
+rm -r \$TMPDIR
+
+eof
+

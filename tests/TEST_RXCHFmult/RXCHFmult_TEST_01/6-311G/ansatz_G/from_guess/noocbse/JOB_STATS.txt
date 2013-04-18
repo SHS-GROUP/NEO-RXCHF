@@ -1,0 +1,33 @@
+18741.shscluster.chem.psu.edu
+/scr/andrew/18741.shscluster.chem.psu.edu
+n32
+n32
+n32
+n32
+n32
+n32
+n32
+n32
+n32
+n32
+n32
+n32
+test
+total 548K
+-rw-r--r-- 1 andrew users   25 Apr 17 15:58 ENUCRP.dat
+-rw-r--r-- 1 andrew users 1.3K Apr 17 16:13 FinalCAE.dat
+-rw-r--r-- 1 andrew users 1.3K Apr 17 16:13 FinalCBE.dat
+-rw-r--r-- 1 andrew users  612 Apr 17 16:13 FinalCP.dat
+-rw-r--r-- 1 andrew users  92K Apr 17 15:58 GAM_1.ufm
+-rw-r--r-- 1 andrew users  92K Apr 17 15:58 GAM_1s.ufm
+-rw-r--r-- 1 andrew users 2.6K Apr 17 15:58 GAM_ecr.ufm
+-rw-r--r-- 1 andrew users 206K Apr 17 15:58 GAM_ee.ufm
+-rw-r--r-- 1 andrew users  92K Apr 17 15:58 GAM_ep.ufm
+-rw-r--r-- 1 andrew users 1.2K Apr 17 15:58 GAM_pcr.ufm
+-rw-r--r-- 1 andrew users    0 Apr 17 16:13 WORK15
+-rw-r--r-- 1 andrew users 2.7K Apr 17 15:58 basis_definition.inp
+-rw-r--r-- 1 andrew users 2.6K Apr 17 15:58 eovlap.ufm
+-rw-r--r-- 1 andrew users 1.3K Apr 17 15:58 guessCAE.inp
+-rw-r--r-- 1 andrew users 1.3K Apr 17 15:58 guessCBE.inp
+-rw-r--r-- 1 andrew users  612 Apr 17 15:58 guessCP.inp
+-rw-r--r-- 1 andrew users 1.2K Apr 17 15:58 novlap.ufm
