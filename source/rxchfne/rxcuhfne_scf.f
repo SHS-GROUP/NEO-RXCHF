@@ -7,7 +7,7 @@
      x                    ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
      x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                    SZG2ICR,GM2ICR,GM2SICR)
+     x                    SZG2ICR,GM2ICR,GM2exICR)
 
 !
 !     --- PERFORM A NUCLEAR-ELECTRONIC RESTRICTED XC HARTREE-FOCK
@@ -101,7 +101,7 @@ C      integer SZG4IC
 !-----DIRECT-SCF-RELATED-----------------------------------------------)
 
       double precision GM2ICR(SZG2ICR)    ! Regular OMG2 terms
-      double precision GM2sICR(SZG2ICR)   ! Exchange OMG2 terms
+      double precision GM2exICR(SZG2ICR)   ! Exchange OMG2 terms
 
 ! Local variables
       double precision zero,one
@@ -420,7 +420,7 @@ C      LADDEXCH=.false.
      x                    NG2CHK,
      x                    DAalpE,DAbetE,DBE,DP,
      x                    GAM_ecore,GAM_pcore,GAM_ep,GAM_ee,
-     x                    GM2ICR,GM2sICR,
+     x                    GM2ICR,GM2exICR,
      x                    FP,FAalpE,FAbetE,FBE, 
      x                    E_ecore,
      x                    E_ee,
@@ -554,7 +554,7 @@ C      LADDEXCH=.false.
      x                    NG2CHK,
      x                    DAalpE,DAbetE,DBE,DP,
      x                    GAM_ecore,GAM_pcore,GAM_ep,GAM_ee,
-     x                    GM2ICR,GM2sICR,
+     x                    GM2ICR,GM2exICR,
      x                    FP,FAalpE,FAbetE,FBE, 
      x                    E_ecore,
      x                    E_ee,

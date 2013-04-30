@@ -6,7 +6,7 @@
      x                       NG2CHK,
      x                       DAalpE,DAbetE,DBE,DP,
      x                       GAM_ecore,GAM_pcore,GAM_ep,GAM_ee,
-     x                       GM2ICR,GM2sICR,
+     x                       GM2ICR,GM2exICR,
      x                       FP,FAalpE,FAbetE,FBE, 
      x                       E_ecore,
      x                       E_GAMee,
@@ -42,7 +42,7 @@ C NBE    : num special electrons (=1 with spin alpha)
 !     double precision GM4ICR(ng4)
 
       double precision GM2ICR(SZG2ICR)    ! Regular OMG2 terms
-      double precision GM2sICR(SZG2ICR)   ! Exchange OMG2 terms
+      double precision GM2exICR(SZG2ICR)   ! Exchange OMG2 terms
 C      double precision GM3ICR(SZG3ICR)
 C      double precision GM4ICR(SZG4ICR)
 
@@ -164,7 +164,7 @@ C )
      x                            NG2CHK,
      x                            DAalpE,DAbetE,DAtotE,DBE,DP,
      x                            GAM_ecore,GAM_ee,
-     x                            GM2ICR,GM2sICR,
+     x                            GM2ICR,GM2exICR,
      x                            XFAalpE1,XFAalpE2,
      x                            XFAbetE1,XFAbetE2,
      x                            E_AalpE_ecore,
@@ -181,7 +181,7 @@ C )
      x                            SZG2ICR,
      x                            NG2CHK,
      x                            DAalpE,DAbetE,DAtotE,DBE,DP,
-     x                            GM2ICR,GM2sICR,
+     x                            GM2ICR,GM2exICR,
      x                            XFP,XSP,
      x                            E_P_OMG1, 
      x                            E_P_OMG2,
@@ -195,7 +195,7 @@ C )
      x                             SZG2ICR,
      x                             NG2CHK,
      x                             DAalpE,DAbetE,DAtotE,DBE,DP,
-     x                             GM2ICR,GM2sICR,
+     x                             GM2ICR,GM2exICR,
      x                             XFBE,XSBE,
      x                             E_BE_OMG1, 
      x                             E_BE_OMG2,
@@ -300,7 +300,7 @@ C )
      x                                  NG2CHK,
      x                                  DAalpE,DAbetE,DAtotE,DBE,DP,
      x                                  GAM_ecore,GAM_ee,
-     x                                  GM2ICR,GM2sICR,
+     x                                  GM2ICR,GM2exICR,
      x                                  FAalpE1,FAalpE2,
      x                                  FAbetE1,FAbetE2,
      x                                  E_AalpE_ecore,
@@ -330,7 +330,7 @@ C )
       double precision GAM_ecore(nebf2)
       double precision GAM_ee(ngee)
       double precision GM2ICR(SZG2ICR)    ! Regular OMG2 terms
-      double precision GM2sICR(SZG2ICR)   ! Exchange OMG2 terms
+      double precision GM2exICR(SZG2ICR)   ! Exchange OMG2 terms
 
 ! Variables Returned
       double precision FAalpE1(nebf,nebf)
@@ -375,7 +375,7 @@ C )
       if (LADDEXCH) then
         call RXCUHFne_FE_OMG2(NG2CHK,nebf,npbf,ng2,
      x                      DAalpE,DAbetE,DAtotE,DBE,DP,
-     x                      GM2ICR,GM2sICR,
+     x                      GM2ICR,GM2exICR,
      x                      FAalpE2,FAbetE2,
      x                      E_AE_OMG2)
       else
@@ -396,7 +396,7 @@ C )
      x                                  SZG2ICR,
      x                                  NG2CHK,
      x                                  DAalpE,DAbetE,DAtotE,DBE,DP,
-     x                                  GM2ICR,GM2sICR,
+     x                                  GM2ICR,GM2exICR,
      x                                  FP,SP,
      x                                  E_P_OMG1, 
      x                                  E_P_OMG2,
@@ -421,7 +421,7 @@ C )
       double precision DBE(nebf,nebf)
       double precision DP(npbf,npbf)
       double precision GM2ICR(SZG2ICR)    ! Regular OMG2 terms
-      double precision GM2sICR(SZG2ICR)   ! Exchange OMG2 terms
+      double precision GM2exICR(SZG2ICR)   ! Exchange OMG2 terms
 
 ! Variables Returned
       double precision FP(npbf,npbf)
@@ -447,7 +447,7 @@ C )
       if (LADDEXCH) then
         call RXCUHFne_FP_OMG2(NG2CHK,nebf,npbf,ng2,NAalpE,NBE,
      x                      DAalpE,DAtotE,DBE,DP,
-     x                      GM2ICR,GM2sICR,FP,E_P_OMG2)
+     x                      GM2ICR,GM2exICR,FP,E_P_OMG2)
       else
         call RXCHFne_FP_OMG2(NG2CHK,nebf,npbf,ng2,NAalpE+NAbetE,NBE,
      x                     DAtotE,DBE,DP,GM2ICR,FP,E_P_OMG2)
@@ -463,7 +463,7 @@ C )
      x                                   SZG2ICR,
      x                                   NG2CHK,
      x                                   DAalpE,DAbetE,DAtotE,DBE,DP,
-     x                                   GM2ICR,GM2sICR,
+     x                                   GM2ICR,GM2exICR,
      x                                   FBE,SBE,
      x                                   E_BE_OMG1, 
      x                                   E_BE_OMG2,
@@ -488,7 +488,7 @@ C )
       double precision DBE(nebf,nebf)
       double precision DP(npbf,npbf)
       double precision GM2ICR(SZG2ICR)    ! Regular OMG2 terms
-      double precision GM2sICR(SZG2ICR)   ! Exchange OMG2 terms
+      double precision GM2exICR(SZG2ICR)   ! Exchange OMG2 terms
 
 ! Variables Returned
       double precision FBE(nebf,nebf)
@@ -514,7 +514,7 @@ C )
       if (LADDEXCH) then
         call RXCUHFne_FBE_OMG2(NG2CHK,nebf,npbf,ng2,NAalpE,NBE,
      x                       DAalpE,DAtotE,DBE,DP,
-     x                       GM2ICR,GM2sICR,FBE,E_BE_OMG2)
+     x                       GM2ICR,GM2exICR,FBE,E_BE_OMG2)
       else
         call RXCHFne_FBE_OMG2(NG2CHK,nebf,npbf,ng2,NAalpE+NAbetE,NBE,
      x                      DAtotE,DBE,DP,GM2ICR,FBE,E_BE_OMG2)

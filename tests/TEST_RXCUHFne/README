@@ -1,0 +1,48 @@
+
+======
+TEST01
+======
+
+System:      He (2 electrons) separated by 20 Ang from e+H (1 electron + 1 positron)
+Level:       NEO-RXCUHF/6s/16s
+Compare to:  Corresponding NEO-UHF calculation
+
+RXCHF:  FINAL NEORXCUHF ENERGY IS       -3.3455079185 AFTER   9 ITERATIONS
+XCUHF:    FINAL NEOXCHF ENERGY IS       -3.3455079167 AFTER   8 ITERATIONS
+
+
+======
+TEST02
+======
+
+System:      e+Li (3 electrons + 1 positron)
+Level:       NEO-RXCUHF/10s/8s
+Compare to:  Corresponding NEO-RXCHF calculation
+
+RXCUHF:  FINAL NEORXCUHF ENERGY IS       -7.4810462989 AFTER  25 ITERATIONS
+RXCHF:    FINAL NEORXCHF ENERGY IS       -7.4810462989 AFTER  25 ITERATIONS
+
+
+======
+TEST04
+======
+
+System:      LiPs (4 electrons + 1 positron)
+Level:       NEO-RXCUHF/10s/8s
+Compare to:  Corresponding NEO-UHF calculation
+
+RXCHF:   FINAL NEORXCUHF ENERGY IS       -7.5261702397 AFTER  58 ITERATIONS
+XCUHF:     FINAL NEOXCHF ENERGY IS       -7.5261702392 AFTER  26 ITERATIONS
+
+
+======
+TEST05
+======
+
+System:      e+LiH (4 electrons + 1 positron)
+Level:       NEO-RXCUHF/6s(contr)/6s
+Compare to:  Corresponding NEO-UHF calculation
+
+RXCHF:   FINAL NEORXCUHF ENERGY IS       -7.9673537623 AFTER  29 ITERATIONS
+XCUHF:     FINAL NEOXCHF ENERGY IS       -7.9673537609 AFTER  18 ITERATIONS
+
