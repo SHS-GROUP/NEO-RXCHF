@@ -52,6 +52,7 @@
 !-------Basis Set Info-------)
       double precision,allocatable :: GM2ICR(:)
       double precision,allocatable :: GM2sICR(:)
+      double precision,allocatable :: GM2exICR(:)
       double precision,allocatable :: GM3IC1(:)
       double precision,allocatable :: GM4ICR(:)
       double precision,allocatable :: GM2_1ICR(:)
@@ -66,6 +67,7 @@
       integer NG2CHK
       integer NG3CHK
       integer NG4CHK
+      integer EXCHLEV
       logical LNEOHF
       logical LXCUHF
       logical LXCROHF
@@ -197,6 +199,7 @@
          read(9,*) LCMF
          read(9,*) LSOSCF
          read(9,*) LOCBSE
+         read(9,*) EXCHLEV ! 0=RXCHF-ne; 1=RXCHF-ae; 2=RXCHF-fe
 
          close(9)
 
@@ -219,13 +222,35 @@
 c     ng4prm=npebf*npebf*npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
       ng4prm=1
 
-      if (((LRXCHF).or.(LRXCUHF)).and.(nelec.ge.4)) then
-       write(*,*) "Currently only nelec<4 is supported"
+      if (((LRXCHF).or.(LRXCUHF)).and.(nelec.ge.4).and.(exchlev.eq.2))
+     x      then
+       write(*,*) "Currently only nelec<4 is supported for RXCHF-fe"
        write(*,*) "Exiting..."
        return
       end if
 
-      if((LRXCHF).and.(nae.eq.1)) LRXCUHF=.false.  ! So that PsH hacks work
+      if (((LRXCHF).or.(LRXCUHF)).and.
+     x         ((exchlev.lt.0).or.(exchlev.gt.2))) then
+       write(*,*) "EXCHLEV must be between 0 and 2:"
+       write(*,*) "        = 0 for RXCHF-ne"
+       write(*,*) "        = 1 for RXCHF-ae"
+       write(*,*) "        = 2 for RXCHF-fe"
+       write(*,*) "Exiting..."
+       return
+      end if
+
+      if ((EXCHLEV.gt.0).and.(LRXCHF)) then
+       write(*,*) "EXCHLEV > 0 should only be used with LRXCUHF"
+       write(*,*) "Overriding to specify RXCUHF job instead"
+       LRXCHF=.false.
+       LRXCUHF=.true.
+      end if
+
+      if(((LRXCHF).or.(LRXCUHF)).and.(nae.eq.1)) then
+       LRXCHF=.true.
+       LRXCUHF=.false.
+       EXCHLEV=0        ! Use RXCHF-ne code so no need for PsH hacks
+      end if
 
       if(LRXCHF.and.LRXCUHF) then
        LRXCHF=.false.
@@ -323,6 +348,7 @@ c     write(*,*)'ng4prm=',ng4prm
       write(*,*)'LCMF    =',LCMF
       write(*,*)'LSOSCF  =',LSOSCF
       write(*,*)'LOCBSE  =',LOCBSE
+      write(*,*)'EXCHLEV =',EXCHLEV,' (=2: fe; =1: ae; =0: ne)'
       if(LRXCUHF) then
        write(*,*)'NAalpE =',NAalpE,'= number of alpha regular electrons'
        write(*,*)'NAbetE =',NAbetE,'= number of beta regular electrons'
@@ -442,6 +468,8 @@ c     write(*,*)'ng4prm=',ng4prm
             allocate( GM2_2ICR(SZG2ICR),stat=istat )
             if(allocated(GM2sICR)) deallocate(GM2sICR)
             allocate( GM2sICR(SZG2ICR),stat=istat )
+            if(allocated(GM2exICR)) deallocate(GM2exICR)
+            allocate( GM2exICR(SZG2ICR),stat=istat )
          end if
 
          if(LNEOHF.or.(nelec.lt.3)) then
@@ -482,15 +510,17 @@ c     write(*,*)'ng4prm=',ng4prm
 
                    SZG2ICR=ng2
 
-                   if(allocated(GM2sICR)) deallocate(GM2sICR)
-                   allocate( GM2sICR(SZG2ICR),stat=istat )
-
                    if ((LRXCHF).or.(LRXCUHF)) then
+
+                    if (EXCHLEV.eq.2) then
 
                        if(allocated(GM2_1ICR)) deallocate(GM2_1ICR)
                        allocate( GM2_1ICR(SZG2ICR),stat=istat )
                        if(allocated(GM2_2ICR)) deallocate(GM2_2ICR)
                        allocate( GM2_2ICR(SZG2ICR),stat=istat )
+                       if(allocated(GM2sICR)) deallocate(GM2sICR)
+                       allocate( GM2sICR(SZG2ICR),stat=istat )
+
 
                        call RXCHF_GAM2_IC1(NG2CHK,nebf,npebf,
      x                           npbf,ng2,ng2prm,nat,ngtg1,
@@ -503,20 +533,40 @@ C Hacks for 2 electron (one regular electron) case in a singlet arrangement:
 C   - Set all GM2sICR = 0
 C   - Set all GM2_2ICR = 0
 C   - Multiply all GM2_1ICR by 1/2
-                       if (nae.eq.1) then
+C                       if (nae.eq.1) then
+C
+C                         write(*,*) "Performing hack for 1 reg elec"
+C                         call RXCHF_adjust_omg2_ints(ng2,GM2_1ICR,
+C     x                                                   GM2_2ICR,
+C     x                                                   GM2sICR)
+C
+C                       end if
+C Above hack commented out as should be handled by EXCHLEV=0
 
-                         write(*,*) "Performing hack for 1 reg elec"
-                         call RXCHF_adjust_omg2_ints(ng2,GM2_1ICR,
-     x                                                   GM2_2ICR,
-     x                                                   GM2sICR)
-
-                       end if
-
-
-                   else
+                    else  ! exchlev < 2
 
                        if(allocated(GM2ICR)) deallocate(GM2ICR)
                        allocate( GM2ICR(SZG2ICR),stat=istat )
+                       if(allocated(GM2exICR)) deallocate(GM2exICR)
+                       allocate( GM2exICR(SZG2ICR),stat=istat )
+
+                       call RXCHFne_GAM2_IC1(NG2CHK,nebf,npebf,
+     x                           npbf,ng2,ng2prm,nat,ngtg1,
+     x                           pmass,cat,zan,bcoef1,gamma1,
+     x                           KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                           ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                           GM2ICR,GM2exICR)
+
+                    end if
+
+
+                   else  ! not rxchf/rxcuhf
+
+                       if(allocated(GM2ICR)) deallocate(GM2ICR)
+                       allocate( GM2ICR(SZG2ICR),stat=istat )
+                       if(allocated(GM2sICR)) deallocate(GM2sICR)
+                       allocate( GM2sICR(SZG2ICR),stat=istat )
+
 
                        call GAM2_IC1(NG2CHK,nebf,npebf,npbf,
      x                           ng2,ng2prm,nat,ngtg1,
@@ -564,7 +614,7 @@ C   - Multiply all GM2_1ICR by 1/2
 
                      SZG3IC1=ng3
 
-                   if ((LRXCHF).or.(LRXCUHF)) then
+                   if (((LRXCHF).or.(LRXCUHF)).and.(EXCHLEV.eq.2)) then
 
                        if(allocated(GM3_1IC1)) deallocate(GM3_1IC1)
                        allocate( GM3_1IC1(SZG3IC1),stat=istat )
@@ -593,7 +643,7 @@ C   - Multiply all GM2_1ICR by 1/2
 
                   else if(LG3IC2) then
 
-                   if ((LRXCHF).or.(LRXCUHF)) then
+                   if (((LRXCHF).or.(LRXCUHF)).and.(EXCHLEV.eq.2)) then
                       write(*,*) "************************************"
                       write(*,*) "Only in-core GAM3 coded for RXC(U)HF"
                       write(*,*) "************************************"
@@ -619,7 +669,7 @@ C   - Multiply all GM2_1ICR by 1/2
 !    x                              AMPEB2C,AGEBFCC,AGNBFCC,
 !    x                              ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
       
-                   if ((LRXCHF).or.(LRXCUHF)) then
+                   if (((LRXCHF).or.(LRXCUHF)).and.(EXCHLEV.eq.2)) then
                       write(*,*) "************************************"
                       write(*,*) "Only in-core GAM3 coded for RXC(U)HF"
                       write(*,*) "************************************"
@@ -656,8 +706,8 @@ C   - Multiply all GM2_1ICR by 1/2
                          if(allocated(GM4ICR)) deallocate(GM4ICR)
                          allocate( GM4ICR(SZG4IC),stat=istat )
 
-                    ! UHF/RXCHF calculation requires different OMG4 integrals:
-                         if ((LXCUHF).or.(LRXCHF).or.(LRXCUHF)) then
+                    ! UHF calculation requires different OMG4 integrals:
+                         if(LXCUHF) then
                           call OMG4_ICR(NG4CHK,nebf,npbf,ngee,ng2,ng4,
      x                                  GM2SICR,GM4ICR)
                          else
@@ -760,6 +810,8 @@ C   - Multiply all GM2_1ICR by 1/2
 
          elseif(LRXCHF) then
 
+          if (EXCHLEV.eq.2) then
+
             call xcrxchf(nelec,NAE,NBE,NPRA,NEBFLT,NUCST,
      x                   npebf,nebf,nebf2,npbf,npbf2,ngee,
      x                   ngtg1,ng1,ng2,ng3,ng4,NG2CHK,NG3CHK,NG4CHK,
@@ -772,7 +824,23 @@ C   - Multiply all GM2_1ICR by 1/2
      x                   LG3IC1,SZG3IC1,GM3_1IC1,GM3_2IC1,
      x                   LG4IC,SZG4IC,GM4ICR)
 
+          else
+
+            call xcrxchfne(nelec,NAE,NBE,NPRA,NEBFLT,NUCST,
+     x                   npebf,nebf,nebf2,npbf,npbf2,ngee,
+     x                   ngtg1,ng1,ng2,ng3,ng4,NG2CHK,
+     x                   read_CE,read_CP,
+     x                   LNEOHF,LGAM4,LCMF,LSOSCF,LOCBSE,
+     x                   ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
+     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                   SZG2ICR,GM2ICR)
+
+          end if
+
          elseif(LRXCUHF) then
+
+          if (EXCHLEV.eq.2) then
 
             call xcrxcuhf(nelec,NAalpE,NAbetE,NBE,NPRA,NPRB,NEBFLT,
      x                    NUCST,npebf,nebf,nebf2,npbf,npbf2,ngee,
@@ -785,6 +853,33 @@ C   - Multiply all GM2_1ICR by 1/2
      x                    SZG2ICR,GM2_1ICR,GM2_2ICR,GM2sICR,
      x                    LG3IC1,SZG3IC1,GM3_1IC1,GM3_2IC1,
      x                    LG4IC,SZG4IC,GM4ICR)
+
+          else if (EXCHLEV.eq.1) then
+
+            call xcrxcuhfne(nelec,NAalpE,NAbetE,NBE,NPRA,NPRB,NEBFLT,
+     x                    NUCST,npebf,nebf,nebf2,npbf,npbf2,ngee,
+     x                    ngtg1,ng1,ng2,ng3,ng4,NG2CHK,
+     x                    read_CE,read_CP,
+     x                    LNEOHF,LGAM4,LCMF,LSOSCF,LOCBSE,.true.
+     x                    ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
+     x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                    SZG2ICR,GM2ICR,GM2exICR)
+
+          else
+
+            call xcrxcuhfne(nelec,NAalpE,NAbetE,NBE,NPRA,NPRB,NEBFLT,
+     x                    NUCST,npebf,nebf,nebf2,npbf,npbf2,ngee,
+     x                    ngtg1,ng1,ng2,ng3,ng4,NG2CHK,
+     x                    read_CE,read_CP,
+     x                    LNEOHF,LGAM4,LCMF,LSOSCF,LOCBSE,.false.
+     x                    ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
+     x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                    SZG2ICR,GM2ICR,GM2exICR)
+
+
+          end if
 
          else
 
@@ -806,6 +901,7 @@ C   - Multiply all GM2_1ICR by 1/2
          if(allocated(GM2_1ICR)) deallocate(GM2_1ICR)
          if(allocated(GM2_2ICR)) deallocate(GM2_2ICR)
          if(allocated(GM2sICR)) deallocate(GM2sICR)
+         if(allocated(GM2exICR)) deallocate(GM2exICR)
          if(allocated(GM3IC1)) deallocate(GM3IC1)
          if(allocated(GM3_1IC1)) deallocate(GM3_1IC1)
          if(allocated(GM3_2IC1)) deallocate(GM3_2IC1)
