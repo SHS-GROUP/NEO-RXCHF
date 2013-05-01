@@ -1,5 +1,5 @@
 !======================================================================
-      subroutine RXCUHF_FOCK(LCMF,LNEOHF,LADDEXCH,nelec,NBE,
+      subroutine RXCUHFne_FOCK(LCMF,LNEOHF,LADDEXCH,nelec,NBE,
      x                       NAalpE,NAbetE,nebf,nebf2,npbf,npbf2,ngee,
      x                       ng1,ng2,ng3,ng4,
      x                       SZG2ICR,

@@ -102,6 +102,8 @@
       integer ng1,ng2,ng3,ng4
       integer ng1prm,ng2prm,ng3prm,ng4prm
 
+      integer junk
+
       double precision wtime,wtime1,wtime2
 
 
@@ -200,6 +202,10 @@
          read(9,*) LSOSCF
          read(9,*) LOCBSE
          read(9,*) EXCHLEV ! 0=RXCHF-ne; 1=RXCHF-ae; 2=RXCHF-fe
+         if (LRXCUHF) then
+          read(9,*) NAalpE
+          read(9,*) NAbetE
+         end if
 
          close(9)
 
@@ -241,15 +247,14 @@ c     ng4prm=npebf*npebf*npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
 
       if ((EXCHLEV.gt.0).and.(LRXCHF)) then
        write(*,*) "EXCHLEV > 0 should only be used with LRXCUHF"
-       write(*,*) "Overriding to specify RXCUHF job instead"
-       LRXCHF=.false.
-       LRXCUHF=.true.
+       write(*,*) "Exiting..."
+       return
       end if
 
-      if(((LRXCHF).or.(LRXCUHF)).and.(nae.eq.1)) then
-       LRXCHF=.true.
-       LRXCUHF=.false.
-       EXCHLEV=0        ! Use RXCHF-ne code so no need for PsH hacks
+      if((LRXCUHF).and.(nae.eq.1)) then
+       write(*,*) "For NAE=1 regular electron, use RXCHF-ne"
+       write(*,*) "Exiting..."
+       return
       end if
 
       if(LRXCHF.and.LRXCUHF) then
@@ -280,19 +285,31 @@ c     ng4prm=npebf*npebf*npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
       end if
 
       if(LRXCUHF) then
-       write(*,*) "Replacing NAE/NBE accordingly with LRXCUHF request"
 
 C Ensure num beta reg elecs > num alpha reg elecs since special electron is assigned spin alpha
-       if (NAE.le.NBE) then  
-        NAalpE=NAE
-        NAbetE=NBE
-       else
-        NAalpE=NBE
-        NAbetE=NAE
+       if (NAalpE.gt.NAbetE) then  
+        write(*,*) "Exchanging NAalpE and NAbetE since special electron"
+        write(*,*) "is assumed to have spin alpha"
+        junk=NAalpE
+        NAalpE=NAbetE
+        NAbetE=junk
        end if
 
-       NAE=NAalpE+NAbetE     ! From now, NAE = num regular electrons
-       NBE=1                 ! From now, NBE = num special electrons = 1
+       if (NAE.ne.(NAalpE+NAbetE)) then
+        write(*,*) "# of regular electrons should be # alpha + # beta"
+        write(*,*) "   NAE: ",NAE
+        write(*,*) "   NAalpE: ",NAalpE
+        write(*,*) "   NAbetE: ",NAbetE
+        write(*,*) "Exiting..."
+        return
+       end if
+
+       if (NBE.ne.1) then
+        write(*,*) "Only one special electron currently supported"
+        write(*,*) "   NBE: ",NBE
+        write(*,*) "Exiting..."
+        return
+       end if
 
       end if
 
@@ -359,7 +376,31 @@ c     write(*,*)'ng4prm=',ng4prm
          end do
       write(*,*)
 
+      if ((LRXCHF).or.(LRXCUHF)) then
 
+       write(*,*)
+       write(*,*) "========================================"
+       write(*,*)
+       if (LRXCHF) then
+        write(*,*) " Running closed shell RXCHF calculation"
+       else
+        write(*,*) " Running open shell RXCHF calculation"
+       end if
+
+       if (EXCHLEV.eq.2) then
+        write(*,*) " performed at the RXCHF-fe level"
+       else if (EXCHLEV.eq.1) then
+        write(*,*) " performed at the RXCHF-ae level"
+       else
+        write(*,*) " performed at the RXCHF-ne level"
+       end if
+       write(*,*)
+       write(*,*) "========================================"
+       write(*,*)
+
+      end if
+      
+         write(*,*)
          write(*,*)' CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS '
          write(*,*)'CONT INDEX    KPESTR     KPEEND'
          do i=1,nebf
@@ -614,7 +655,9 @@ C Above hack commented out as should be handled by EXCHLEV=0
 
                      SZG3IC1=ng3
 
-                   if (((LRXCHF).or.(LRXCUHF)).and.(EXCHLEV.eq.2)) then
+                   if ((LRXCHF).or.(LRXCUHF)) then
+
+                     if (EXCHLEV.eq.2) then
 
                        if(allocated(GM3_1IC1)) deallocate(GM3_1IC1)
                        allocate( GM3_1IC1(SZG3IC1),stat=istat )
@@ -627,6 +670,8 @@ C Above hack commented out as should be handled by EXCHLEV=0
      x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                            GM3_1IC1,GM3_2IC1)
+
+                     end if
 
                    else
 
@@ -701,6 +746,8 @@ C Above hack commented out as should be handled by EXCHLEV=0
                              return
                          end if
 
+           if (.not.(LRXCHF.or.LRXCUHF)) then
+
                          SZG4IC=ng4
 
                          if(allocated(GM4ICR)) deallocate(GM4ICR)
@@ -715,6 +762,8 @@ C Above hack commented out as should be handled by EXCHLEV=0
                             call GAM4_ICR(NG4CHK,nebf,npbf,ngee,ng2,ng4,
      x                                    GM2SICR,GM4ICR)
                          end if ! end if for LXCUHF or RXCHF or RXCUHF
+
+           end if ! rxchf/exchlev
 
                       end if ! end if for LG4IC
 
@@ -860,7 +909,7 @@ C Above hack commented out as should be handled by EXCHLEV=0
      x                    NUCST,npebf,nebf,nebf2,npbf,npbf2,ngee,
      x                    ngtg1,ng1,ng2,ng3,ng4,NG2CHK,
      x                    read_CE,read_CP,
-     x                    LNEOHF,LGAM4,LCMF,LSOSCF,LOCBSE,.true.
+     x                    LNEOHF,LGAM4,LCMF,LSOSCF,LOCBSE,.true.,
      x                    ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
      x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
@@ -872,7 +921,7 @@ C Above hack commented out as should be handled by EXCHLEV=0
      x                    NUCST,npebf,nebf,nebf2,npbf,npbf2,ngee,
      x                    ngtg1,ng1,ng2,ng3,ng4,NG2CHK,
      x                    read_CE,read_CP,
-     x                    LNEOHF,LGAM4,LCMF,LSOSCF,LOCBSE,.false.
+     x                    LNEOHF,LGAM4,LCMF,LSOSCF,LOCBSE,.false.,
      x                    ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
      x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,

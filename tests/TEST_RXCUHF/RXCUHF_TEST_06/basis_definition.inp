@@ -1,0 +1,61 @@
+4 =NGTG
+0.1   1.0E-15
+0.2   1.0E-15
+0.3   1.0E-15
+0.4   1.0E-15
+2 =NAT
+3.0   0.00   0.00  -0.79773470286749992  Li
+1.0   0.00   0.00   0.79773470286749992  H
+6   =NEBF
+11   =NPEBF
+1   1   0   0   0        0.975850E+02    0.223580E-01    0.00  0.00  -0.79773470286749992 
+2   1   0   0   0        0.147550E+02    0.144990E+00    0.00  0.00  -0.79773470286749992 
+3   1   0   0   0        0.322330E+01    0.345940E+00    0.00  0.00  -0.79773470286749992 
+4   2   0   0   0        0.147550E+02    0.518750E-02    0.00  0.00  -0.79773470286749992 
+5   2   0   0   0        0.322330E+01    0.166980E+00    0.00  0.00  -0.79773470286749992 
+6   2   0   0   0        0.787890E+00    0.725660E+00    0.00  0.00  -0.79773470286749992 
+7   3   0   0   0        0.510090E-01    1.0000000       0.00  0.00  -0.79773470286749992 
+8   4   0   0   1        0.330000E+00    1.0000000       0.00  0.00  -0.79773470286749992 
+9   5   0   0   0        0.434480E+01    0.792990E-01    0.00  0.00   0.79773470286749992 
+10  5   0   0   0        0.660490E+00    0.424220E+00    0.00  0.00   0.79773470286749992 
+11  6   0   0   0        0.136690E+00    1.0000000       0.00  0.00   0.79773470286749992 
+6   =NPBF 
+1   1   0   0   0        0.01213          1.000000     0.000     0.000  -0.79773470286749992
+2   2   0   0   0        0.0595           1.000000     0.000     0.000   -0.0951
+3   3   0   0   0        0.4624           1.000000     0.000     0.000   0.79773470286749992
+4   4   0   0   0        0.02686          1.000000     0.000     0.000   1.6048
+5   5   0   0   0        0.007119         1.000000     0.000     0.000   2.5582
+6   6   0   0   0        0.018566         1.000000     0.000     0.000   4.6554
+1.0d+00 =PMASS
+4 =nelec
+3       =NAE number of regular alpha electrons (only for RXCUHF)
+1       =NBE number of regular beta electrons (only for RXCUHF)
+1       =NUCST what nuclear state to use to form nuc density
+.false. =LNEOHF  only perform neo-hf calculation
+.false. =LXCUHF
+.false. =LXCROHF
+.false. =LRXCHF
+.true.  =LRXCUHF
+.false. =read_CE optional read in elec vectors
+.false. =read_CP optional read in nuc vectors
+.false. =read_GAM2
+.false. =read_GAM3
+.false. =read_GAM4
+30      =NG4CHK Number of domains for 5-particle integrals
+.true.  =LGAM4 TRUE: Use 5-particle contributions
+.true.  =LG4DSCF Direct SCF for 5-particle integrals
+.false. =LG4IC in-core 5-particle integrals
+30      =NG3CHK Number of domains for 4-particle integrals
+.false. =LG3DSCF Direct SCF for 4-particle integrals
+.true.  =LG3IC1 in-core 4-particle integrals: loop over contracted BF
+.false. =LG3IC2 in-core 4-particle integrals: loop over primitive BF
+30      =NG2CHK Number of domains for 3-particle integrals
+.false. =LG2DSCF  Direct SCF for 3-particle integrals
+.true.  =LG2IC1 in-core 3-particle integrals: loop over contracted BF
+.false. =LCMF Activates on-the-fly Fock matrix checking
+.true.  =LSOSCF
+.true.  =LOCBSE
+1       =EXCHLEV (0=RXCHF-ne; 1=RXCHF-ae; 2=RXCHF-fe)
+1       =NAalpE number of alpha regular electrons
+2       =NAbetE number of beta regular electrons
+
