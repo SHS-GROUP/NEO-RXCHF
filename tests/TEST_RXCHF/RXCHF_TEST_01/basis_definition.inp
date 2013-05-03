@@ -22,34 +22,34 @@
 4   4   0   0   0      0.160944265247786     1.00     0.000     0.000    0.000
 5   5   0   0   0      0.379797886574377     1.00     0.000     0.000    0.000
 6   6   0   0   0      0.896250850717081     1.00     0.000     0.000    0.000
-1.0d+00 =PMASS
-2       =nelec
-1       =NAE number of alpha electrons
-1       =NBE number of beta electrons
-1       =NUCST what nuclear state to use to form nuc density
-.false. =LNEOHF  only perform neo-hf calculation
-.false. =LXCUHF
-.false. =LXCROHF
-.true.  =LRXCHF
-.false. =LRXCUHF
-.false.  =read_CE optional read in elec vectors from guessCE.inp
-.false.  =read_CP optional read in nuc vectors from guessCP.inp
+1.0d+00 =PMASS      QM particle mass in electron mass units
+2       =nelec                                                                 
+1       =NAE        RXCHF: # of regular electrons; XCUHF: # of alpha electrons
+1       =NBE        RXCHF: # of special electrons; XCUHF: # of beta electrons
+1       =NUCST      what nuclear state to use to form nuc density
+.false. =LNEOHF     only perform neo-hf calculation
+.false. =LXCUHF     perform XCUHF calculation
+.false. =LXCROHF    perform XCROHF calculation
+.true.  =LRXCHF     perform RXCHF calculation
+.false. =LRXCUHF    perform RXCUHF calculation
+.false.  =read_CE   optional read in elec vectors from guessCE.inp
+.false.  =read_CP   optional read in nuc vectors from guessCP.inp
 .false. =read_GAM2  |
 .false. =read_GAM3  | Options to read integrals from file
 .false. =read_GAM4  |
-10      =NG4CHK Number of domains for 5-particle integrals
-.true.  =LGAM4 TRUE: Use 5-particle contributions
-.false. =LG4DSCF Direct SCF for 5-particle integrals
-.true.  =LG4IC in-core 5-particle integrals
-10      =NG3CHK Number of domains for 4-particle integrals
-.false. =LG3DSCF Direct SCF for 4-particle integrals
-.true.  =LG3IC1 in-core 4-particle integrals: loop over contracted BF
-.false. =LG3IC2 in-core 4-particle integrals: loop over primitive BF
-10      =NG2CHK Number of domains for 3-particle integrals
-.false. =LG2DSCF  Direct SCF for 3-particle integrals
-.true.  =LG2IC1 in-core 3-particle integrals: loop over contracted BF
-.true.  =LCMF Activates on-the-fly Fock matrix checking
-.true.  =LSOSCF
-.false. =LOCBSE
-0       =EXCHLEV (0=RXCHF-ne; 1=RXCHF-ae; 2=RXCHF-fe)
+10      =NG4CHK     Number of domains for 5-particle integrals
+.true.  =LGAM4      TRUE: Use 5-particle contributions
+.false. =LG4DSCF    Direct SCF for 5-particle integrals
+.true.  =LG4IC      in-core 5-particle integrals
+10      =NG3CHK     Number of domains for 4-particle integrals
+.false. =LG3DSCF    Direct SCF for 4-particle integrals
+.true.  =LG3IC1     in-core 4-particle integrals: loop over contracted BF
+.false. =LG3IC2     in-core 4-particle integrals: loop over primitive BF
+10      =NG2CHK     Number of domains for 3-particle integrals
+.false. =LG2DSCF    Direct SCF for 3-particle integrals
+.true.  =LG2IC1     in-core 3-particle integrals: loop over contracted BF
+.true.  =LCMF       Debugging flag
+.true.  =LSOSCF     Turn on SOSCF for regular electrons
+.false. =LOCBSE     Request adapated OCBSE procedure for orthogonalization
+0       =EXCHLEV    0=RXCHF-ne; 1=RXCHF-ae; 2=RXCHF-fe
 
