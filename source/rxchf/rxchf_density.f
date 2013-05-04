@@ -23,7 +23,7 @@
        coeff=two
        nocc=nae/2
       else
-       coeff=two        ! Current hacks for one regular electron require coeff=two
+       coeff=one
        nocc=1
       end if
 
@@ -145,7 +145,7 @@
        coeff=two
        nocc=nae/2
       else
-       coeff=two        ! Current hacks for one regular electron require coeff=two
+       coeff=one
        nocc=1
       end if
 
