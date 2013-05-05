@@ -1,5 +1,5 @@
 !======================================================================
-      subroutine rxchfmult_xchf_fock(LNEOHF,LGAM4,LG4DSCF,LG4IC,
+      subroutine RXCHFmult_fock_xchf(LNEOHF,LGAM4,LG4DSCF,LG4IC,
      x                      LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
      x                      NG4CHK,NG3CHK,NG2CHK,
      x                      SZG4IC,SZG3IC1,SZG2ICR,
@@ -11,8 +11,8 @@
      x                      nat,pmass,cat,zan,bcoef1,gamma1,
      x                      KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                      focke,fockp,
-     x                      E_total,E_nuc,E_ecore,E_pcore,E_ep,
+     x                      focke,fockp,SEtot,SPtot,
+     x                      E_total,E_ecore,E_pcore,E_ep,
      x                      E_ee,E_gam1,E_gam2,E_gam3,E_gam4,
      x                      S_total,S_gam1,S_gam2)
 
@@ -106,7 +106,6 @@ C Essentially copied from ../xchf_independent/xchf1_fock.f
       double precision E_gam2
       double precision E_gam3
       double precision E_gam4
-      double precision E_nuc
       double precision S_total
       double precision S_gam1
       double precision S_gam2
@@ -128,6 +127,11 @@ C Essentially copied from ../xchf_independent/xchf1_fock.f
       double precision CHKS(npbf,npbf)
 
       logical LGAM4
+
+C Variables for overlap contributions to Fock matrices
+      integer           i,j
+      double precision  SEtot(nebf,nebf)
+      double precision  SPtot(npbf,npbf)
 
 !----------------(
 !     LGAM4=.FALSE.
@@ -218,7 +222,7 @@ C Essentially copied from ../xchf_independent/xchf1_fock.f
 !  for use later
       Xfocke=focke
       Xfockp=fockp
-      E_NEOHF=E_ecore+E_pcore+E_ep+E_ee+E_nuc
+      E_NEOHF=E_ecore+E_pcore+E_ep+E_ee
 !         write(*,*)'NEOHF Energy is:',E_NEOHF
 
 ! IF NEO-HF ONLY GET OUT OF HERE:
@@ -314,7 +318,7 @@ C Essentially copied from ../xchf_independent/xchf1_fock.f
       psiHpsi=(E_ecore+E_pcore+E_ep+E_ee+
      x        E_gam1+E_gam2+E_gam3+E_gam4)/S_total
 
-      E_total=psiHpsi+E_nuc
+      E_total=psiHpsi
 
 !     H_expect=E_ecore+E_pcore+E_ep+E_ee+
 !    x         E_gam1+E_gam2+E_gam3+E_gam4
@@ -345,5 +349,21 @@ C Essentially copied from ../xchf_independent/xchf1_fock.f
       end if
 !-----------ON-THE-FLY-CODE-TESTING------------------------------------)
 
+C Store overlap contributions to Fock matrices separately for interaction routine
+      SEtot=0.0d+00
+      do i=1,nebf
+        do j=1,nebf
+          SEtot(j,i)=se1(j,i)+2.0d+00*se2(j,i)
+        end do
+      end do
+
+      SPtot=0.0d+00
+      do i=1,npbf
+        do j=1,npbf
+          SPtot(j,i)=sp1(j,i)+sp2(j,i)
+        end do
+      end do
+
       return
       end
+

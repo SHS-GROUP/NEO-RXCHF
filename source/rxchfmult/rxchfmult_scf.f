@@ -13,8 +13,8 @@
      x                    LG4IC,SZG4IC,GM4ICR)
 
 !
-!     --- PERFORM A NUCLEAR-ELECTRONIC RESTRICTED XC HARTREE-FOCK
-! CALCULATION FOR A N-REGULAR ELECTRON ONE ELECTRON-PROTON SYSTEM ---
+! PERFORM A NUCLEAR-ELECTRONIC RESTRICTED XC HARTREE-FOCK CALCULATION
+! FOR AN NAE-REGULAR ELECTRON NBE-SPECIAL ELECTRON ONE-PROTON SYSTEM
 !
 !     **DEFINITIONS:
 !
@@ -219,6 +219,9 @@ C      double precision S_gam2
       double precision XFP(npbf,npbf)
 !     double precision fpDUMMY(npbf,npbf)
 !     double precision xpDUMMY(npbf,npbf)
+
+      double precision SBE_XCHF(nebf,nebf)
+      double precision SP_XCHF(npbf,npbf)
 
 C      double precision E_total_old
 C      double precision Delta_E_tot
@@ -469,25 +472,13 @@ C )
 !     write(*,*)
        if((.not.((locbse).or.(locbse2))).or.(i.eq.1)) then
 
-C Call NEO-HF Fock build for nelec=nae
-         call rxchfmult_xchf_fock(.true.,LGAM4,LG4DSCF,LG4IC,
-     x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
-     x                   NG4CHK,NG3CHK,NG2CHK,
-     x                   SZG4IC,SZG3IC1,SZG2ICR,
-     x                   npebf,nebf,nebf2,npbf,npbf2,NAE,
-     x                   ngee,ng1,ng2,ng3,ng4,DAE,DP,
-     x                   GAM_ecore,GAM_pcore,GAM_ep,GAM_ee,
-     x                   GM4ICR,GM3IC1,GM2ICR,GM2SICR,
-     x                   ng2prm,ngtg1,ng3prm,
-     x                   nat,pmass,cat,zan,bcoef1,gamma1,
-     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                   FAE,FP,
-     x                   HFE_total,E_nuc,HFE_ecore,HFE_pcore,HFE_ep,
-     x                   HFE_ee,HFE_gam1,HFE_gam2,HFE_gam3,HFE_gam4,
-     x                   HFS_total,HFS_gam1,HFS_gam2)
-C Call XCHF Fock build for nelec=nbe
-         call rxchfmult_xchf_fock(.false.,LGAM4,LG4DSCF,LG4IC,
+C Call HF Fock build for NAE regular electrons
+         call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
+     x                          DAE,GAM_ecore,GAM_ee,
+     x                          FAE,E_HF,E_ecore,E_ee)
+
+C Call XCHF Fock build for NBE special electrons and one QM particle
+         call RXCHFmult_fock_xchf(.false.,LGAM4,LG4DSCF,LG4IC,
      x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
      x                   NG4CHK,NG3CHK,NG2CHK,
      x                   SZG4IC,SZG3IC1,SZG2ICR,
@@ -499,14 +490,29 @@ C Call XCHF Fock build for nelec=nbe
      x                   nat,pmass,cat,zan,bcoef1,gamma1,
      x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                   FBE,FP,
-     x                   XFE_total,E_nuc,XFE_ecore,XFE_pcore,XFE_ep,
+     x                   FBE,FP,SBE_XCHF,SP_XCHF,
+     x                   E_XCHF,XFE_ecore,XFE_pcore,XFE_ep,
      x                   XFE_ee,XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,
-     x                   XFS_total,XFS_gam1,XFS_gam2)
+     x                   S_total,XFS_gam1,XFS_gam2)
 
-C ARS( E_nuc already added in fock build routine in both HF/XCHF )
-C         HFE_total=HFE_total+E_nuc
-C         XFE_total=XFE_total+E_nuc
+C Call interaction Fock build for all particles
+         call RXCHFmult_fock_int(LCMF,nelec,NAE,NBE,
+     x                           nebf,nebf2,npbf,npbf2,
+     x                           ng1,ng2,ng3,ng4,
+     x                           SZG2ICR,SZG3ICR,SZG4ICR,
+     x                           NG2CHK,NG3CHK,NG4CHK,
+     x                           DAE,DBE,DP,
+     x                           GM2ICR,GM3ICR,GM4ICR,
+     x                           S_total,SBE_XCHF,SP_XCHF,
+     x                           FPint,FAEint,FBEint, 
+     x                           E_OMG2,E_OMG3,E_OMG4,
+     x                           E_int)
+
+          call add2fock(npbf,FPint,FP)
+          call add2fock(nebf,FAEint,FAE)
+          call add2fock(nebf,FBEint,FBE)
+          E_total=E_HF+E_XCHF+E_int+E_nuc
+
        end if
 
 !--------------FORM-FOCK-MATRICES-AND-CALC-ENERGY-COMPONENTS-----------)
