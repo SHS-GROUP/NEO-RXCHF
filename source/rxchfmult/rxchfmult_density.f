@@ -1,16 +1,16 @@
 !=======================================================================
-      subroutine RXCHFmult_construct_DAE(NAE,nebf,CAE,DAE)
+      subroutine RXCHFmult_construct_DE(nelec,nebf,CE,DE)
 
-! Form regular electronic density matrix 
+! Form electronic density matrix 
 !=======================================================================
       implicit none
 
 ! Input Variables
-      integer NAE,nebf
-      double precision CAE(nebf,nebf)
+      integer nelec,nebf
+      double precision CE(nebf,nebf)
 
 ! Variables Returned
-      double precision DAE(nebf,nebf)
+      double precision DE(nebf,nebf)
 
 ! Local Variables
       integer i,j,k
@@ -19,9 +19,9 @@
       double precision one,two
       parameter(one=1.0d+00,two=2.0d+00)
 
-      if(NAE.gt.1) then
+      if(nelec.gt.1) then
        coeff=two
-       nocc=nae/2
+       nocc=nelec/2
       else
        coeff=one
        nocc=1
@@ -30,52 +30,9 @@
       DO i=1,nebf
          DO j=1,nebf
 
-          DAE(j,i)=0.0d+00
+          DE(j,i)=0.0d+00
           do k=1,nocc
-            DAE(j,i) = DAE(j,i) + coeff*CAE(j,k)*CAE(i,k)
-          end do
-
-         END DO
-      END DO
-
-
-      return
-      end
-!=======================================================================
-      subroutine RXCHFmult_construct_DBE(NBE,nebf,CBE,DBE)
-
-! Form special electronic density matrix 
-!=======================================================================
-      implicit none
-
-! Input Variables
-      integer NBE,nebf
-      double precision CBE(nebf,nebf)
-
-! Variables Returned
-      double precision DBE(nebf,nebf)
-
-! Local Variables
-      integer i,j,k
-      integer nocc
-      double precision coeff
-      double precision one,two
-      parameter(one=1.0d+00,two=2.0d+00)
-
-      if(NBE.gt.1) then
-       coeff=two
-       nocc=nbe/2
-      else
-       coeff=one
-       nocc=1
-      end if
-
-      DO i=1,nebf
-         DO j=1,nebf
-
-          DBE(j,i)=0.0d+00
-          do k=1,nocc
-            DBE(j,i) = DBE(j,i) + coeff*CBE(j,k)*CBE(i,k)
+            DE(j,i) = DE(j,i) + coeff*CE(j,k)*CE(i,k)
           end do
 
          END DO

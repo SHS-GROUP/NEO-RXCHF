@@ -59,6 +59,13 @@
       double precision,allocatable :: GM2_2ICR(:)
       double precision,allocatable :: GM3_1IC1(:)
       double precision,allocatable :: GM3_2IC1(:)
+      double precision,allocatable :: XCHF_GAM2(:)
+      double precision,allocatable :: XCHF_GAM2s(:)
+      double precision,allocatable :: XCHF_GAM3(:)
+      double precision,allocatable :: INT_GAM2(:)
+      double precision,allocatable :: INT_GAM3(:)
+      integer dimXCHF2,dimXCHF3,dimXCHF4
+      integer dimINT2,dimINT3,dimINT4
       integer SZG2ICR
       integer SZG3IC1
       integer SZG4IC
@@ -284,6 +291,13 @@ c     ng4prm=npebf*npebf*npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
        return
       end if
 
+      if ((NBE.gt.1).and.(EXCHLEV.gt.0)) then
+       write(*,*) "Only RXCHF-ne currently supported for"
+       write(*,*) "more than one special electron."
+       write(*,*) "Exiting..."
+       return
+      end if
+
       if(LRXCUHF) then
 
 C Ensure num beta reg elecs > num alpha reg elecs since special electron is assigned spin alpha
@@ -306,6 +320,7 @@ C Ensure num beta reg elecs > num alpha reg elecs since special electron is assi
 
        if (NBE.ne.1) then
         write(*,*) "Only one special electron currently supported"
+        write(*,*) "for open-shell RXCUHF"
         write(*,*) "   NBE: ",NBE
         write(*,*) "Exiting..."
         return
@@ -511,6 +526,10 @@ c     write(*,*)'ng4prm=',ng4prm
             allocate( GM2sICR(SZG2ICR),stat=istat )
             if(allocated(GM2exICR)) deallocate(GM2exICR)
             allocate( GM2exICR(SZG2ICR),stat=istat )
+            if(allocated(XCHF_GAM2)) deallocate(XCHF_GAM2)
+            allocate( XCHF_GAM2(SZG2ICR),stat=istat )
+            if(allocated(INT_GAM2)) deallocate(INT_GAM2)
+            allocate( INT_GAM2(SZG2ICR),stat=istat )
          end if
 
          if(LNEOHF.or.(nelec.lt.3)) then
@@ -521,6 +540,10 @@ c     write(*,*)'ng4prm=',ng4prm
             allocate( GM3_1IC1(SZG3IC1),stat=istat )
             if(allocated(GM3_2IC1)) deallocate(GM3_2IC1)
             allocate( GM3_2IC1(SZG3IC1),stat=istat )
+            if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
+            allocate( XCHF_GAM3(SZG3IC1),stat=istat )
+            if(allocated(INT_GAM3)) deallocate(INT_GAM3)
+            allocate( INT_GAM3(SZG3IC1),stat=istat )
          end if
 
          if(LNEOHF.or.(nelec.le.3)) then
@@ -530,6 +553,37 @@ c     write(*,*)'ng4prm=',ng4prm
          end if
 
          if(.NOT.LNEOHF) then
+
+C Call separate routine for RXCHF(nbe>1) integral calculations
+          if (((LRXCHF).or(LRXCUHF)).and.NBE.gt.1) then
+           if (LRXCHF) then
+            dimXCHF2=1
+            dimXCHF3=1
+            dimXCHF4=1
+            dimINT2=1
+            dimINT3=1
+            dimINT4=1
+            call RXCHFmult_calcints(nelec,nae,nbe,
+     x                              nebf,npebf,npbf,nat,ngtg1,
+     x                              ng1,ng2,ng3,ng4,ngee,
+     x                              ng1prm,ng2prm,ng3prm,
+     x                              pmass,cat,zan,bcoef1,gamma1,
+     x                              AMPEB2C,AGEBFCC,AGNBFCC,ELCEX,
+     x                              NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                              NG2CHK,NG3CHK,NG4CHK,
+     x                              dimXCHF2,dimXCHF3,dimXCHF4,
+     x                              dimINT2,dimINT3,dimINT4,
+     x                              XCHF_GAM2,XCHF_GAM2s,
+     x                              XCHF_GAM3,XCHF_GAM4,
+     x                              INT_GAM2,INT_GAM3,INT_GAM4)
+           else
+            write(*,*) "RXCUHF with more than one special electron"
+            write(*,*) "still needs to be coded."
+            write(*,*) "Exiting..."
+            return
+           end if
+
+          else
 
           if ((LRXCHF).or.(LRXCUHF)) then
             call RXCHF_GAM1_OMP_MD(nebf,npebf,npbf,ng1,ng1prm,nat,ngtg1,
@@ -779,6 +833,8 @@ C Above hack commented out as should be handled by EXCHLEV=0
 
               end if  ! end if for nelec gt 2
 
+          end if  ! end if for not rxchfmult
+
          end if  !end if for NOT.neohf
 
 
@@ -859,35 +915,25 @@ C Above hack commented out as should be handled by EXCHLEV=0
 
          elseif(LRXCHF) then
 
-!<<<<<<< HEAD
-!          if (nbe.eq.1) then     ! call RXCHF routine
-!           call xcrxchf(nelec,NAE,NBE,NPRA,NEBFLT,NUCST,
-!     x                  npebf,nebf,nebf2,npbf,npbf2,ngee,
-!     x                  ngtg1,ng1,ng2,ng3,ng4,NG2CHK,NG3CHK,NG4CHK,
-!     x                  read_CE,read_CP,
-!     x                  LNEOHF,LGAM4,LCMF,LSOSCF,LOCBSE,
-!     x                  ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
-!     x                  KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-!     x                  ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-!     x                  SZG2ICR,GM2_1ICR,GM2_2ICR,GM2sICR,
-!     x                  LG3IC1,SZG3IC1,GM3_1IC1,GM3_2IC1,
-!     x                  LG4IC,SZG4IC,GM4ICR)
-!          else                   ! call RXCHFmult routine
-!           call multrxchf(nelec,NAE,NBE,NPRA,NEBFLT,NUCST,
-!     x                    npebf,nebf,nebf2,npbf,npbf2,ngee,
-!     x                    ngtg1,ng1,ng2,ng3,ng4,NG2CHK,NG3CHK,NG4CHK,
-!     x                    read_CE,read_CP,
-!     x                    LNEOHF,LGAM4,LG4DSCF,LG3DSCF,LG2DSCF,LCMF,
-!     x                    LSOSCF,LOCBSE,
-!     x                    ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
-!     x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-!     x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-!     x                    LG2IC1,SZG2ICR,GM2ICR,GM2SICR,
-!     x                    LG3IC1,SZG3IC1,GM3IC1,
-!     x                    LG4IC,SZG4IC,GM4ICR)
-!           end if
-!=======
-          if (EXCHLEV.eq.2) then
+          if (nbe.gt.1) then
+           call multrxchf(nelec,NAE,NBE,NPRA,NEBFLT,NUCST,
+     x                    npebf,nebf,nebf2,npbf,npbf2,ngee,
+     x                    ngtg1,ng1,ng2,ng3,ng4,NG2CHK,NG3CHK,NG4CHK,
+     x                    read_CE,read_CP,
+     x                    LGAM4,LG4DSCF,LG3DSCF,LG2DSCF,LCMF,
+     x                    LSOSCF,LOCBSE,
+     x                    ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
+     x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                    LG2IC1,dimXCHF2,dimINT2,
+     x                    XCHF_GAM2,INT_GAM2,XCHF_GAM2s,
+     x                    LG3IC1,dimXCHF3,dimINT3,
+     x                    XCHF_GAM3,INT_GAM3,
+     x                    LG4IC,dimXCHF4,dimINT4,
+     x                    GM4ICR)
+          else
+
+           if (EXCHLEV.eq.2) then
 
             call xcrxchf(nelec,NAE,NBE,NPRA,NEBFLT,NUCST,
      x                   npebf,nebf,nebf2,npbf,npbf2,ngee,
@@ -901,7 +947,7 @@ C Above hack commented out as should be handled by EXCHLEV=0
      x                   LG3IC1,SZG3IC1,GM3_1IC1,GM3_2IC1,
      x                   LG4IC,SZG4IC,GM4ICR)
 
-          else
+           else
 
             call xcrxchfne(nelec,NAE,NBE,NPRA,NEBFLT,NUCST,
      x                   npebf,nebf,nebf2,npbf,npbf2,ngee,
@@ -913,7 +959,9 @@ C Above hack commented out as should be handled by EXCHLEV=0
      x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                   SZG2ICR,GM2ICR)
 
-          end if
+           end if
+
+          end if ! for nbe > 1
 
          elseif(LRXCUHF) then
 
@@ -979,10 +1027,17 @@ C Above hack commented out as should be handled by EXCHLEV=0
          if(allocated(GM2_2ICR)) deallocate(GM2_2ICR)
          if(allocated(GM2sICR)) deallocate(GM2sICR)
          if(allocated(GM2exICR)) deallocate(GM2exICR)
+         if(allocated(INT_GAM2)) deallocate(INT_GAM2)
+         if(allocated(XCHF_GAM2s)) deallocate(XCHF_GAM2s)
+         if(allocated(XCHF_GAM2)) deallocate(XCHF_GAM2)
          if(allocated(GM3IC1)) deallocate(GM3IC1)
          if(allocated(GM3_1IC1)) deallocate(GM3_1IC1)
          if(allocated(GM3_2IC1)) deallocate(GM3_2IC1)
+         if(allocated(INT_GAM3)) deallocate(INT_GAM3)
+         if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
          if(allocated(GM4ICR)) deallocate(GM4ICR)
+         if(allocated(INT_GAM4)) deallocate(INT_GAM4)
+         if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
 
          wtime2 = omp_get_wtime() - wtime
          write(*,3000) wtime1,wtime2

@@ -8,9 +8,12 @@
      x                    ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
      x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                    LG2IC1,SZG2ICR,GM2ICR,GM2SICR,
-     x                    LG3IC1,SZG3IC1,GM3IC1,
-     x                    LG4IC,SZG4IC,GM4ICR)
+     x                    LG2IC1,dimXCHF2,dimINT2,
+     x                    XCHF_GAM2,INT_GAM2,XCHF_GAM2s,
+     x                    LG3IC1,dimXCHF3,dimINT3,
+     x                    XCHF_GAM3,INT_GAM3,
+     x                    LG4IC,dimXCHF4,dimINT4,
+     x                    GM4ICR)
 
 !
 ! PERFORM A NUCLEAR-ELECTRONIC RESTRICTED XC HARTREE-FOCK CALCULATION
@@ -98,10 +101,15 @@
       double precision gamma1(ngtg1)
 !-----DIRECT-SCF-RELATED-----------------------------------------------)
 
-      double precision GM2ICR(SZG2ICR)  ! POSSIBLE IN-CORE GAM2 INTEGRALS
-      double precision GM2SICR(SZG2ICR) ! POSSIBLE IN-CORE GAM2 INTEGRALS
-      double precision GM3IC1(SZG3IC1)  ! POSSIBLE IN-CORE GAM3 INTEGRALS
-      double precision GM4ICR(SZG4IC)   ! POSSIBLE IN-CORE GAM4 INTEGRALS
+      integer          dimXCHF2,dimXCHF3,dimXCHF4
+      integer          dimINT2,dimINT3,dimINT4
+      double precision XCHF_GAM2(dimXCHF2)         ! XCHF GAM2 integrals
+      double precision INT_GAM2(dimINT2)           ! Interaction GAM2 integrals
+      double precision XCHF_GAM2s(dimXCHF2)        ! XCHF GAM2s integrals
+      double precision XCHF_GAM3(dimXCHF3)         ! XCHF GAM3 integrals
+      double precision INT_GAM3(dimINT3)           ! Interaction GAM3 integrals
+      double precision XCHF_GAM4(dimXCHF4)         ! XCHF GAM4 integrals
+      double precision INT_GAM4(dimINT4)           ! Interaction GAM4 integrals
 
 ! Local variables
       double precision zero,one
@@ -132,67 +140,28 @@
       double precision diffBE
       double precision diffP
 
-C      double precision E_ecore
-C      double precision E_pcore
-C      double precision E_ee
-C      double precision E_ep
+      double precision E_total
+
+      double precision E_HF
+      double precision E_HF_ecore
+      double precision E_HF_ee
+
+      double precision E_XCHF
+      double precision E_XCHF_gam1
+      double precision E_XCHF_gam2
+      double precision E_XCHF_gam3
+      double precision E_XCHF_gam4
+
+      double precision E_int
+      double precision E_int_OMG2
+      double precision E_int_OMG3
+      double precision E_int_OMG4
+
       double precision E_nuc
-C      double precision E_total
 
-      double precision XFE_ecore
-      double precision XFE_pcore
-      double precision XFE_ee
-      double precision XFE_ep
-      double precision XFE_total
-
-      double precision HFE_ecore
-      double precision HFE_pcore
-      double precision HFE_ee
-      double precision HFE_ep
-      double precision HFE_total
-
-      double precision E_OMG1
-      double precision E_OMG2
-      double precision E_OMG3
-      double precision E_OMG4
-      double precision E_exch
-      double precision E_UHF
-
-C      double precision E_gam1
-C      double precision E_gam2
-C      double precision E_gam3
-C      double precision E_gam4
-
-      double precision HFE_gam1
-      double precision HFE_gam2
-      double precision HFE_gam3
-      double precision HFE_gam4
-
-      double precision XFE_gam1
-      double precision XFE_gam2
-      double precision XFE_gam3
-      double precision XFE_gam4
-
-      double precision S_gam1s
-C      double precision S_total
-C      double precision S_gam0
-C      double precision S_gam1
-C      double precision S_gam2
-      double precision HFS_total
-      double precision HFS_gam0
-      double precision HFS_gam1
-      double precision HFS_gam2
-      double precision XFS_total
-      double precision XFS_gam0
-      double precision XFS_gam1
-      double precision XFS_gam2
-
-      double precision DE(NEBF,NEBF)
-!     double precision S_gam1s
-!      double precision S_total
-!     double precision S_OMG0
-      double precision S_OMG1
-      double precision S_OMG2
+      double precision S_total
+      double precision S_gam1
+      double precision S_gam2
 
       double precision DAE(NEBF,NEBF)
       double precision DAE0(NEBF,NEBF)
@@ -208,8 +177,6 @@ C      double precision S_gam2
       double precision XFAE(nebf,nebf)
       double precision FBE(nebf,nebf)
       double precision XFBE(nebf,nebf)
-!     double precision feDUMMY(nebf,nebf)
-!     double precision xeDUMMY(nebf,nebf)
 
       double precision DP(NPBF,NPBF)
       double precision DP0(NPBF,NPBF)
@@ -217,14 +184,12 @@ C      double precision S_gam2
       double precision EP(NPBF)
       double precision FP(npbf,npbf)
       double precision XFP(npbf,npbf)
-!     double precision fpDUMMY(npbf,npbf)
-!     double precision xpDUMMY(npbf,npbf)
 
       double precision SBE_XCHF(nebf,nebf)
       double precision SP_XCHF(npbf,npbf)
 
-C      double precision E_total_old
-C      double precision Delta_E_tot
+      double precision E_total_old
+      double precision Delta_E_tot
       double precision HFE_total_old
       double precision HFDelta_E_tot
       double precision XFE_total_old
@@ -379,7 +344,7 @@ C      LOCBSE2=.true.
           write(*,*)'BACK FROM guess_elec for OCBSE'
         else
          call RXCHFmult_guess_A_elec(NAE,nebf,xxse,GAM_ecore,DAE,VECAE0)
-         call RXCHFmult_guess_B_elec(NBE,nebf,xxse,GAM_ecore,DBE,VECBE0)
+         call RXCHFmult_guess_A_elec(NBE,nebf,xxse,GAM_ecore,DBE,VECBE0)
           write(*,*)'BACK FROM guess_elec'
           write(*,*)
         end if
@@ -457,11 +422,6 @@ C      E_total_old=0.0d+00
       ORBGRDA=0.0d+00
 C      ORBGRDB=0.0d+00
 
-C ARS( gam2 testing
-C      open(unit=98,form="unformatted",file="gam2-icr.ufm")
-C      write(98) GM2ICR
-C      close(98)
-C )
       DO I=1,MAXIT
 
 !--------------FORM-FOCK-MATRICES-AND-CALC-ENERGY-COMPONENTS-----------(
@@ -475,37 +435,36 @@ C )
 C Call HF Fock build for NAE regular electrons
          call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
      x                          DAE,GAM_ecore,GAM_ee,
-     x                          FAE,E_HF,E_ecore,E_ee)
+     x                          FAE,E_HF,E_HF_ecore,E_HF_ee)
 
 C Call XCHF Fock build for NBE special electrons and one QM particle
-         call RXCHFmult_fock_xchf(.false.,LGAM4,LG4DSCF,LG4IC,
+         call RXCHFmult_fock_xchf(LGAM4,LG4DSCF,LG4IC,
      x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
      x                   NG4CHK,NG3CHK,NG2CHK,
-     x                   SZG4IC,SZG3IC1,SZG2ICR,
+     x                   dimXCHF4,dimXCHF3,dimXCHF2,
      x                   npebf,nebf,nebf2,npbf,npbf2,NBE,
      x                   ngee,ng1,ng2,ng3,ng4,DBE,DP,
-     x                   GAM_ecore,GAM_pcore,GAM_ep,GAM_ee,
-     x                   GM4ICR,GM3IC1,GM2ICR,GM2SICR,
+     x                   XCHF_GAM4,XCHF_GAM3,XCHF_GAM2,XCHF_GAM2s,
      x                   ng2prm,ngtg1,ng3prm,
      x                   nat,pmass,cat,zan,bcoef1,gamma1,
      x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                   FBE,FP,SBE_XCHF,SP_XCHF,
-     x                   E_XCHF,XFE_ecore,XFE_pcore,XFE_ep,
-     x                   XFE_ee,XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,
-     x                   S_total,XFS_gam1,XFS_gam2)
+     x                   E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
+     x                   E_XCHF_gam3,E_XCHF_gam4,
+     x                   S_total,S_gam1,S_gam2)
 
 C Call interaction Fock build for all particles
          call RXCHFmult_fock_int(LCMF,nelec,NAE,NBE,
      x                           nebf,nebf2,npbf,npbf2,
      x                           ng1,ng2,ng3,ng4,
-     x                           SZG2ICR,SZG3ICR,SZG4ICR,
+     x                           dimINT2,dimINT3,dimINT4,
      x                           NG2CHK,NG3CHK,NG4CHK,
      x                           DAE,DBE,DP,
-     x                           GM2ICR,GM3ICR,GM4ICR,
+     x                           INT_GAM2,INT_GAM3,INT_GAM4,
      x                           S_total,SBE_XCHF,SP_XCHF,
      x                           FPint,FAEint,FBEint, 
-     x                           E_OMG2,E_OMG3,E_OMG4,
+     x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
      x                           E_int)
 
           call add2fock(npbf,FPint,FP)
@@ -544,60 +503,61 @@ C     x                    S_OMG1,S_OMG2,S_total,E_total
 ! Do OCBSE procedure (restricted solutions for regular and special electrons)
 
            call RXCHFmult_OCBSE(nebf,nae,nbe,vecAE0,vecBE0,FAE,FBE,xxse,
-     x                       vecAE,vecBE,AEe,BEe)
+     x                          vecAE,vecBE,AEe,BEe)
 
 ! Form regular electronic density matrix and store stuff for next it
-           call RXCHFmult_construct_DAE(NAE,nebf,vecAE,DAE)
+           call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
            CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
            CALL COPYDEN(DAE0,DAE,NEBF)
            CALL COPYDEN(vecAE0,vecAE,NEBF)
 
 ! Form special electronic density matrix and store stuff for next it
-           call RXCHFmult_construct_DBE(NBE,nebf,vecBE,DBE)
+           call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
            CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
            CALL COPYDEN(DBE0,DBE,NEBF)
            CALL COPYDEN(vecBE0,vecBE,NEBF)
 
 ! Calculate energy for this it and Fock matrices for next it
 
-C Call NEO-HF Fock build for nelec=nae
-         call rxchfmult_xchf_fock(.true.,LGAM4,LG4DSCF,LG4IC,
-     x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
-     x                   NG4CHK,NG3CHK,NG2CHK,
-     x                   SZG4IC,SZG3IC1,SZG2ICR,
-     x                   npebf,nebf,nebf2,npbf,npbf2,NAE,
-     x                   ngee,ng1,ng2,ng3,ng4,DAE,DP,
-     x                   GAM_ecore,GAM_pcore,GAM_ep,GAM_ee,
-     x                   GM4ICR,GM3IC1,GM2ICR,GM2SICR,
-     x                   ng2prm,ngtg1,ng3prm,
-     x                   nat,pmass,cat,zan,bcoef1,gamma1,
-     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                   FAE,FP,
-     x                   HFE_total,E_nuc,HFE_ecore,HFE_pcore,HFE_ep,
-     x                   HFE_ee,HFE_gam1,HFE_gam2,HFE_gam3,HFE_gam4,
-     x                   HFS_total,HFS_gam1,HFS_gam2)
-C Call XCHF Fock build for nelec=nbe
-         call rxchfmult_xchf_fock(.false.,LGAM4,LG4DSCF,LG4IC,
-     x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
-     x                   NG4CHK,NG3CHK,NG2CHK,
-     x                   SZG4IC,SZG3IC1,SZG2ICR,
-     x                   npebf,nebf,nebf2,npbf,npbf2,NBE,
-     x                   ngee,ng1,ng2,ng3,ng4,DBE,DP,
-     x                   GAM_ecore,GAM_pcore,GAM_ep,GAM_ee,
-     x                   GM4ICR,GM3IC1,GM2ICR,GM2SICR,
-     x                   ng2prm,ngtg1,ng3prm,
-     x                   nat,pmass,cat,zan,bcoef1,gamma1,
-     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                   FBE,FP,
-     x                   XFE_total,E_nuc,XFE_ecore,XFE_pcore,XFE_ep,
-     x                   XFE_ee,XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,
-     x                   XFS_total,XFS_gam1,XFS_gam2)
+C Call HF Fock build for NAE regular electrons
+           call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
+     x                            DAE,GAM_ecore,GAM_ee,
+     x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
 
-C ARS( E_nuc already added in fock build routine in both HF/XCHF )
-C         HFE_total=HFE_total+E_nuc
-C         XFE_total=XFE_total+E_nuc
+C Call XCHF Fock build for NBE special electrons and one QM particle
+           call RXCHFmult_fock_xchf(LGAM4,LG4DSCF,LG4IC,
+     x                     LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
+     x                     NG4CHK,NG3CHK,NG2CHK,
+     x                     dimXCHF4,dimXCHF3,dimXCHF2,
+     x                     npebf,nebf,nebf2,npbf,npbf2,NBE,
+     x                     ngee,ng1,ng2,ng3,ng4,DBE,DP,
+     x                     XCHF_GAM4,XCHF_GAM3,XCHF_GAM2,XCHF_GAM2s,
+     x                     ng2prm,ngtg1,ng3prm,
+     x                     nat,pmass,cat,zan,bcoef1,gamma1,
+     x                     KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                     ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                     FBE,FP,SBE_XCHF,SP_XCHF,
+     x                     E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
+     x                     E_XCHF_gam3,E_XCHF_gam4,
+     x                     S_total,S_gam1,S_gam2)
+
+C Call interaction Fock build for all particles
+           call RXCHFmult_fock_int(LCMF,nelec,NAE,NBE,
+     x                             nebf,nebf2,npbf,npbf2,
+     x                             ng1,ng2,ng3,ng4,
+     x                             dimINT2,dimINT3,dimINT4,
+     x                             NG2CHK,NG3CHK,NG4CHK,
+     x                             DAE,DBE,DP,
+     x                             INT_GAM2,INT_GAM3,INT_GAM4,
+     x                             S_total,SBE_XCHF,SP_XCHF,
+     x                             FPint,FAEint,FBEint, 
+     x                             E_int_OMG2,E_int_OMG3,E_int_OMG4,
+     x                             E_int)
+
+            call add2fock(npbf,FPint,FP)
+            call add2fock(nebf,FAEint,FAE)
+            call add2fock(nebf,FBEint,FBE)
+            E_total=E_HF+E_XCHF+E_int+E_nuc
 
          else if (LOCBSE2) then
 ! Do OCBSE2 procedure (restricted solutions for special electrons)
@@ -626,7 +586,7 @@ C         XFE_total=XFE_total+E_nuc
      *                 DISPLNA,DGRADIA,UPDTIA,ORBGRDA,NPRA,ITSOA,NFT15)
             call SOTRAN(DISPLIA,vecAE,GA,WRK,NPRA,L0,L1,NA,NA,ORBGRDA)
              CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
-              call RXCHFmult_construct_DAE(NAE,nebf,vecAE,DAE)
+              call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
               GO TO 950  ! Use the new C's to form new density (change)
             END IF
          END IF
@@ -636,7 +596,7 @@ C         XFE_total=XFE_total+E_nuc
 !        Diagonalize Electronic Fock Matrices
 !        call ROOTHAN(DAE,vecAE,AEE,xxse,FAE,nebf,nelec,1,NUCST)
          call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
-         call RXCHFmult_construct_DAE(NAE,nebf,vecAE,DAE)
+         call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
 
   950 CONTINUE
 !        --> FIND LARGEST CHANGE IN Alpha E DENSITY
@@ -650,7 +610,7 @@ C         XFE_total=XFE_total+E_nuc
      x                       vecBE,BEe)
 
 ! Form special electronic density matrix and store stuff for next it
-           call RXCHFmult_construct_DBE(NBE,nebf,vecBE,DBE)
+           call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
            CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
            CALL COPYDEN(DBE0,DBE,NEBF)
            CALL COPYDEN(vecAE0,vecAE,NEBF)
@@ -658,44 +618,45 @@ C         XFE_total=XFE_total+E_nuc
 
 ! Calculate energy for this it and Fock matrices for next it
 
-C Call NEO-HF Fock build for nelec=nae
-         call rxchfmult_xchf_fock(.true.,LGAM4,LG4DSCF,LG4IC,
-     x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
-     x                   NG4CHK,NG3CHK,NG2CHK,
-     x                   SZG4IC,SZG3IC1,SZG2ICR,
-     x                   npebf,nebf,nebf2,npbf,npbf2,NAE,
-     x                   ngee,ng1,ng2,ng3,ng4,DAE,DP,
-     x                   GAM_ecore,GAM_pcore,GAM_ep,GAM_ee,
-     x                   GM4ICR,GM3IC1,GM2ICR,GM2SICR,
-     x                   ng2prm,ngtg1,ng3prm,
-     x                   nat,pmass,cat,zan,bcoef1,gamma1,
-     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                   FAE,FP,
-     x                   HFE_total,E_nuc,HFE_ecore,HFE_pcore,HFE_ep,
-     x                   HFE_ee,HFE_gam1,HFE_gam2,HFE_gam3,HFE_gam4,
-     x                   HFS_total,HFS_gam1,HFS_gam2)
-C Call XCHF Fock build for nelec=nbe
-         call rxchfmult_xchf_fock(.false.,LGAM4,LG4DSCF,LG4IC,
-     x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
-     x                   NG4CHK,NG3CHK,NG2CHK,
-     x                   SZG4IC,SZG3IC1,SZG2ICR,
-     x                   npebf,nebf,nebf2,npbf,npbf2,NBE,
-     x                   ngee,ng1,ng2,ng3,ng4,DBE,DP,
-     x                   GAM_ecore,GAM_pcore,GAM_ep,GAM_ee,
-     x                   GM4ICR,GM3IC1,GM2ICR,GM2SICR,
-     x                   ng2prm,ngtg1,ng3prm,
-     x                   nat,pmass,cat,zan,bcoef1,gamma1,
-     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                   FBE,FP,
-     x                   XFE_total,E_nuc,XFE_ecore,XFE_pcore,XFE_ep,
-     x                   XFE_ee,XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,
-     x                   XFS_total,XFS_gam1,XFS_gam2)
+C Call HF Fock build for NAE regular electrons
+           call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
+     x                            DAE,GAM_ecore,GAM_ee,
+     x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
 
-C ARS( E_nuc already added in fock build routine in both HF/XCHF )
-C         HFE_total=HFE_total+E_nuc
-C         XFE_total=XFE_total+E_nuc
+C Call XCHF Fock build for NBE special electrons and one QM particle
+           call RXCHFmult_fock_xchf(LGAM4,LG4DSCF,LG4IC,
+     x                     LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
+     x                     NG4CHK,NG3CHK,NG2CHK,
+     x                     dimXCHF4,dimXCHF3,dimXCHF2,
+     x                     npebf,nebf,nebf2,npbf,npbf2,NBE,
+     x                     ngee,ng1,ng2,ng3,ng4,DBE,DP,
+     x                     XCHF_GAM4,XCHF_GAM3,XCHF_GAM2,XCHF_GAM2s,
+     x                     ng2prm,ngtg1,ng3prm,
+     x                     nat,pmass,cat,zan,bcoef1,gamma1,
+     x                     KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                     ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                     FBE,FP,SBE_XCHF,SP_XCHF,
+     x                     E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
+     x                     E_XCHF_gam3,E_XCHF_gam4,
+     x                     S_total,S_gam1,S_gam2)
+
+C Call interaction Fock build for all particles
+           call RXCHFmult_fock_int(LCMF,nelec,NAE,NBE,
+     x                             nebf,nebf2,npbf,npbf2,
+     x                             ng1,ng2,ng3,ng4,
+     x                             dimINT2,dimINT3,dimINT4,
+     x                             NG2CHK,NG3CHK,NG4CHK,
+     x                             DAE,DBE,DP,
+     x                             INT_GAM2,INT_GAM3,INT_GAM4,
+     x                             S_total,SBE_XCHF,SP_XCHF,
+     x                             FPint,FAEint,FBEint, 
+     x                             E_int_OMG2,E_int_OMG3,E_int_OMG4,
+     x                             E_int)
+
+            call add2fock(npbf,FPint,FP)
+            call add2fock(nebf,FAEint,FAE)
+            call add2fock(nebf,FBEint,FBE)
+            E_total=E_HF+E_XCHF+E_int+E_nuc
 
          else
 
@@ -723,7 +684,7 @@ C         XFE_total=XFE_total+E_nuc
      *                 DISPLNA,DGRADIA,UPDTIA,ORBGRDA,NPRA,ITSOA,NFT15)
             call SOTRAN(DISPLIA,vecAE,GA,WRK,NPRA,L0,L1,NA,NA,ORBGRDA)
              CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
-              call RXCHFmult_construct_DAE(NAE,nebf,vecAE,DAE)
+              call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
               GO TO 750  ! Use the new C's to form new density (change)
             END IF
          END IF
@@ -733,7 +694,7 @@ C         XFE_total=XFE_total+E_nuc
 !        Diagonalize Electronic Fock Matrices
 !        call ROOTHAN(DAE,vecAE,AEE,xxse,FAE,nebf,nelec,1,NUCST)
          call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
-         call RXCHFmult_construct_DAE(NAE,nebf,vecAE,DAE)
+         call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
 
   750 CONTINUE
 !        --> FIND LARGEST CHANGE IN Alpha E DENSITY
@@ -772,7 +733,7 @@ C         END IF
   800 CONTINUE
 !        call ROOTHAN(DBE,vecBE,BEE,xxse,FBE,nebf,nelec,1,NUCST)
          call UROOTHAN(vecBE,BEE,xxse,FBE,nebf)
-         call RXCHFmult_construct_DBE(NBE,nebf,vecBE,DBE)
+         call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
 
   850 CONTINUE
 !        --> FIND LARGEST CHANGE IN Beta E DENSITY
@@ -786,8 +747,8 @@ C         END IF
          CALL COPYDEN(DP0,DP,NPBF)
 
 !        --> CALCULATE CHANGE IN TOTAL ENERGY
-C         Delta_E_tot=E_total-E_total_old
-C         E_total_old=E_total
+         Delta_E_tot=E_total-E_total_old
+         E_total_old=E_total
          HFDelta_E_tot=HFE_total-HFE_total_old
          HFE_total_old=HFE_total
          XFDelta_E_tot=XFE_total-XFE_total_old
@@ -834,7 +795,7 @@ C )
 
       WRITE(*,*)
       WRITE(*,*)'WARNING:  ITERATION LIMIT EXCEEDED'
-C      E_TOTAL=zero
+      E_total=zero
       HFE_TOTAL=zero
       XFE_TOTAL=zero
       WRITE(*,*)
@@ -847,10 +808,9 @@ C      E_TOTAL=zero
          close(NFT15)
       end if
 
-!     PRINT FINAL ENERGY AND PUNCH THE ORBITALS (for XCHF part)
-C      WRITE(*,9200) E_TOTAL,I
-      WRITE(*,9200) XFE_TOTAL,I
-!
+!     PRINT FINAL ENERGY AND PUNCH THE ORBITALS
+      WRITE(*,9200) E_total,I
+
       write(*,*) "HF Part:"
       WRITE(*,9300) E_nuc,HFE_ecore,HFE_pcore,HFE_ep,HFE_ee,
      x HFE_gam1,HFE_gam2,HFE_gam3,HFE_gam4,HFS_total,HFE_total
@@ -905,33 +865,7 @@ C     x                S_OMG1,S_OMG2,S_total,E_total
 
       call UROOTHAN(CAE,EVF,xxse,GAM_ecore,nebf)
 
-      call RXCHFmult_construct_DAE(NAE,nebf,CAE,DAE)
-
-
-      RETURN
-      END
-!======================================================================
-      SUBROUTINE RXCHFmult_guess_B_elec(NBE,nebf,xxse,GAM_ecore,DBE,CBE)
- 
-!     Diagonalize the core electron Hamiltonian
-!     to construct initial special electron guess density
-!======================================================================
-      implicit none
-! Input Variables
-      integer nebf
-      integer NBE
-      double precision xxse(nebf,nebf)
-      double precision GAM_ecore(nebf,nebf)
-! Variables Returned
-      double precision DBE(nebf,nebf)
-! Local variables
-      double precision CBE(nebf,nebf)
-      double precision EVF(nebf)
-
-
-      call UROOTHAN(CBE,EVF,xxse,GAM_ecore,nebf)
-
-      call RXCHFmult_construct_DBE(NBE,nebf,CBE,DBE)
+      call RXCHFmult_construct_DE(NAE,nebf,CAE,DAE)
 
 
       RETURN
@@ -995,8 +929,8 @@ C     x                S_OMG1,S_OMG2,S_total,E_total
         end do
       end do
 
-      call RXCHFmult_construct_DAE(NAE,nebf,CAE,DAE)
-      call RXCHFmult_construct_DBE(NBE,nebf,CBE,DBE)
+      call RXCHFmult_construct_DE(NAE,nebf,CAE,DAE)
+      call RXCHFmult_construct_DE(NBE,nebf,CBE,DBE)
 
       return
       end
@@ -1062,8 +996,6 @@ C     x                S_OMG1,S_OMG2,S_total,E_total
 !       vecBE0: Special electron coefficients from previous iteration
 !       vecAE:  Regular electron coefficients from current iteration
 !       vecBE:  Special electron coefficients from current iteration
-!
-!  ******* CURRENTLY ONLY WORKS FOR NBE = 1 *******
 !
 !======================================================================
       implicit none
