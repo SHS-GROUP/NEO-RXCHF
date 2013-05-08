@@ -13,7 +13,7 @@
      x                    LG3IC1,dimXCHF3,dimINT3,
      x                    XCHF_GAM3,INT_GAM3,
      x                    LG4IC,dimXCHF4,dimINT4,
-     x                    GM4ICR)
+     x                    XCHF_GAM4,INT_GAM4)
 
 !
 ! PERFORM A NUCLEAR-ELECTRONIC RESTRICTED XC HARTREE-FOCK CALCULATION
@@ -242,35 +242,43 @@ C      double precision XB(NPRB)
 !--------SOSCF-RELATED-VARIABLES------------)
 
 !--------OUTPUT-FORMATTING---------------------------------------------(
- 9000 FORMAT(/' ITER      HF ENERGY             XF ENERGY       ',
-     * 'E CHANGE (HF)    E CHANGE (XF)     ALPHA DENS       BETA DENS  ',
-     * '    QMP DENS ')
+ 9000 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
+     * 'ALPHA DENS       BETA DENS        QMP DENS ')
 
- 9050 FORMAT(/' ITER      HF ENERGY             XF ENERGY       ',
-     * 'E CHANGE (HF)    E CHANGE (XF)     ALPHA DENS       BETA DENS ',
-     * '    QMP DENS         ORBGRAD_A ')
+ 9050 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
+     * 'ALPHA DENS       BETA DENS        QMP DENS         ',
+     * 'ORBGRAD_A ')
 
- 9100 FORMAT(1X,I3,2(F20.10),2(F17.10),3F17.10)
+ 9100 FORMAT(1X,I3,F20.10,F17.10,3F17.10)
 
- 9150 FORMAT(1X,I3,2(F20.10),2(F17.10),4F17.10)
+ 9150 FORMAT(1X,I3,F20.10,F17.10,4F17.10)
 
  9200 FORMAT(/1X,'FINAL NEORXCHF ENERGY IS',F20.10,' AFTER',I4,
      *           ' ITERATIONS')
 
  9300 FORMAT(/6X,'-----------------------------------------------',/,
-     x        6X,'         NEOXCHF ENERGETIC COMPONENTS          ',/,
+     x        6X,'         NEORXCHF ENERGETIC COMPONENTS         ',/,
      x        6X,'-----------------------------------------------',/,
      x       12X,'    E_NUC=',1X,F20.10/
+     x       12X,'----------------------'
      x       12X,'  E_ECORE=',1X,F20.10/
-     x       12X,'  E_PCORE=',1X,F20.10/
-     x       12X,'     E_EP=',1X,F20.10/
      x       12X,'     E_EE=',1X,F20.10/
+     x       12X,'     E_HF=',1X,F20.10/
+     x       12X,'----------------------'
      x       12X,'   E_GAM1=',1X,F20.10/
      x       12X,'   E_GAM2=',1X,F20.10/
      x       12X,'   E_GAM3=',1X,F20.10/
      x       12X,'   E_GAM4=',1X,F20.10/
+     x       12X,'   E_XCHF=',1X,F20.10/
+     x       12X,'----------------------'
+     x       12X,'   E_OMG2=',1X,F20.10/
+     x       12X,'   E_OMG3=',1X,F20.10/
+     x       12X,'   E_OMG4=',1X,F20.10/
+     x       12X,'    E_int=',1X,F20.10/
+     x       12X,'----------------------'
      x       12X,'  S_TOTAL=',1X,F20.10/
      x       12X,'  E_TOTAL=',1X,F20.10/)
+     x        6X,'-----------------------------------------------',/,
 
  9400 FORMAT(/1X,'          INITIAL GUESS ENERGETICS:            ')
 
@@ -416,7 +424,7 @@ C )
       WRITE(*,9500)
 !     WRITE(*,9000)
 !
-C      E_total_old=0.0d+00
+      E_total_old=0.0d+00
       HFE_total_old=0.0d+00
       XFE_total_old=0.0d+00
       ORBGRDA=0.0d+00
@@ -478,16 +486,10 @@ C Call interaction Fock build for all particles
          if(I.eq.1) then
             WRITE(*,9400)
 
-      write(*,*) "HF Part:"
-      WRITE(*,9300) E_nuc,HFE_ecore,HFE_pcore,HFE_ep,HFE_ee,
-     x HFE_gam1,HFE_gam2,HFE_gam3,HFE_gam4,HFS_total,HFE_total
-
-      write(*,*) "XCHF Part:"
-      WRITE(*,9300) E_nuc,XFE_ecore,XFE_pcore,XFE_ep,XFE_ee,
-     x XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,XFS_total,XFE_total
-
-C            WRITE(*,9300) E_nuc,E_OMG1,E_OMG2,E_OMG3,E_OMG4,
-C     x                    S_OMG1,S_OMG2,S_total,E_total
+      WRITE(*,9300) E_nuc,E_HF_ecore,E_HF_ee,E_HF,
+     x  E_XCHF_gam1,E_XCHF_gam2,E_XCHF_gam3,E_XCHF_gam4,E_XCHF,
+     x  E_int_OMG2,E_int_OMG3,E_int_OMG4,E_int,
+     x  S_total,E_total
 
             if(LSOSCF) then 
                WRITE(*,9050)
@@ -756,11 +758,11 @@ C         END IF
 
 !        --> PRINT SUMMARY OF THIS ITERATION
          if(LSOSCF) then
-            WRITE(*,9150) I,HFE_total,XFE_total,HFDelta_E_tot,
-     x                    XFDelta_E_tot,DIFFAE,DIFFBE,DIFFP,ORBGRDA
+            WRITE(*,9150) I,E_total,Delta_E_tot,
+     x                    DIFFAE,DIFFBE,DIFFP,ORBGRDA
          else
-            WRITE(*,9100) I,HFE_total,XFE_total,HFDelta_E_tot,
-     x                    XFDelta_E_tot,DIFFAE,DIFFBE,DIFFP
+            WRITE(*,9150) I,E_total,Delta_E_tot,
+     x                    DIFFAE,DIFFBE,DIFFP
          end if
 C ARS( debug: print out MOs here
       if (LCMF) then
@@ -811,16 +813,10 @@ C )
 !     PRINT FINAL ENERGY AND PUNCH THE ORBITALS
       WRITE(*,9200) E_total,I
 
-      write(*,*) "HF Part:"
-      WRITE(*,9300) E_nuc,HFE_ecore,HFE_pcore,HFE_ep,HFE_ee,
-     x HFE_gam1,HFE_gam2,HFE_gam3,HFE_gam4,HFS_total,HFE_total
-
-      write(*,*) "XCHF Part:"
-      WRITE(*,9300) E_nuc,XFE_ecore,XFE_pcore,XFE_ep,XFE_ee,
-     x XFE_gam1,XFE_gam2,XFE_gam3,XFE_gam4,XFS_total,XFE_total
-
-C        WRITE(*,9300) E_nuc,E_OMG1,E_OMG2,E_OMG3,E_OMG4,
-C     x                S_OMG1,S_OMG2,S_total,E_total
+      WRITE(*,9300) E_nuc,E_HF_ecore,E_HF_ee,E_HF,
+     x  E_XCHF_gam1,E_XCHF_gam2,E_XCHF_gam3,E_XCHF_gam4,E_XCHF,
+     x  E_int_OMG2,E_int_OMG3,E_int_OMG4,E_int,
+     x  S_total,E_total
 
 !  OUTPUT ELEC AND NUC EIGENVALUES AND EIGENVECTORS
       WRITE(*,9610)

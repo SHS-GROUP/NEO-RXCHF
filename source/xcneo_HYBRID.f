@@ -930,7 +930,7 @@ C Above hack commented out as should be handled by EXCHLEV=0
      x                    LG3IC1,dimXCHF3,dimINT3,
      x                    XCHF_GAM3,INT_GAM3,
      x                    LG4IC,dimXCHF4,dimINT4,
-     x                    GM4ICR)
+     x                    XCHF_GAM4,INT_GAM4)
           else
 
            if (EXCHLEV.eq.2) then
