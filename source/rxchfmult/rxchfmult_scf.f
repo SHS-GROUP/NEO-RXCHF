@@ -1,19 +1,21 @@
 !======================================================================
-      subroutine multrxchf(nelec,NAE,NBE,NPRA,NEBFLT,NUCST,
-     x                    npebf,nebf,nebf2,npbf,npbf2,ngee,
-     x                    ngtg1,ng1,ng2,ng3,ng4,NG2CHK,NG3CHK,NG4CHK,
-     x                    read_CE,read_CP,
-     x                    LNEOHF,LGAM4,LG4DSCF,LG3DSCF,LG2DSCF,LCMF,
-     x                    LSOSCF,LOCBSE,
-     x                    ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
-     x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                    LG2IC1,dimXCHF2,dimINT2,
-     x                    XCHF_GAM2,INT_GAM2,XCHF_GAM2s,
-     x                    LG3IC1,dimXCHF3,dimINT3,
-     x                    XCHF_GAM3,INT_GAM3,
-     x                    LG4IC,dimXCHF4,dimINT4,
-     x                    XCHF_GAM4,INT_GAM4)
+      subroutine RXCHFmult_scf(nelec,NAE,NBE,NPRA,NPRB,NEBFLT,NUCST,
+     x                         npebf,nebf,nebf2,npbf,npbf2,ngee,
+     x                         ngtg1,ng1,ng2,ng3,ng4,
+     x                         NG2CHK,NG3CHK,NG4CHK,
+     x                         read_CE,read_CP,
+     x                         LG4DSCF,LG3DSCF,LG2DSCF,
+     x                         LSOSCF,LOCBSE,LCMF,
+     x                         ng2prm,ng3prm,nat,pmass,cat,zan,
+     x                         bcoef1,gamma1,
+     x                         KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                         ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                         LG2IC1,dimXCHF2,dimINT2,
+     x                         XCHF_GAM2,INT_GAM2,XCHF_GAM2s,
+     x                         LG3IC1,dimXCHF3,dimINT3,
+     x                         XCHF_GAM3,INT_GAM3,
+     x                         LG4IC,dimXCHF4,dimINT4,
+     x                         XCHF_GAM4,INT_GAM4)
 
 !
 ! PERFORM A NUCLEAR-ELECTRONIC RESTRICTED XC HARTREE-FOCK CALCULATION
@@ -65,7 +67,7 @@
       integer NG2CHK,NG3CHK,NG4CHK
       integer nelec
       integer NAE,NBE
-      integer NPRA
+      integer NPRA,NPRB
       integer NEBFLT
       integer NUCST
       integer nebf
@@ -185,15 +187,15 @@
       double precision FP(npbf,npbf)
       double precision XFP(npbf,npbf)
 
+      double precision FAEint(nebf,nebf)
+      double precision FBEint(nebf,nebf)
+      double precision FPint(npbf,npbf)
+
       double precision SBE_XCHF(nebf,nebf)
       double precision SP_XCHF(npbf,npbf)
 
       double precision E_total_old
       double precision Delta_E_tot
-      double precision HFE_total_old
-      double precision HFDelta_E_tot
-      double precision XFE_total_old
-      double precision XFDelta_E_tot
 
       logical LDIFFE
 
@@ -260,25 +262,25 @@ C      double precision XB(NPRB)
      x        6X,'         NEORXCHF ENERGETIC COMPONENTS         ',/,
      x        6X,'-----------------------------------------------',/,
      x       12X,'    E_NUC=',1X,F20.10/
-     x       12X,'----------------------'
+     x       12X,'---------------------------------',/,
      x       12X,'  E_ECORE=',1X,F20.10/
      x       12X,'     E_EE=',1X,F20.10/
      x       12X,'     E_HF=',1X,F20.10/
-     x       12X,'----------------------'
+     x       12X,'---------------------------------',/,
      x       12X,'   E_GAM1=',1X,F20.10/
      x       12X,'   E_GAM2=',1X,F20.10/
      x       12X,'   E_GAM3=',1X,F20.10/
      x       12X,'   E_GAM4=',1X,F20.10/
      x       12X,'   E_XCHF=',1X,F20.10/
-     x       12X,'----------------------'
+     x       12X,'---------------------------------',/,
      x       12X,'   E_OMG2=',1X,F20.10/
      x       12X,'   E_OMG3=',1X,F20.10/
      x       12X,'   E_OMG4=',1X,F20.10/
      x       12X,'    E_int=',1X,F20.10/
-     x       12X,'----------------------'
+     x       12X,'---------------------------------',/,
      x       12X,'  S_TOTAL=',1X,F20.10/
-     x       12X,'  E_TOTAL=',1X,F20.10/)
-     x        6X,'-----------------------------------------------',/,
+     x       12X,'  E_TOTAL=',1X,F20.10/
+     x        6X,'-----------------------------------------------',/)
 
  9400 FORMAT(/1X,'          INITIAL GUESS ENERGETICS:            ')
 
@@ -301,6 +303,7 @@ C      LOCBSE2=.true.
        write(*,*) "Using LOCBSE2"
       end if
       if(LOCBSE) write(*,*) "Using LOCBSE"
+      LGAM4=.true. ! Always calculate five-particle integrals
 
 !----------CALCULATE-CLASSICAL-NUCLEAR-REPULSION-ENERGY----------------(
 !      call class_nuc_rep(nat,zan,cat,E_nuc)
@@ -425,8 +428,6 @@ C )
 !     WRITE(*,9000)
 !
       E_total_old=0.0d+00
-      HFE_total_old=0.0d+00
-      XFE_total_old=0.0d+00
       ORBGRDA=0.0d+00
 C      ORBGRDB=0.0d+00
 
@@ -470,7 +471,7 @@ C Call interaction Fock build for all particles
      x                           NG2CHK,NG3CHK,NG4CHK,
      x                           DAE,DBE,DP,
      x                           INT_GAM2,INT_GAM3,INT_GAM4,
-     x                           S_total,SBE_XCHF,SP_XCHF,
+     x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
      x                           FPint,FAEint,FBEint, 
      x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
      x                           E_int)
@@ -478,6 +479,21 @@ C Call interaction Fock build for all particles
           call add2fock(npbf,FPint,FP)
           call add2fock(nebf,FAEint,FAE)
           call add2fock(nebf,FBEint,FBE)
+
+          IF (LCMF) then
+           npbflt=npbf*(npbf+1)/2
+           write(*,*)
+           write(*,*) "FAE:"
+           call prt_lower_triangle(nebf,nebflt,FAE)
+           write(*,*)
+           write(*,*) "FBE:"
+           call prt_lower_triangle(nebf,nebflt,FBE)
+           write(*,*)
+           write(*,*) "FP:"
+           call prt_lower_triangle(npbf,npbflt,FP)
+           write(*,*)
+          END IF  
+
           E_total=E_HF+E_XCHF+E_int+E_nuc
 
        end if
@@ -551,7 +567,7 @@ C Call interaction Fock build for all particles
      x                             NG2CHK,NG3CHK,NG4CHK,
      x                             DAE,DBE,DP,
      x                             INT_GAM2,INT_GAM3,INT_GAM4,
-     x                             S_total,SBE_XCHF,SP_XCHF,
+     x                             S_total,S_gam2,SBE_XCHF,SP_XCHF,
      x                             FPint,FAEint,FBEint, 
      x                             E_int_OMG2,E_int_OMG3,E_int_OMG4,
      x                             E_int)
@@ -559,6 +575,21 @@ C Call interaction Fock build for all particles
             call add2fock(npbf,FPint,FP)
             call add2fock(nebf,FAEint,FAE)
             call add2fock(nebf,FBEint,FBE)
+
+            IF (LCMF) then
+             npbflt=npbf*(npbf+1)/2
+             write(*,*)
+             write(*,*) "FAE:"
+             call prt_lower_triangle(nebf,nebflt,FAE)
+             write(*,*)
+             write(*,*) "FBE:"
+             call prt_lower_triangle(nebf,nebflt,FBE)
+             write(*,*)
+             write(*,*) "FP:"
+             call prt_lower_triangle(npbf,npbflt,FP)
+             write(*,*)
+            END IF  
+
             E_total=E_HF+E_XCHF+E_int+E_nuc
 
          else if (LOCBSE2) then
@@ -650,7 +681,7 @@ C Call interaction Fock build for all particles
      x                             NG2CHK,NG3CHK,NG4CHK,
      x                             DAE,DBE,DP,
      x                             INT_GAM2,INT_GAM3,INT_GAM4,
-     x                             S_total,SBE_XCHF,SP_XCHF,
+     x                             S_total,S_gam2,SBE_XCHF,SP_XCHF,
      x                             FPint,FAEint,FBEint, 
      x                             E_int_OMG2,E_int_OMG3,E_int_OMG4,
      x                             E_int)
@@ -658,6 +689,21 @@ C Call interaction Fock build for all particles
             call add2fock(npbf,FPint,FP)
             call add2fock(nebf,FAEint,FAE)
             call add2fock(nebf,FBEint,FBE)
+
+            IF (LCMF) then
+             npbflt=npbf*(npbf+1)/2
+             write(*,*)
+             write(*,*) "FAE:"
+             call prt_lower_triangle(nebf,nebflt,FAE)
+             write(*,*)
+             write(*,*) "FBE:"
+             call prt_lower_triangle(nebf,nebflt,FBE)
+             write(*,*)
+             write(*,*) "FP:"
+             call prt_lower_triangle(npbf,npbflt,FP)
+             write(*,*)
+            END IF  
+
             E_total=E_HF+E_XCHF+E_int+E_nuc
 
          else
@@ -751,10 +797,6 @@ C         END IF
 !        --> CALCULATE CHANGE IN TOTAL ENERGY
          Delta_E_tot=E_total-E_total_old
          E_total_old=E_total
-         HFDelta_E_tot=HFE_total-HFE_total_old
-         HFE_total_old=HFE_total
-         XFDelta_E_tot=XFE_total-XFE_total_old
-         XFE_total_old=XFE_total
 
 !        --> PRINT SUMMARY OF THIS ITERATION
          if(LSOSCF) then
@@ -798,8 +840,6 @@ C )
       WRITE(*,*)
       WRITE(*,*)'WARNING:  ITERATION LIMIT EXCEEDED'
       E_total=zero
-      HFE_TOTAL=zero
-      XFE_TOTAL=zero
       WRITE(*,*)
 !     STOP
 !
@@ -1104,7 +1144,7 @@ C )
       parameter(zero=0.0d+00)
 
       logical debug
-      debug=.true. 
+      debug=.false.
 
 ! Initialize
       WB=zero

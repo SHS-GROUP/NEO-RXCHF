@@ -341,6 +341,19 @@
 
          call Fock_sym_check(nebf,npbf,focke,fockp)
          call NonGem_OVLAP_check(nebf,npbf,nelec,DE,DP)
+
+         write(*,*) "DE:"
+         call prt_lower_triangle(nebf,nebflt,de)
+         write(*,*)
+         write(*,*) "DP:"
+         call prt_lower_triangle(npbf,npbflt,dp)
+         write(*,*)
+         write(*,*) "FE:"
+         call prt_lower_triangle(nebf,nebflt,focke)
+         write(*,*)
+         write(*,*) "FP:"
+         call prt_lower_triangle(npbf,npbflt,fockp)
+
       end if
 !-----------ON-THE-FLY-CODE-TESTING------------------------------------)
 

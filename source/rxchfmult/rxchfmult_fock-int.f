@@ -6,7 +6,7 @@ C======================================================================
      x                              NG2CHK,NG3CHK,NG4CHK,
      x                              DAE,DBE,DP,
      x                              GM2ICR,GM3ICR,GM4ICR,
-     x                              S_total,XSBE,XSP,
+     x                              S_total,S_OMG2,XSBE,XSP,
      x                              FP,FAE,FBE, 
      x                              E_OMG2,E_OMG3,E_OMG4,
      x                              E_total)
@@ -29,8 +29,9 @@ C Input variables
       double precision  GM3ICR(SZG3ICR)
       double precision  GM4ICR(SZG4ICR)
       double precision  S_total           !  Read in overlap contributions
-      double precision  XSBE(nebf,nebf)   !  to Fock matrices obtained
-      double precision  XSP(npbf,npbf)    !  from previous XCHF calculation
+      double precision  S_OMG2            !  to Fock matrices obtained       
+      double precision  XSBE(nebf,nebf)   !  from previous XCHF calculation
+      double precision  XSP(npbf,npbf)    !
 
 C Output variables
       double precision  FP(npbf,npbf)
@@ -131,19 +132,20 @@ C Construct Electronic Fock Matrix (special electrons)
 
       if (rxchfdbg) then
        write(*,*)
-       write(*,*) "Read in S_total:", S_total
+       write(*,*) "S_OMG2  (read) = ", S_OMG2
+       write(*,*) "S_total (read) = ", S_total
        write(*,*)
-       write(*,*) 'E_P_OMG2  =',E_P_OMG2 
-       write(*,*) 'E_AE_OMG2 =',E_AE_OMG2 
-       write(*,*) 'E_BE_OMG2 =',E_BE_OMG2 
+       write(*,*) 'E_P_OMG2       =',E_P_OMG2 
+       write(*,*) 'E_AE_OMG2      =',E_AE_OMG2 
+       write(*,*) 'E_BE_OMG2      =',E_BE_OMG2 
        write(*,*)
-       write(*,*) 'E_P_OMG3  =',E_P_OMG3 
-       write(*,*) 'E_AE_OMG3 =',E_AE_OMG3 
-       write(*,*) 'E_BE_OMG3 =',E_BE_OMG3 
+       write(*,*) 'E_P_OMG3       =',E_P_OMG3 
+       write(*,*) 'E_AE_OMG3      =',E_AE_OMG3 
+       write(*,*) 'E_BE_OMG3      =',E_BE_OMG3 
        write(*,*)
-       write(*,*) 'E_P_OMG4  =',E_P_OMG4 
-       write(*,*) 'E_AE_OMG4 =',E_AE_OMG4 
-       write(*,*) 'E_BE_OMG4 =',E_BE_OMG4 
+       write(*,*) 'E_P_OMG4       =',E_P_OMG4 
+       write(*,*) 'E_AE_OMG4      =',E_AE_OMG4 
+       write(*,*) 'E_BE_OMG4      =',E_BE_OMG4 
        write(*,*)
       end if
 
@@ -168,34 +170,22 @@ C Correct Special Electron Fock Matrix
 
 C Fock testing
       if (LCMF) then
-C        call RXCHF_Fock_testing1(nebf,FAE,DAE,E_ecore,E_GAMee,E_OMG2)
-
-        call RXCHF_Fock_testing2(npbf,FP,DP)
-
-        call RXCHF_Fock_testing2(nebf,FBE,DBE)
-
+        call RXCHFmult_Fock_testing(nebf,npbf,FAE,FBE,FP,DAE,DBE,DP,
+     x                              E_total,S_total,
+     x                              E_OMG3,E_OMG4,S_OMG2)
         call UFM_sym_check(nebf,npbf,FAE,FBE,FP)
       end if
 
       if (rxchfdbg) then
         nebflt=nebf*(nebf+1)/2
         npbflt=npbf*(npbf+1)/2
-        write(*,*) "DAE:"
-        call prt_lower_triangle(nebf,nebflt,DAE)
-        write(*,*)
-        write(*,*) "DBE:"
-        call prt_lower_triangle(nebf,nebflt,DBE)
-        write(*,*)
-        write(*,*) "DP:"
-        call prt_lower_triangle(npbf,npbflt,DP)
-        write(*,*)
-        write(*,*) "FAE:"
+        write(*,*) "FAE int:"
         call prt_lower_triangle(nebf,nebflt,FAE)
         write(*,*)
-        write(*,*) "FBE:"
+        write(*,*) "FBE int:"
         call prt_lower_triangle(nebf,nebflt,FBE)
         write(*,*)
-        write(*,*) "FP:"
+        write(*,*) "FP int:"
         call prt_lower_triangle(npbf,npbflt,FP)
       end if
 
@@ -230,9 +220,66 @@ C Initialize
 C Fock Matrix Correction
       do i=1,nbf
         do j=1,nbf
-          F(j,i) = coeff1*XF(j,i)
+          F(j,i) = coeff*XF(j,i)
         end do
       end do
+
+      return
+      end
+!======================================================================
+      subroutine RXCHFmult_Fock_testing(nebf,npbf,FAE,FBE,FP,DAE,DBE,DP,
+     x                                  E_total,S_total,
+     x                                  E_OMG3,E_OMG4,S_OMG2)
+C Tests Fock matrices by summing up with density matrices
+!======================================================================
+      implicit none
+
+! Input variables
+      integer nebf,npbf
+      double precision FAE(nebf,nebf)
+      double precision FBE(nebf,nebf)
+      double precision FP(npbf,npbf)
+      double precision DAE(nebf,nebf)
+      double precision DBE(nebf,nebf)
+      double precision DP(npbf,npbf)
+      double precision E_total,E_OMG3,E_OMG4 ! On entry already div by S_total
+      double precision S_total,S_OMG2
+
+! Local variables
+      integer i,j
+      double precision fdsum,ans
+      double precision zero,two
+      parameter(zero=0.0d+00,two=2.0d+00)
+
+      fdsum=zero
+      do i=1,npbf
+        do j=1,npbf
+          fdsum=fdsum+DP(j,i)*FP(j,i)
+        end do
+      end do
+      ans=zero
+      write(*,*) "Proton Fock matrix test:"
+      write(*,*) fdsum,ans
+
+      fdsum=zero
+      do i=1,nebf
+        do j=1,nebf
+          fdsum=fdsum+DAE(j,i)*FAE(j,i)
+        end do
+      end do
+      ans=E_total
+      write(*,*) "Regular electron Fock matrix test:"
+      write(*,*) fdsum,ans
+
+      fdsum=zero
+      do i=1,nebf
+        do j=1,nebf
+          fdsum=fdsum+DBE(j,i)*FBE(j,i)
+        end do
+      end do
+      ans=E_OMG3+two*E_OMG4-S_OMG2*E_total/S_total
+      write(*,*) "Special electron Fock matrix test:"
+      write(*,*) fdsum,ans
 
       return
       end
@@ -428,7 +475,7 @@ C Initialize
       E_BE_OMG4  = zero 
  
       call RXCHFmult_FBE_OMG2(NG2CHK,nebf,npbf,ng2,
-     x                        DAE,DBE,DP,GM2ICR,GM2sICR,
+     x                        DAE,DBE,DP,GM2ICR,
      x                        FBE,E_BE_OMG2)
 
       if (NBE.gt.1) then

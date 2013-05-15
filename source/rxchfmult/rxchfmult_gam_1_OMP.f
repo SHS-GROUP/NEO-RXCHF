@@ -283,14 +283,14 @@ C  Calculate primitive integrals
 c                    call xcalc_GAM1_MD(ip,jp,ie1,je1,ansE,ansS)
 c                    ansS=0.0d+00
 c                    call xcalc_GAM1s_MD(ip,jp,ie1,je1,ansS)
-         call xcalc_GAM1_MD(I1,J1,K1,A1,Amat1,
-     x                      I2,J2,K2,A2,Amat2,
-     x                      L1,M1,N1,B1,Bmat1,
-     x                      L2,M2,N2,B2,Bmat2,
-     x                      nat,ngtg1,
-     x                      pmass,cat,zan,
-     x                      bcoef1,gamma1,
-     x                      ansE,ansS)
+         call RXCHFmult_xcalc_GAM1_MD(I1,J1,K1,A1,Amat1,
+     x                                I2,J2,K2,A2,Amat2,
+     x                                L1,M1,N1,B1,Bmat1,
+     x                                L2,M2,N2,B2,Bmat2,
+     x                                nat,ngtg1,
+     x                                pmass,cat,zan,
+     x                                bcoef1,gamma1,
+     x                                ansE,ansS)
 
 
 C  Map from primitive BF indices to contracted indices

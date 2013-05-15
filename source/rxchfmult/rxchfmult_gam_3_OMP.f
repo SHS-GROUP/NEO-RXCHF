@@ -1,16 +1,16 @@
 C======================================================================
-      subroutine RXCHFmultxcalc_GAM3_MD(I1,J1,K1,A1,Amat1,
-     x                                  I2,J2,K2,A2,Amat2,
-     x                                  I3,J3,K3,A3,Amat3,
-     x                                  I4,J4,K4,A4,Amat4,
-     x                                  L1,M1,N1,B1,Bmat1,
-     x                                  L2,M2,N2,B2,Bmat2,
-     x                                  L3,M3,N3,B3,Bmat3,
-     x                                  L4,M4,N4,B4,Bmat4,
-     x                                  nat,ngtg1,
-     x                                  pmass,cat,zan,
-     x                                  bcoef1,gamma1,
-     x                                  ans1,ans2)
+      subroutine RXCHFmult_xcalc_GAM3_MD(I1,J1,K1,A1,Amat1,
+     x                                   I2,J2,K2,A2,Amat2,
+     x                                   I3,J3,K3,A3,Amat3,
+     x                                   I4,J4,K4,A4,Amat4,
+     x                                   L1,M1,N1,B1,Bmat1,
+     x                                   L2,M2,N2,B2,Bmat2,
+     x                                   L3,M3,N3,B3,Bmat3,
+     x                                   L4,M4,N4,B4,Bmat4,
+     x                                   nat,ngtg1,
+     x                                   pmass,cat,zan,
+     x                                   bcoef1,gamma1,
+     x                                   ans1,ans2)
 
 C Adapted ../gam_3_OMP.f to account for INT_GAM3 terms separately
 C======================================================================
@@ -308,8 +308,8 @@ c    x                    gamA,gamB,xx)
 C>>>>>>>>>>>>>>>>>>>>  xgVEEg2 <<<<<<<<<<<<<<<<<<<<
 C ans = <GA(1)GA(2)GA(3)GB(4)|g(1,4)g(2,4)g(3,4)/(r1-r2)|GB(1)GB(2)GB(3)GB(4)>
 C ans = <ie1 ie2 ie3 ip|g(1,p)g(2,p)g(3,p)/(r1-r2)|je1 je2 je3 jp>
-            gamA14=zero
-            gamA24=gamma1(ik)
+            gamA14=gamma1(ik)
+            gamA24=zero
             gamA34=zero
             gamB14=zero
             gamB24=zero
@@ -337,12 +337,12 @@ C    index 2: special electron 1
 C    index 3: special electron 2
 C    index 4: proton
 C  --- g(2,p)VEE(1,2)g(3,p)---
-            call G4_MD_xgVeeg(I1,J1,K1,A1,Amat1,
-     *                        I2,J2,K2,A2,Amat2,
+            call G4_MD_xgVeeg(I2,J2,K2,A2,Amat2,
+     *                        I1,J1,K1,A1,Amat1,
      *                        I3,J3,K3,A3,Amat3,
      *                        I4,J4,K4,A4,Amat4,
-     *                        L1,M1,N1,B1,Bmat1,
      *                        L2,M2,N2,B2,Bmat2,
+     *                        L1,M1,N1,B1,Bmat1,
      *                        L3,M3,N3,B3,Bmat3,
      *                        L4,M4,N4,B4,Bmat4,
      *                        gamA14,gamB34,

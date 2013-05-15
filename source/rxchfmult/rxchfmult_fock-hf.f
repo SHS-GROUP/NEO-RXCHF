@@ -24,6 +24,7 @@ C Output variables
       double precision  E_ee
 
 C Local variables
+      integer           nebflt
       double precision  zero
       parameter(zero=0.0d+00)
 
@@ -45,7 +46,14 @@ C Two-electron energy
       E_total=E_ecore+E_ee
 
       if(LCMF) then
+
        call UFM_sym_check2(nebf,focke)
+
+       nebflt=nebf*(nebf+1)/2
+       write(*,*) "FAE HF:"
+       call prt_lower_triangle(nebf,nebflt,focke)
+       write(*,*)
+
       end if
 
       return

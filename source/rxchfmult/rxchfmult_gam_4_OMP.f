@@ -28,18 +28,18 @@ C input
       double precision x1,x2,x3,x4,x5,x6
 
 
-      call i10(NE,np,ng2,ngee,GAM_2s,GAM_ee,   ! 1 2 3 4
-     x                         ip,jp,ii,jj,kk,ll,i,j,k,l,x1)
-      call i10(NE,np,ng2,ngee,GAM_2s,GAM_ee,
-     x                        ip,jp,ii,jj,kk,ll,i,j,l,k,x2)
-      call i10(NE,np,ng2,ngee,GAM_2s,GAM_ee,
-     x                         ip,jp,ii,jj,kk,ll,i,k,j,l,x3)
-      call i10(NE,np,ng2,ngee,GAM_2s,GAM_ee,
-     x                        ip,jp,ii,jj,kk,ll,i,k,l,j,x4)
-      call i10(NE,np,ng2,ngee,GAM_2s,GAM_ee,
-     x                         ip,jp,ii,jj,kk,ll,i,l,j,k,x5)
-      call i10(NE,np,ng2,ngee,GAM_2s,GAM_ee,
-     x                        ip,jp,ii,jj,kk,ll,i,l,k,j,x6)
+      call RXCHFmult_i10(NE,np,ng2,ngee,GAM_2s,GAM_ee,   ! 1 2 3 4
+     x                                   ip,jp,ii,jj,kk,ll,i,j,k,l,x1)
+      call RXCHFmult_i10(NE,np,ng2,ngee,GAM_2s,GAM_ee,
+     x                                   ip,jp,ii,jj,kk,ll,i,j,l,k,x2)
+      call RXCHFmult_i10(NE,np,ng2,ngee,GAM_2s,GAM_ee,
+     x                                   ip,jp,ii,jj,kk,ll,i,k,j,l,x3)
+      call RXCHFmult_i10(NE,np,ng2,ngee,GAM_2s,GAM_ee,
+     x                                   ip,jp,ii,jj,kk,ll,i,k,l,j,x4)
+      call RXCHFmult_i10(NE,np,ng2,ngee,GAM_2s,GAM_ee,
+     x                                   ip,jp,ii,jj,kk,ll,i,l,j,k,x5)
+      call RXCHFmult_i10(NE,np,ng2,ngee,GAM_2s,GAM_ee,
+     x                                   ip,jp,ii,jj,kk,ll,i,l,k,j,x6)
 
       ans = x1
      x    - x2/TWO
@@ -52,8 +52,8 @@ C input
       end
 
 C======================================================================
-      SUBROUTINE i10(ne,np,ng2,ngee,GAM_2s,GAM_ee,
-     x             ip,jp,ie1,ie2,ie3,ie4,je1,je2,je3,je4,ans)
+      SUBROUTINE RXCHFmult_i10(ne,np,ng2,ngee,GAM_2s,GAM_ee,
+     x                     ip,jp,ie1,ie2,ie3,ie4,je1,je2,je3,je4,ans)
 C======================================================================
 C Physicist to chemist notation conversion
       implicit none
@@ -77,15 +77,11 @@ c     logical prin
       integer ie4,je4
       double precision ans
 
-
-c     call calc_GAM_4_integral(NE,NG2,NVEE,ie1,je1,ie2,je2,
-c    1                      ie3,je3,ie4,je4,sgmat2,Vee,ans)
-
-      call calc_GAM_4_integral(ne,np,ng2,ngee,
-     x                         GAM_2s,GAM_ee,ip,jp,
-     x                         ie1,je1,ie2,je2,
-     x                         ie3,je3,ie4,je4,
-     x                         ans)
+      call RXCHFmult_calc_GAM_4_integral(ne,np,ng2,ngee,
+     x                                   GAM_2s,GAM_ee,ip,jp,
+     x                                   ie1,je1,ie2,je2,
+     x                                   ie3,je3,ie4,je4,
+     x                                   ans)
 C
 
       return
@@ -93,11 +89,11 @@ C
 
 
 C======================================================================
-      subroutine calc_GAM_4_integral(ne,np,ng2,ngee,
-     x                               GAM_2s,GAM_ee,ip,jp,
-     x                               ie1,je1,ie2,je2,
-     x                               ie3,je3,ie4,je4,
-     x                               ans)
+      subroutine RXCHFmult_calc_GAM_4_integral(ne,np,ng2,ngee,
+     x                                         GAM_2s,GAM_ee,ip,jp,
+     x                                         ie1,je1,ie2,je2,
+     x                                         ie3,je3,ie4,je4,
+     x                                         ans)
 C
 C======================================================================
       implicit none
