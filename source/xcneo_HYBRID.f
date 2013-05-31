@@ -540,8 +540,7 @@ c     write(*,*)'ng4prm=',ng4prm
          if(.NOT.LNEOHF) then
 
 C Call separate routine for RXCHF(nbe>1) integral calculations
-C          if (((LRXCHF).or.(LRXCUHF)).and.(NBE.gt.1)) then
-          if (((LRXCHF).or.(LRXCUHF)).and.(NBE.gt.0)) then
+          if (((LRXCHF).or.(LRXCUHF)).and.(NBE.gt.1)) then
            if (LRXCHF) then
             write(*,*)
             write(*,*) "STARTING DRIVER FOR RXCHFMULT CALCULATION"
@@ -897,8 +896,7 @@ C Above hack commented out as should be handled by EXCHLEV=0
 
          elseif(LRXCHF) then
 
-C          if (NBE.eq.1) then
-          if (NBE.eq.0) then
+          if (NBE.eq.1) then
 
            if (EXCHLEV.eq.2) then
 
@@ -932,8 +930,7 @@ C          if (NBE.eq.1) then
 
          elseif(LRXCUHF) then
 
-C          if (NBE.eq.1) then
-          if (NBE.eq.0) then
+          if (NBE.eq.1) then
 
            if (EXCHLEV.eq.2) then
 

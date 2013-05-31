@@ -1,0 +1,593 @@
+ 
+ nat   =                     1
+ npebf =                     8
+ nebf  =                     8
+ npbf  =                     6
+ ngtg1 =                     8
+ ngee  =                  4096
+ ng1   =                  2304
+ ng2   =                147456
+ ng3   =               9437184
+ ng4   =             603979776
+ ng1prm=                  2304
+ ng2prm=                147456
+ ng3prm=               9437184
+ 
+ PMASS   =   1.00000000000000     
+ nelec   =                     4
+ NAE     =                     2
+ NBE     =                     2
+ NUCST   =                     1
+ LNEOHF  = F
+ LXCUHF  = F
+ LXCROHF = F
+ LRXCHF  = F
+ LRXCUHF  = F
+ read_CE = F
+ read_CP = F
+ READ_GAM2= F
+ READ_GAM3= F
+ READ_GAM4= F
+ NG4CHK  =                    50
+ LGAM4   = T
+ LG4DSCF = F
+ LG4IC   = T
+ NG3CHK  =                    50
+ LG3DSCF = F
+ LG3IC1  = T
+ LG3IC2  = F
+ NG2CHK  =                    50
+ LG2DSCF = F
+ LG2IC1  = T
+ LCMF    = F
+ LSOSCF  = T
+ LOCBSE  = F
+ EXCHLEV =                     0  (=2: fe; =1: ae; =0: ne)
+ Geminal parameters: k, b_k, gamm_k
+                     1   19.1778400000000       6.000000000000000E-002
+                     2   27.7918100000000       0.246000000000000     
+                     3   22.4009100000000       0.897000000000000     
+                     4   14.1654500000000        3.91500000000000     
+                     5   7.06552000000000        24.4260000000000     
+                     6  0.550560000000000        162.241000000000     
+                     7   2.12195000000000        191.020000000000     
+                     8   1.06671000000000        1934.59000000000     
+ 
+ 
+  CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS 
+ CONT INDEX    KPESTR     KPEEND
+
+   1     1    1
+
+   2     2    2
+
+   3     3    3
+
+   4     4    4
+
+   5     5    5
+
+   6     6    6
+
+   7     7    7
+
+   8     8    8
+ 
+ ELECTRONIC BASIS FUNCTIONS:
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0    0.026631  1.000000  0.000000  0.000000  0.000000
+
+   2     2    0  0  0    0.099651  1.000000  0.000000  0.000000  0.000000
+
+   3     3    0  0  0    0.372887  1.000000  0.000000  0.000000  0.000000
+
+   4     4    0  0  0    1.395309  1.000000  0.000000  0.000000  0.000000
+
+   5     5    0  0  0    5.221120  1.000000  0.000000  0.000000  0.000000
+
+   6     6    0  0  0   19.536960  1.000000  0.000000  0.000000  0.000000
+
+   7     7    0  0  0   73.105547  1.000000  0.000000  0.000000  0.000000
+
+   8     8    0  0  0  273.554377  1.000000  0.000000  0.000000  0.000000
+ ELECTRONIC BASIS FUNCTIONS:
+ CONTRACT COEFF HAVE BEEN NORMALIZED
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0    0.026631  0.046984  0.000000  0.000000  0.000000
+
+   2     2    0  0  0    0.099651  0.126407  0.000000  0.000000  0.000000
+
+   3     3    0  0  0    0.372887  0.340089  0.000000  0.000000  0.000000
+
+   4     4    0  0  0    1.395309  0.914983  0.000000  0.000000  0.000000
+
+   5     5    0  0  0    5.221120  2.461687  0.000000  0.000000  0.000000
+
+   6     6    0  0  0   19.536960  6.622971  0.000000  0.000000  0.000000
+
+   7     7    0  0  0   73.105547 17.818570  0.000000  0.000000  0.000000
+
+   8     8    0  0  0  273.554377 47.939427  0.000000  0.000000  0.000000
+ 
+ NUCLEAR BASIS FUNCTIONS:
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0    0.012247  1.000000  0.000000  0.000000  0.000000
+
+   2     2    0  0  0    0.028902  1.000000  0.000000  0.000000  0.000000
+
+   3     3    0  0  0    0.068202  1.000000  0.000000  0.000000  0.000000
+
+   4     4    0  0  0    0.160944  1.000000  0.000000  0.000000  0.000000
+
+   5     5    0  0  0    0.379798  1.000000  0.000000  0.000000  0.000000
+
+   6     6    0  0  0    0.896251  1.000000  0.000000  0.000000  0.000000
+ 
+ NUCLEAR BASIS FUNCTIONS:
+ CONTRACT COEFF HAVE BEEN NORMALIZED
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0    0.012247  0.026239  0.000000  0.000000  0.000000
+
+   2     2    0  0  0    0.028902  0.049958  0.000000  0.000000  0.000000
+
+   3     3    0  0  0    0.068202  0.095117  0.000000  0.000000  0.000000
+
+   4     4    0  0  0    0.160944  0.181099  0.000000  0.000000  0.000000
+
+   5     5    0  0  0    0.379798  0.344806  0.000000  0.000000  0.000000
+
+   6     6    0  0  0    0.896251  0.656496  0.000000  0.000000  0.000000
+ 
+ CONTRACTED ELECTRONIC OVERLAP MATRIX
+ 
+
+             1           2           3           4           5
+
+    1    1.0000000
+    2    0.7369449   1.0000000
+    3    0.3523433   0.7369449   1.0000000
+    4    0.1411785   0.3523433   0.7369449   1.0000000
+    5    0.0535736   0.1411785   0.3523433   0.7369449   1.0000000
+    6    0.0200243   0.0535736   0.1411785   0.3523433   0.7369449
+    7    0.0074540   0.0200243   0.0535736   0.1411785   0.3523433
+    8    0.0027717   0.0074540   0.0200243   0.0535736   0.1411785
+
+             6           7           8
+
+    6    1.0000000
+    7    0.7369449   1.0000000
+    8    0.3523433   0.7369449   1.0000000
+ 
+ NUCLEAR OVERLAP MATRIX
+ 
+
+             1           2           3           4           5
+
+    1    1.0000000
+    2    0.8744414   1.0000000
+    3    0.6090334   0.8744414   1.0000000
+    4    0.3671085   0.6090334   0.8744414   1.0000000
+    5    0.2052288   0.3671085   0.6090334   0.8744414   1.0000000
+    6    0.1107680   0.2052288   0.3671085   0.6090334   0.8744414
+
+             6
+
+    6    1.0000000
+ 
+ **************************************
+  CALCULATING ELEC+NUC CORE INTEGRALS  
+ **************************************
+ 
+ all done in calc_GAM_epcore
+ 
+ **************************************
+     Computing GAM_ep Integrals    
+ **************************************
+ 
+ got here
+ all done in calc_GAM_ep
+ 
+ **************************************
+     Computing GAM_ee Integrals    
+ 
+ nebf =                     8
+ npebf=                     8
+ ngee =                  4096
+ **************************************
+ 
+ all done in calc_GAM_ee
+ 
+ **************************************
+        GAM_1 Integrals    
+ 
+ METHOD = MD
+ npebf  =                     8
+ nebf   =                     8
+ npbf   =                     6
+ ng1    =                  2304
+  Available processors:           24
+  Available threads               24
+  Threads in use                   1
+ **************************************
+ 
+  Hello from process                      0
+ Threads in use          24
+  Hello from process                      1
+  Hello from process                      8
+  Hello from process                     11
+  Hello from process                      4
+  Hello from process                      6
+  Hello from process                     12
+  Hello from process                     20
+  Hello from process                     21
+  Hello from process                     18
+  Hello from process                     13
+  Hello from process                     22
+  Hello from process                     15
+  Hello from process                     16
+  Hello from process                     17
+  Hello from process                      3
+  Hello from process                      5
+  Hello from process                     14
+  Hello from process                      2
+  Hello from process                     19
+  Hello from process                     23
+  Hello from process                      9
+  Hello from process                     10
+  Hello from process                      7
+ TIME TO CALCULATE GAM_1 INTEGRALS:   0.876952886581421     
+
+      +---------------------------------------------+
+      |     CALCULATING 3-PARTICLE INTEGRALS        |
+      |            --IN-CORE APPROACH--             |
+      +---------------------------------------------+
+                                  
+           NUMBER OF 3-PARTICLE INTEGRALS:        147456
+          NUMBER OF BLOCKS (USER DEFINED):            50
+                                  
+          COMPUTATIONAL RESOURCES:
+          ------------------------
+             CORES PER NODE:  24
+                  AVAILABLE:  24
+            NUMBER OF NODES:   1
+
+            TIME TO EVALUATE BLOCK     1       2.48
+            TIME TO EVALUATE BLOCK     2       2.46
+            TIME TO EVALUATE BLOCK     3       2.46
+            TIME TO EVALUATE BLOCK     4       2.46
+            TIME TO EVALUATE BLOCK     5       2.47
+            TIME TO EVALUATE BLOCK     6       2.47
+            TIME TO EVALUATE BLOCK     7       2.47
+            TIME TO EVALUATE BLOCK     8       2.46
+            TIME TO EVALUATE BLOCK     9       2.47
+            TIME TO EVALUATE BLOCK    10       2.47
+            TIME TO EVALUATE BLOCK    11       2.47
+            TIME TO EVALUATE BLOCK    12       2.47
+            TIME TO EVALUATE BLOCK    13       2.47
+            TIME TO EVALUATE BLOCK    14       2.47
+            TIME TO EVALUATE BLOCK    15       2.47
+            TIME TO EVALUATE BLOCK    16       2.47
+            TIME TO EVALUATE BLOCK    17       2.47
+            TIME TO EVALUATE BLOCK    18       2.47
+            TIME TO EVALUATE BLOCK    19       2.48
+            TIME TO EVALUATE BLOCK    20       2.48
+            TIME TO EVALUATE BLOCK    21       2.48
+            TIME TO EVALUATE BLOCK    22       2.48
+            TIME TO EVALUATE BLOCK    23       2.48
+            TIME TO EVALUATE BLOCK    24       2.48
+            TIME TO EVALUATE BLOCK    25       2.48
+            TIME TO EVALUATE BLOCK    26       2.48
+            TIME TO EVALUATE BLOCK    27       2.48
+            TIME TO EVALUATE BLOCK    28       2.48
+            TIME TO EVALUATE BLOCK    29       2.48
+            TIME TO EVALUATE BLOCK    30       2.49
+            TIME TO EVALUATE BLOCK    31       2.48
+            TIME TO EVALUATE BLOCK    32       2.61
+            TIME TO EVALUATE BLOCK    33       2.51
+            TIME TO EVALUATE BLOCK    34       2.53
+            TIME TO EVALUATE BLOCK    35       2.51
+            TIME TO EVALUATE BLOCK    36       2.52
+            TIME TO EVALUATE BLOCK    37       2.53
+            TIME TO EVALUATE BLOCK    38       2.52
+            TIME TO EVALUATE BLOCK    39       2.66
+            TIME TO EVALUATE BLOCK    40       2.52
+            TIME TO EVALUATE BLOCK    41       2.53
+            TIME TO EVALUATE BLOCK    42       2.52
+            TIME TO EVALUATE BLOCK    43       2.53
+            TIME TO EVALUATE BLOCK    44       2.55
+            TIME TO EVALUATE BLOCK    45       2.52
+            TIME TO EVALUATE BLOCK    46       2.59
+            TIME TO EVALUATE BLOCK    47       2.52
+            TIME TO EVALUATE BLOCK    48       2.53
+            TIME TO EVALUATE BLOCK    49       2.52
+            TIME TO EVALUATE BLOCK    50       2.53
+
+          TIMING SUMMARY FOR 3-PARTICLE INTEGRALS:
+          ----------------------------------------
+            TIME TO EVALUATE ALL INTEGRALS:     124.9736
+              TIME TO SYMMETRIZE INTEGRALS:       0.0070
+
+
+      +---------------------------------------------+
+      |     CALCULATING 4-PARTICLE INTEGRALS        |
+      |            --IN-CORE APPROACH--             |
+      +---------------------------------------------+
+                                  
+           NUMBER OF 4-PARTICLE INTEGRALS:       9437184
+          NUMBER OF BLOCKS (USER DEFINED):            50
+                                  
+          COMPUTATIONAL RESOURCES:
+          ------------------------
+             CORES PER NODE:  24
+                  AVAILABLE:  24
+            NUMBER OF NODES:   1
+
+            TIME TO EVALUATE BLOCK     1       7.88
+            TIME TO EVALUATE BLOCK     2       7.85
+            TIME TO EVALUATE BLOCK     3       7.85
+            TIME TO EVALUATE BLOCK     4       7.83
+            TIME TO EVALUATE BLOCK     5       7.78
+            TIME TO EVALUATE BLOCK     6       7.79
+            TIME TO EVALUATE BLOCK     7       7.79
+            TIME TO EVALUATE BLOCK     8       7.80
+            TIME TO EVALUATE BLOCK     9       7.80
+            TIME TO EVALUATE BLOCK    10       7.80
+            TIME TO EVALUATE BLOCK    11       7.81
+            TIME TO EVALUATE BLOCK    12       7.81
+            TIME TO EVALUATE BLOCK    13       7.82
+            TIME TO EVALUATE BLOCK    14       7.82
+            TIME TO EVALUATE BLOCK    15       7.83
+            TIME TO EVALUATE BLOCK    16       7.83
+            TIME TO EVALUATE BLOCK    17       7.83
+            TIME TO EVALUATE BLOCK    18       7.83
+            TIME TO EVALUATE BLOCK    19       7.83
+            TIME TO EVALUATE BLOCK    20       7.84
+            TIME TO EVALUATE BLOCK    21       7.84
+            TIME TO EVALUATE BLOCK    22       7.85
+            TIME TO EVALUATE BLOCK    23       7.85
+            TIME TO EVALUATE BLOCK    24       7.86
+            TIME TO EVALUATE BLOCK    25       7.85
+            TIME TO EVALUATE BLOCK    26       7.85
+            TIME TO EVALUATE BLOCK    27       7.86
+            TIME TO EVALUATE BLOCK    28       7.85
+            TIME TO EVALUATE BLOCK    29       7.86
+            TIME TO EVALUATE BLOCK    30       7.85
+            TIME TO EVALUATE BLOCK    31       7.86
+            TIME TO EVALUATE BLOCK    32       7.87
+            TIME TO EVALUATE BLOCK    33       7.87
+            TIME TO EVALUATE BLOCK    34       7.87
+            TIME TO EVALUATE BLOCK    35       7.87
+            TIME TO EVALUATE BLOCK    36       7.85
+            TIME TO EVALUATE BLOCK    37       7.85
+            TIME TO EVALUATE BLOCK    38       7.86
+            TIME TO EVALUATE BLOCK    39       7.85
+            TIME TO EVALUATE BLOCK    40       7.85
+            TIME TO EVALUATE BLOCK    41       7.85
+            TIME TO EVALUATE BLOCK    42       7.85
+            TIME TO EVALUATE BLOCK    43       7.86
+            TIME TO EVALUATE BLOCK    44       7.87
+            TIME TO EVALUATE BLOCK    45       7.84
+            TIME TO EVALUATE BLOCK    46       7.84
+            TIME TO EVALUATE BLOCK    47       7.84
+            TIME TO EVALUATE BLOCK    48       7.84
+            TIME TO EVALUATE BLOCK    49       7.84
+            TIME TO EVALUATE BLOCK    50       7.86
+
+          TIMING SUMMARY FOR 4-PARTICLE INTEGRALS:
+          ----------------------------------------
+            TIME TO EVALUATE ALL INTEGRALS:     392.0306
+              TIME TO SYMMETRIZE INTEGRALS:       1.3036
+
+
+      +---------------------------------------------+
+      |     CALCULATING 5-PARTICLE INTEGRALS        |
+      |            --IN-CORE APPROACH--             |
+      +---------------------------------------------+
+                                  
+           NUMBER OF 5-PARTICLE INTEGRALS:     603979776
+          NUMBER OF BLOCKS (USER DEFINED):            50
+                                  
+          COMPUTATIONAL RESOURCES:
+          ------------------------
+             CORES PER NODE:  24
+                  AVAILABLE:  24
+            NUMBER OF NODES:   1
+
+            TIME TO EVALUATE BLOCK     1       5.06
+            TIME TO EVALUATE BLOCK     2       5.51
+            TIME TO EVALUATE BLOCK     3       5.49
+            TIME TO EVALUATE BLOCK     4       5.20
+            TIME TO EVALUATE BLOCK     5       5.24
+            TIME TO EVALUATE BLOCK     6       5.23
+            TIME TO EVALUATE BLOCK     7       5.45
+            TIME TO EVALUATE BLOCK     8       5.37
+            TIME TO EVALUATE BLOCK     9       5.19
+            TIME TO EVALUATE BLOCK    10       5.25
+            TIME TO EVALUATE BLOCK    11       5.24
+            TIME TO EVALUATE BLOCK    12       5.36
+            TIME TO EVALUATE BLOCK    13       5.45
+            TIME TO EVALUATE BLOCK    14       5.50
+            TIME TO EVALUATE BLOCK    15       5.49
+            TIME TO EVALUATE BLOCK    16       5.49
+            TIME TO EVALUATE BLOCK    17       5.22
+            TIME TO EVALUATE BLOCK    18       5.23
+            TIME TO EVALUATE BLOCK    19       5.23
+            TIME TO EVALUATE BLOCK    20       5.47
+            TIME TO EVALUATE BLOCK    21       5.29
+            TIME TO EVALUATE BLOCK    22       5.23
+            TIME TO EVALUATE BLOCK    23       5.35
+            TIME TO EVALUATE BLOCK    24       5.19
+            TIME TO EVALUATE BLOCK    25       5.27
+            TIME TO EVALUATE BLOCK    26       5.20
+            TIME TO EVALUATE BLOCK    27       5.37
+            TIME TO EVALUATE BLOCK    28       5.42
+            TIME TO EVALUATE BLOCK    29       5.20
+            TIME TO EVALUATE BLOCK    30       5.31
+            TIME TO EVALUATE BLOCK    31       5.21
+            TIME TO EVALUATE BLOCK    32       5.34
+            TIME TO EVALUATE BLOCK    33       5.40
+            TIME TO EVALUATE BLOCK    34       5.09
+            TIME TO EVALUATE BLOCK    35       5.41
+            TIME TO EVALUATE BLOCK    36       5.11
+            TIME TO EVALUATE BLOCK    37       5.47
+            TIME TO EVALUATE BLOCK    38       5.41
+            TIME TO EVALUATE BLOCK    39       5.55
+            TIME TO EVALUATE BLOCK    40       5.22
+            TIME TO EVALUATE BLOCK    41       5.49
+            TIME TO EVALUATE BLOCK    42       5.27
+            TIME TO EVALUATE BLOCK    43       5.22
+            TIME TO EVALUATE BLOCK    44       5.48
+            TIME TO EVALUATE BLOCK    45       5.30
+            TIME TO EVALUATE BLOCK    46       5.20
+            TIME TO EVALUATE BLOCK    47       5.37
+            TIME TO EVALUATE BLOCK    48       5.40
+            TIME TO EVALUATE BLOCK    49       5.10
+            TIME TO EVALUATE BLOCK    50       5.42
+
+          TIMING SUMMARY FOR 5-PARTICLE INTEGRALS:
+          ----------------------------------------
+            TIME TO EVALUATE ALL INTEGRALS:     266.0392
+ READ IN NUC REPULSION
+ 
+ READ IN NUC OVLAP
+ READ IN ELEC OVLAP
+ READ IN GAM_ECORE
+ READ IN GAM_PCORE
+ READ IN GAM_EP
+ READ IN GAM_EE
+ 
+ ABOUT TO CALL guess_elec
+ BACK FROM guess_elec
+ ABOUT TO CALL guess_prot
+ BACK FROM guess_prot
+ 
+
+       ** BEGIN NEOXC SELF-CONSISTENT-FIELD CALCULATION **
+
+           INITIAL GUESS ENERGETICS:            
+
+      -----------------------------------------------
+               NEOXCHF ENERGETIC COMPONENTS          
+      -----------------------------------------------
+                E_NUC=         0.0000000000
+              E_ECORE=       -11.2329146095
+              E_PCORE=         0.3007014603
+                 E_EP=        -0.3567270169
+                 E_EE=         4.7040182201
+               E_GAM1=        -0.6048165679
+               E_GAM2=       -14.1824813400
+               E_GAM3=        -1.5435805527
+               E_GAM4=         1.3112889244
+              S_TOTAL=         4.2222314338
+              E_TOTAL=        -5.1168468192
+
+
+ ITER     TOTAL ENERGY        E CHANGE     E DENSITY CHANGE   P DENSITY CHANGE    ORB GRAD
+   1       -6.1396906401    -6.1396906401     1.4630113927     0.7685770627     0.0000000000
+          ---------------START SECOND ORDER SCF---------------
+   2       -7.0975226084    -0.9578319683     0.3939874920     2.6605879122     0.2003193521
+   3       -7.3940716793    -0.2965490709     0.3251570354     5.9656096688     0.0392787575
+   4       -7.4930058051    -0.0989341258     0.2498580138     2.8781890301     0.0185689188
+   5       -7.5491556197    -0.0561498145     0.5066409535     4.9649680287     0.0191893276
+   6       -7.5512052156    -0.0020495960     0.7713465931     1.9515305490     0.0483752280
+   7       -7.5898997063    -0.0386944907     0.7264907700     4.4422617493     0.0208595382
+   8       -7.6061274979    -0.0162277917     0.1380409740     1.5897788688     0.0057451124
+   9       -7.6114432383    -0.0053157403     0.0436908464     1.6971285002     0.0044832277
+  10       -7.6121390782    -0.0006958399     0.0385546713     0.6295109973     0.0025975606
+  11       -7.6121541248    -0.0000150466     0.0067316509     0.0731271386     0.0040873170
+  12       -7.6121687681    -0.0000146432     0.0083777571     0.0026701962     0.0011376597
+  13       -7.6121700614    -0.0000012934     0.0032017493     0.0007043638     0.0002709270
+  14       -7.6121703452    -0.0000002838     0.0000894888     0.0002650064     0.0000520906
+  15       -7.6121703471    -0.0000000019     0.0000302689     0.0000124294     0.0000277950
+  16       -7.6121703474    -0.0000000003     0.0000096045     0.0000061522     0.0000107923
+  17       -7.6121703474    -0.0000000001     0.0000017397     0.0000007020     0.0000006244
+  18       -7.6121703474     0.0000000000     0.0000003400     0.0000004171     0.0000003132
+
+ FINAL NEOXCHF ENERGY IS       -7.6121703474 AFTER  18 ITERATIONS
+
+      -----------------------------------------------
+               NEOXCHF ENERGETIC COMPONENTS          
+      -----------------------------------------------
+                E_NUC=         0.0000000000
+              E_ECORE=       -10.3066598922
+              E_PCORE=         0.3364386046
+                 E_EP=        -0.4198785757
+                 E_EE=         2.8893310625
+               E_GAM1=       -22.7874151971
+               E_GAM2=      -254.9861464651
+               E_GAM3=       -11.5025084080
+               E_GAM4=         7.3781152765
+              S_TOTAL=        38.0178990204
+              E_TOTAL=        -7.6121703474
+
+
+        ELECTRONIC ORBITALS AND EIGENVALUES:         
+
+                        1          2          3          4          5
+
+                     -1.1219    -0.1381     0.0927     1.4501    12.0901
+
+    1  LABEL       -0.047143  -0.922666   1.227035   0.649197  -0.180113
+    2  LABEL        0.013080  -0.145988  -1.735817  -1.780515   0.603779
+    3  LABEL       -0.180405   0.088754   0.228566   2.399569  -1.385856
+    4  LABEL       -0.565223   0.129343   0.201811  -1.106003   2.290094
+    5  LABEL       -0.310462   0.051922   0.093779  -0.060307  -1.657350
+    6  LABEL       -0.086445   0.014751   0.021150  -0.069387   0.074982
+    7  LABEL       -0.017258   0.002733   0.004572  -0.003287  -0.060792
+    8  LABEL       -0.004817   0.000799   0.001157  -0.003250   0.000385
+
+                        6          7          8
+
+                     59.2635   256.5931  1077.7096
+
+    1  LABEL        0.074949  -0.033668  -0.015473
+    2  LABEL       -0.240758   0.107767   0.049425
+    3  LABEL        0.553442  -0.245170  -0.111829
+    4  LABEL       -1.172025   0.519477   0.234290
+    5  LABEL        2.070646  -1.077845  -0.485235
+    6  LABEL       -1.838275   1.939162   0.995957
+    7  LABEL        0.172426  -1.852096  -1.782505
+    8  LABEL       -0.049579   0.159824   1.670928
+
+          NUCLEAR ORBITALS AND EIGENVALUES:          
+
+                        1          2          3          4          5
+
+                     -0.0051     0.2170     5.5676    58.9945   367.5710
+
+    1  LABEL        1.961603   2.159413  -1.265992   0.736223  -0.446360
+    2  LABEL       -1.468023  -4.831584   4.108550  -2.540436   1.561957
+    3  LABEL        0.309745   3.200998  -6.204648   4.955908  -3.202117
+    4  LABEL       -0.056155  -0.937637   3.757206  -6.158192   4.964442
+    5  LABEL        0.010918   0.184108  -1.036766   3.100629  -5.092010
+    6  LABEL       -0.001564  -0.022451   0.148547  -0.533970   1.667703
+
+                        6
+
+                   2475.4296
+
+    1  LABEL       -0.273728
+    2  LABEL        0.958416
+    3  LABEL       -1.973259
+    4  LABEL        3.159179
+    5  LABEL       -3.942106
+    6  LABEL        2.800169
+
+          +--------------------------------------+
+          |    TIMING SUMMARY FOR CALCULATION    |
+          +--------------------------------------+
+            TIME TO EVALUATE INTEGRALS:     785.2660
+                          TIME FOR SCF:    3849.6699
+

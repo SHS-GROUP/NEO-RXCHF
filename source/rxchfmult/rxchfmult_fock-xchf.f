@@ -137,26 +137,6 @@ C Variables for overlap contributions to Fock matrices
 
       call E_from_GAM_1(nebf,npbf,ng1,DE,DP,focke,fockp,E_gam1)
 
-         write(*,*)
-         write(*,*) "se1:"
-         call prt_lower_triangle(nebf,nebflt,se1)
-         write(*,*)
-         write(*,*)
-         write(*,*) "sp1:"
-         call prt_lower_triangle(npbf,npbflt,sp1)
-         write(*,*)
-         write(*,*)
-         write(*,*) "focke:"
-         call prt_lower_triangle(nebf,nebflt,focke)
-         write(*,*)
-         write(*,*)
-         write(*,*) "fockp:"
-         call prt_lower_triangle(npbf,npbflt,fockp)
-         write(*,*)
-         write(*,*) "S_gam1:",S_gam1
-         write(*,*) "E_gam1:",E_gam1
-      
-
       if(nelec.gt.1) then
 
          if(LG2DSCF) then

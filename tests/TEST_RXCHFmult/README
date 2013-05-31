@@ -3,10 +3,40 @@
 TEST01
 ======
 
-System:      He (2 electrons) separated by 50 Ang from PsH (2 electron + 1 positron)
-Level:       NEO-RXCHF with PsH parameters (6s/6s basis set, NGTG=2) from 2012 JCP, and 3-21G or 6-311G for helium
+System:      He (2 electrons) separated by 200 Ang from PsH (2 electron + 1 positron)
+Level:       NEO-RXCHF with PsH parameters (6s/6s basis set, NGTG=2) from 2012 JCP, and 3-21G/6-311G for helium
 Compare to:  Corresponding RHF calculation for He and XCHF calculation for PsH(ngtg=2 data from 2012 JCP)
+Notes:       Need to start from converged orbitals or else RXCHF does not converge
+              - nonconvergence apparent in XCHF calculation of PsH in the presence of the He charge
 
-Results:     Test passes when G ansatz is used. See README file in each ansatz_G/ directory for each basis set
-             Test fails when 1+G ansatz is used.
+3-21G
+
+He (GAMESS) :      FINAL RHF ENERGY IS       -2.8356798736 AFTER   2 ITERATIONS
+PsH (XCHF)  :  FINAL NEOXCHF ENERGY IS       -0.7351388067 AFTER   9 ITERATIONS
+Total       :                                -3.5708186803
+
+RXCHF       : FINAL NEORXCHF ENERGY IS       -3.5708186802 AFTER   2 ITERATIONS
+
+
+
+6-311G
+
+He (GAMESS) :      FINAL RHF ENERGY IS       -2.8598954246 AFTER   7 ITERATIONS
+PsH (XCHF)  :  FINAL NEOXCHF ENERGY IS       -0.7351388067 AFTER   9 ITERATIONS
+Total       :                                -3.5950342313
+
+RXCHF       : 
+ FINAL NEORXCHF ENERGY IS       -3.5950342311 AFTER   2 ITERATIONS
+
+
+======
+TEST02
+======
+
+System:      He (2 electrons) separated by 200 Ang from LiPs (4 electron + 1 positron)
+Level:       NEO-RXCHF with LiPs parameters (8s/6s basis set, NGTG=8) from 2012 JCP, and 3-21G for helium
+Compare to:  Corresponding RHF calculation for He and XCHF calculation for LiPs(data from 2012 JCP)
+Notes:       Converges to a solution that splits the special electrons
+              - happens even when localized orbitals are given as starting guess
+              - unclear how to test this at this point
 
