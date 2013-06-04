@@ -6,6 +6,7 @@ C=======================================================================
      x                            pmass,cat,zan,bcoef1,gamma1,
      x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                            nebfBE,elindBE,
      x                            ng2chk,ng3chk,ng4chk,
      x                            read_CE,read_CP,
      x                            LG2IC,LG3IC,LG4IC,
@@ -33,16 +34,20 @@ C Input variables
       integer nebf                     ! Number of contracted electronic basis functions
       integer npebf                    ! Number of primitive electronic basis functions
       integer npbf                     ! Number of proton basis functions
+      integer nebfBE                   ! Size of elec basis set to use for NBE elecs
       integer nat                      ! Number of classical nuclei
       integer ngtg1                    ! Number of geminal functions
       integer ng1,ng2,ng3,ng4,ngee     ! Numbers of integrals (contracted)
       integer ng1prm,ng2prm,ng3prm     ! Numbers of integrals (primitive)
       integer ng2chk,ng3chk,ng4chk     ! Number of chunks to split integral calculations
+
       integer ELCAM(npebf,3)           ! Angular mom for electrons
       integer NUCAM(npbf,3)            ! Angular mom for quantum nuclei
       integer AMPEB2C(npebf)           ! Map primitive index to contracted
       integer KPESTR(nebf)             ! Map contracted index to primitive start
       integer KPEEND(nebf)             ! Map contracted index to primitive end
+      integer elindBE(nebfBE)          ! Contracted indices of NBE basis set
+
       logical LG2IC                    ! In-core storage of 3-particle integrals
       logical LG3IC                    ! In-core storage of 4-particle integrals
       logical LG4IC                    ! In-core storage of 5-particle integrals
@@ -53,6 +58,7 @@ C Input variables
       logical LOCBSE                   ! OCBSE2 procedure
       logical LCMF                     ! On-the-fly Fock matrix check and debugging
       logical read_CE,read_CP          ! Read in orbitals
+
       double precision pmass           ! Mass of nonelectron quantum particle 
       double precision zan(nat)        ! Classical nuclear charges
       double precision cat(3,nat)      ! Classical nuclear coordinates (au)
@@ -65,15 +71,29 @@ C Input variables
       double precision AGEBFCC(npebf)  ! Map primitive index to contract coeff
       double precision AGNBFCC(npbf)   ! Nuclear contraction coeff
 
+
 C Local variables
+      integer i
+      integer currcontrind,currprimind
+      integer contrind,primstart,primend
       integer nebf2,npbf2,nebflt        ! Convenient quantities
       integer npra,nprb                 ! Number of distinct electron pairs
+
       integer dimXCHF2                  !
       integer dimXCHF3                  ! Dimensions of XCHF integral arrays
       integer dimXCHF4                  !
       integer dimINT2                   !
       integer dimINT3                   ! Dimensions of interaction integral arrays
       integer dimINT4                   !
+
+      integer XELCAM(npebf,3)           ! 
+      integer XAMPEB2C(npebf)           !
+      integer XKPESTR(nebf)             ! 
+      integer XKPEEND(nebf)             ! Dummy basis set variables
+      double precision XELCEX(npebf)    ! 
+      double precision XELCBFC(npebf,3) ! 
+      double precision XAGEBFCC(npebf)  ! 
+
       double precision              :: wtime,wtime1,wtime2  ! Timing variables
       double precision, allocatable :: XCHF_GAM2(:)         ! 3-particle XCHF integrals
       double precision, allocatable :: XCHF_GAM2s(:)        ! 3-particle XCHF overlap integrals
@@ -82,6 +102,72 @@ C Local variables
       double precision, allocatable :: INT_GAM2(:)          ! 3-particle interaction integrals
       double precision, allocatable :: INT_GAM3(:)          ! 4-particle interaction integrals
       double precision, allocatable :: INT_GAM4(:)          ! 4-particle interaction integrals
+
+      integer, allocatable :: ELCAM(npebf,3)           ! Angular mom for electrons
+      integer, allocatable :: NUCAM(npbf,3)            ! Angular mom for quantum nuclei
+      integer, allocatable :: AMPEB2C(npebf)           ! Map primitive index to contracted
+      integer, allocatable :: KPESTR(nebf)             ! Map contracted index to primitive start
+      integer, allocatable :: KPEEND(nebf)             ! Map contracted index to primitive end
+      double precision, allocatable :: ELCEX(npebf)    ! Electronic basis function exponents
+      double precision, allocatable :: NUCEX(npbf)     ! Nuclear basis function exponents
+      double precision, allocatable :: ELCBFC(npebf,3) ! Electronic basis function centers
+      double precision, allocatable :: NUCBFC(npbf,3)  ! Nuclear basis function centers
+      double precision, allocatable :: AGEBFCC(npebf)  ! Map primitive index to contract coeff
+      double precision, allocatable :: AGNBFCC(npbf)   ! Nuclear contraction coeff
+
+
+C Reorder electronic basis set such that special electron subset is first
+      currcontrind=1
+      currprimind=1
+      npebfBE=0
+
+      do i=1,nebfBE
+        contrind=elindBE(i)
+        primstart=KPESTR(contrind)
+        primend=KPEEND(contrind)
+        numprims=(primend-primstart)+1
+        XKPESTR(currcontrind)=currprimind
+        XKPEEND(currcontrind)=currprimind+numprims-1
+        do primind=primstart,primend
+          XELCAM(currprimind,1)=ELCAM(primind,1)
+          XELCAM(currprimind,2)=ELCAM(primind,2)
+          XELCAM(currprimind,3)=ELCAM(primind,3)
+          XAMPEB2C(currprimind)=currcontrind
+          XELCEX(currprimind)=ELCEX(primind)
+          XELCBFC(currprimind,1)=ELCBFC(primind,1)
+          XELCBFC(currprimind,2)=ELCBFC(primind,2)
+          XELCBFC(currprimind,3)=ELCBFC(primind,3)
+          XAGEBFCC(currprimind)=AGEBFCC(primind)
+          currprimind=currprimind+1
+          npebfBE=npebfBE+1
+        end do
+        currcontrind=currcontrind+1
+      end do
+
+C Transfer basis set information to truncated special electron basis
+C      call transfer_basis(nebf,npebf,
+C     x                    KPESTR,KPEEND,
+C     x                    AMPEB2C,AGEBFCC,
+C     x                    ELCEX,ELCAM,ELCBFC,
+C     x                    nebfBE,npbefBE,
+C     x                    KPESTR_be,KPEEND_be,
+C     x                    AMPEB2C_be,AGEBFCC_be,
+C     x                    ELCEX_be,ELCAM_be,ELCBFC_be)
+       write(*,*)
+       write(*,*) "Reordered basis:"
+       write(*,*)
+         WRITE(*,*)'ELECTRONIC BASIS FUNCTIONS:'
+         WRITE(*,*)'CONTRACT COEFF HAVE BEEN NORMALIZED'
+         WRITE(*,*)
+      WRITE(*,*)'PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-'
+         WRITE(*,*)'INDEX INDEX   MOM                  COEF'
+         DO i=1,npebf
+           WRITE(*,9000) i,XAMPEB2C(i),XELCAM(i,1),XELCAM(i,2),
+     x                   XELCAM(i,3),XELCEX(i),XAGEBFCC(i),
+     x                   XELCBFC(i,1),XELCBFC(i,2),XELCBFC(i,3)
+         END DO
+
+      STOP
 
 C Calculate integrals
       wtime = omp_get_wtime()

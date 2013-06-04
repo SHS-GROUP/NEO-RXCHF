@@ -49,6 +49,8 @@
       integer NBE               ! Number of special electrons
       integer NAalpE,NAbetE
       double precision pmass    ! Mass of nonelectron quantum particle 
+      integer nebfBE            ! Size of elec basis set to use for NBE elecs
+      integer,allocatable :: elindBE(:)  ! Contr indices of NBE basis set
 !-------Basis Set Info-------)
       double precision,allocatable :: GM2ICR(:)
       double precision,allocatable :: GM2sICR(:)
@@ -205,6 +207,14 @@
          if (LRXCUHF) then
           read(9,*) NAalpE
           read(9,*) NAbetE
+         end if
+         if ((LRXCHF).and.(NBE.ge.2)) then
+          read(9,*) nebfBE
+          if(allocated(elindBE)) deallocate(elindBE)
+          allocate(elindBE(nebfBE),stat=istat)
+          do i=1,nebfBE
+            read(9,*) elindBE(i)
+          end do
          end if
 
          close(9)
@@ -378,6 +388,15 @@ c     write(*,*)'ng4prm=',ng4prm
        write(*,*)'NAalpE =',NAalpE,'= number of alpha regular electrons'
        write(*,*)'NAbetE =',NAbetE,'= number of beta regular electrons'
       end if
+      if ((LRXCHF).and.(NBE.ge.2)) then
+       write(*,*) "nebfBE =",nebfBE
+       write(*,*) "contracted indices to use for special elec basis:"
+       do i=1,nebfBE
+        write(*,*) elindBE(i)
+       end do
+      end if
+      write(*,*)
+
       write(*,*) "Geminal parameters: k, b_k, gamm_k"
          do i=1,ngtg1
             write(*,*) i,bcoef1(i),gamma1(i)
@@ -552,6 +571,7 @@ C Call separate routine for RXCHF(nbe>1) integral calculations
      x                            pmass,cat,zan,bcoef1,gamma1,
      x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                            nebfBE,elindBE,
      x                            NG2CHK,NG3CHK,NG4CHK,
      x                            read_CE,read_CP,
      x                            LG2IC1,LG3IC1,LG4IC,
