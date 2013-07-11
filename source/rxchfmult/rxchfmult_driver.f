@@ -270,7 +270,15 @@ C Kick-off SCF
          npra=nae*(nebf-nae)
       end if
       if(nbe.gt.1) then
-       nprb=(nebf-(nbe/2))*(nbe/2) ! occ-vir pairs for special elecs
+       if (LOCBSE) then ! account for nocca less virtual orbitals
+        if (nae.gt.1) then
+         nprb=((nebf-nae/2)-(nbe/2))*(nbe/2)
+        else
+         nprb=((nebf-nae)-(nbe/2))*(nbe/2)
+        end if
+       else
+        nprb=(nebf-(nbe/2))*(nbe/2) ! occ-vir pairs for special elecs
+       end if
       else
        nprb=nbe*(nebf-nbe)
       end if

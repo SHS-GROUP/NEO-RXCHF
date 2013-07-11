@@ -208,6 +208,7 @@
       integer ITSOA ! SOSCF iteration counter
       integer ITSOB ! SOSCF iteration counter
       integer L0,L1
+      integer L0w,L1w
       integer NFT15
       integer NFT16
       double precision FLT(NEBFLT) !FLT: Lower triangle focke
@@ -243,7 +244,20 @@
 !cc   double precision CCC(nebf,nebf) !WRK(L0)
 !cc   NPR=(L0-NA)*NA ! Line 2134 RHFCL ?NA is NUM ALPHA E?
 !--------SOSCF-RELATED-VARIABLES------------)
+C ARS( OCBSE variables
+      integer nocca,noccb
+      integer nwbf                                    ! # bf in W basis (nebf-nocca)
+      integer nwbflt                                  ! one-dimensional size
+      double precision, allocatable :: WB(:,:)        ! transformation matrix
+      double precision, allocatable :: wFBEw(:,:)     ! Fock matrix in W basis
+      double precision, allocatable :: wvecBEw(:,:)   ! eigenvectors in W basis from curr it
+      double precision, allocatable :: wBEenw(:)      ! eigenvalues
+      double precision, allocatable :: wFLTw(:)       ! flattened wFBEw
+      double precision, allocatable :: wGBw(:,:)      ! exponential transformation
+      double precision, allocatable :: wWRKw(:)       ! work array (L0w)
+C )
 C ARS( testing variables
+      logical LNOINT
       double precision FBEmo(nebf,nebf)
       double precision work1(nebf,nebf)
       double precision work2(nebf,nebf)
@@ -320,18 +334,60 @@ C )
 
       LOCBSE2=LOCBSE
 C      LOCBSE2=.true. 
+
       if(LOCBSE2) then
        LOCBSE=.false.
        write(*,*) "Using LOCBSE2"
+
+       if (nae.gt.1) then
+        nocca=nae/2
+       else
+        nocca=nae
+       end if
+       if (nbe.gt.1) then
+        noccb=nbe/2
+       else
+        noccb=nbe
+       end if
+
+C       noccvirta=nebf-noccb
+C       noccvirtb=nebf-nocca
+
+       nwbf=nebf-nocca
+       nwbflt=nwbf*(nwbf+1)/2
+       L0w=nwbf
+       L1w=nwbf
+
+       write(*,*) "nebf,nwbf:",nebf,nwbf
+
+       if(allocated(WB)) deallocate(WB)
+       allocate(WB(nwbf,nwbf))
+       if(allocated(wFBEw)) deallocate(wFBEw)
+       allocate(wFBEw(nwbf,nwbf))
+       if(allocated(wvecBEw)) deallocate(wvecBEw)
+       allocate(wvecBEw(nwbf,nwbf))
+       if(allocated(wBEenw)) deallocate(wBEenw)
+       allocate(wBEenw(nwbf))
+       if(allocated(wFLTw)) deallocate(wFLTw)
+       allocate(wFLTw(nwbflt))
+       if(allocated(wGBw)) deallocate(wGBw)
+       allocate(wGBw(nwbf,nwbf))
+       if(allocated(wWRKw)) deallocate(wWRKw)
+       allocate(wWRKw(nwbf))
       end if
+
       if(LOCBSE) write(*,*) "Using LOCBSE"
       LGAM4=.true. ! Always calculate five-particle integrals
 C ARS( no interaction
-      write(*,*)
-      write(*,*) "******************"
-      write(*,*) "  NO INTERACTION  "
-      write(*,*) "******************"
-      write(*,*)
+      LNOINT=.false.
+C      LNOINT=.true.
+      if (LNOINT) then
+       write(*,*)
+       write(*,*) "******************"
+       write(*,*) "  NO INTERACTION  "
+       write(*,*) "******************"
+       write(*,*)
+      end if
 C )
 
 !----------CALCULATE-CLASSICAL-NUCLEAR-REPULSION-ENERGY----------------(
@@ -429,7 +485,8 @@ C )
          LSOSCFA=.true.
          LSOSCFB=.true.
          if((nae.eq.1).or.LOCBSE) LSOSCFA=.FALSE.
-         if((nbe.eq.1).or.(LOCBSE).or.(LOCBSE2)) LSOSCFB=.FALSE.
+C         if((nbe.eq.1).or.(LOCBSE).or.(LOCBSE2)) LSOSCFB=.FALSE.
+         if((nbe.eq.1).or.(LOCBSE)) LSOSCFB=.FALSE.
       else
          LSOSCFA=.false.
          LSOSCFB=.false.
@@ -477,7 +534,6 @@ C )
 !     write(*,*)'Before call to UHF_FOCK, GAM_EE='
 !     write(*,*)GAM_ee
 !     write(*,*)
-       if((.not.((locbse).or.(locbse2))).or.(i.eq.1)) then
 
 C Call HF Fock build for NAE regular electrons
          call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
@@ -515,11 +571,14 @@ C Call interaction Fock build for all particles
      x                           E_int)
 
 C ARS( no interaction
-      E_int=0.0d+00
-      E_HF=0.0d+00
-C          call add2fock(npbf,FPint,FP)
-C          call add2fock(nebf,FAEint,FAE)
-C          call add2fock(nebf,FBEint,FBE)
+      if(LNOINT) then
+          E_int=0.0d+00
+          E_HF=0.0d+00
+      else
+          call add2fock(npbf,FPint,FP)
+          call add2fock(nebf,FAEint,FAE)
+          call add2fock(nebf,FBEint,FBE)
+      end if
 C )
 
           IF (LCMF) then
@@ -537,8 +596,6 @@ C )
           END IF  
 
           E_total=E_HF+E_XCHF+E_int+E_nuc
-
-       end if
 
 !--------------FORM-FOCK-MATRICES-AND-CALC-ENERGY-COMPONENTS-----------)
          if(I.eq.1) then
@@ -567,6 +624,8 @@ C )
          if(LSOSCFB) ITSOB=0
          ORBGRDA=0.0d+00
          ORBGRDB=0.0d+00
+         PGRADA=0.0d+00
+         PGRADB=0.0d+00
 
          write(*,2001) I
 
@@ -581,6 +640,8 @@ C )
          end if
 
          do ielec=1,maxmicroit
+
+       if((.not.((locbse).or.(locbse2))).or.(ielec.eq.1)) then
 C Call HF Fock build for NAE regular electrons
            call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
      x                            DAE,GAM_ecore,GAM_ee,
@@ -617,15 +678,19 @@ C Call interaction Fock build for all particles
      x                             E_int)
 
 C ARS( no interaction
-      E_int=0.0d+00
-      E_HF=0.0d+00
-C            call add2fock(npbf,FPint,FP)
-C            call add2fock(nebf,FAEint,FAE)
-C            call add2fock(nebf,FBEint,FBE)
+      if(LNOINT) then
+            E_int=0.0d+00
+            E_HF=0.0d+00
+      else
+            call add2fock(npbf,FPint,FP)
+            call add2fock(nebf,FAEint,FAE)
+            call add2fock(nebf,FBEint,FBE)
+      end if
 C )
 C ARS( microiteration
           E_total=E_HF+E_XCHF+E_int+E_nuc
 C )
+      end if
 C )
 
          if (LOCBSE) then
@@ -684,11 +749,14 @@ C Call interaction Fock build for all particles
      x                             E_int)
 
 C ARS( no interaction
-      E_int=0.0d+00
-      E_HF=0.0d+00
-C            call add2fock(npbf,FPint,FP)
-C            call add2fock(nebf,FAEint,FAE)
-C            call add2fock(nebf,FBEint,FBE)
+      if(LNOINT) then
+            E_int=0.0d+00
+            E_HF=0.0d+00
+      else
+            call add2fock(npbf,FPint,FP)
+            call add2fock(nebf,FAEint,FAE)
+            call add2fock(nebf,FBEint,FBE)
+      end if
 C )
 
             IF (LCMF) then
@@ -711,11 +779,12 @@ C )
 ! Do OCBSE2 procedure (restricted solutions for special electrons)
 
 ! Regular electrons
-         if(LSOSCF) THEN
-          ITER=I
+!-----------------------POSSIBLE-SOSCF-ALPHA---------------------------(
+         if(LSOSCFA) THEN
+          ITER=IELEC
           EIGAVL = ITER.GT.1
          end if
-         IF(LSOSCF .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
+         IF(LSOSCFA .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
 !!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
            call pack_LT(nebf,nebfLT,FAE,FLT)
           call SOGRAD(GRADA,FLT,vecAE,WRK,NPRA,NA,L0,L1,NEBFLT,ORBGRDA)
@@ -751,18 +820,61 @@ C )
          CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
          CALL COPYDEN(DAE0,DAE,NEBF)
 
-! Do OCBSE procedure for special electrons
-           call RXCHFmult_OCBSE2(nebf,npebf,nae,nbe,vecAE,vecBE0,FBE,
-     x                       xxse,elcam,elcbfc,elcex,
-     x                       ampeb2c,agebfcc,kpestr,kpeend,
-     x                       vecBE,BEe)
+C ARS( new stuff
 
-! Form special electronic density matrix and store stuff for next it
-           call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
-           CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
-           CALL COPYDEN(DBE0,DBE,NEBF)
-           CALL COPYDEN(vecAE0,vecAE,NEBF)
-           CALL COPYDEN(vecBE0,vecBE,NEBF)
+! Transform FBE (calculated at end of previous iteration) to new W basis
+!  - W updated with new vecA from this iteration
+!  - vecBE in old W basis still from previous iteration
+         call RXCHFmult_OCBSE_transF(nebf,nocca,nwbf,
+     x                               vecAE,FBE,WB,wFBEw)
+
+!-----------------------POSSIBLE-SOSCF-BETA----------------------------(
+         if(LSOSCFB) THEN
+           ITER=IELEC
+           EIGAVL = ITER.GT.1
+         end if
+         IF(LSOSCFB .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
+!!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
+           call pack_LT(nwbf,nwbfLT,wFBEw,wFLTw)
+           call SOGRAD(GRADB,wFLTw,wvecBEw,wWRKw,NPRB,NB,
+     x                 L0w,L1w,NwBFLT,ORBGRDB)
+!!!!!!      IF(ORBGRD.LT.SMALL) THEN
+!!!!!!         DIFF = ZERO
+!!!!!!         CVGING=.TRUE.
+!!!!!!         GO TO 700  ! Check on convergence behavior
+!!!!!!      END IF
+            IF(ORBGRDB.LT.SOGTOL  .OR.  ITSOB.GT.0) THEN
+              IF(ITSOB.EQ.0) THEN   ! only on first SOSCF it. set up approx Hess
+                 WRITE(*,9800)
+                 call SOHESS(HSTARTB,wBEenw,NPRB,L0w,NB,NB)
+              END IF
+              ITSOB = ITSOB+1
+           call SONEWT(HSTARTB,GRADB,PGRADB,DISPLIB,DGRADB,DISPLB,UPDTB,
+     *                 DISPLNB,DGRADIB,UPDTIB,ORBGRDB,NPRB,ITSOB,NFT16)
+              call SOTRAN(DISPLIB,wvecBEw,wGBw,wWRKw,NPRB,
+     x                    L0w,L1w,NB,NB,ORBGRDB)
+              CALL DCOPY(NPRB,GRADB,1,PGRADB,1)
+              call RXCHFmult_OCBSE_transV(nebf,nwbf,WB,wvecBEw,wBEenw, ! eigenvalues useless
+     x                                    vecBE,BEe)
+              call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
+              GO TO 450  ! Use the new C's to form new density (change)
+            END IF
+         END IF
+!-----------------------POSSIBLE-SOSCF-BETA----------------------------)
+
+! No SOSCF
+!  - Diagonalize Fock matrix in W basis of this iteration
+!  - Obtain updated vecBE in W basis of this iteration
+         call RXCHFmult_OCBSE_diag(nebf,nwbf,WB,wFBEw,
+     x                             wvecBEw,wBEenw,vecBE,BEe)
+         call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
+
+  450 CONTINUE
+
+         CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
+         CALL COPYDEN(DBE0,DBE,NEBF)
+
+C )
 
 ! Calculate energy for this it and Fock matrices for next it
 
@@ -802,11 +914,14 @@ C Call interaction Fock build for all particles
      x                             E_int)
 
 C ARS( no interaction
-      E_int=0.0d+00
-      E_HF=0.0d+00
-C            call add2fock(npbf,FPint,FP)
-C            call add2fock(nebf,FAEint,FAE)
-C            call add2fock(nebf,FBEint,FBE)
+      if(LNOINT) then
+            E_int=0.0d+00
+            E_HF=0.0d+00
+      else
+            call add2fock(npbf,FPint,FP)
+            call add2fock(nebf,FAEint,FAE)
+            call add2fock(nebf,FBEint,FBE)
+      end if
 C )
 
             IF (LCMF) then
@@ -832,7 +947,7 @@ C )
           ITER=IELEC
           EIGAVL = ITER.GT.1
          end if
-         IF(LSOSCFA .AND.  EIGAVL) THEN
+         IF(LSOSCFA .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
 !!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
            call pack_LT(nebf,nebfLT,FAE,FLT)
           call SOGRAD(GRADA,FLT,vecAE,WRK,NPRA,NA,L0,L1,NEBFLT,ORBGRDA)
@@ -842,7 +957,7 @@ C )
 !!!!!!         GO TO 700  ! Check on convergence behavior
 !!!!!!      END IF
             IF(ORBGRDA.LT.SOGTOL  .OR.  ITSOA.GT.0) THEN
-              IF(ITSOA.EQ.0) THEN
+              IF(ITSOA.EQ.0) THEN   ! only on first SOSCF it. set up approx Hess
               WRITE(*,9800)
                  call SOHESS(HSTARTA,AEE,NPRA,L0,NA,NA)
               END IF
@@ -873,7 +988,7 @@ C )
          ITER=IELEC
          EIGAVL = ITER.GT.1
         end if
-         IF(LSOSCFB .AND.  EIGAVL) THEN
+         IF(LSOSCFB .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
 !!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
            call pack_LT(nebf,nebfLT,FBE,FLT)
           call SOGRAD(GRADB,FLT,vecBE,WRK,NPRB,NB,L0,L1,NEBFLT,ORBGRDB)
@@ -883,7 +998,7 @@ C )
 !!!!!!         GO TO 700  ! Check on convergence behavior
 !!!!!!      END IF
             IF(ORBGRDB.LT.SOGTOL  .OR.  ITSOB.GT.0) THEN
-              IF(ITSOB.EQ.0) THEN
+              IF(ITSOB.EQ.0) THEN   ! only on first SOSCF it. set up approx Hess
              WRITE(*,9800)
                  call SOHESS(HSTARTB,BEE,NPRB,L0,NB,NB)
               END IF
@@ -983,95 +1098,9 @@ C )
       if(LSOSCFB) close(NFT16)
 
 C ARS( test convergence
-      if(LSOSCFB) then
-
-! Rebuild Fock matrices
-C Call HF Fock build for NAE regular electrons
-         call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
-     x                          DAE,GAM_ecore,GAM_ee,
-     x                          FAE,E_HF,E_HF_ecore,E_HF_ee)
-
-C Call XCHF Fock build for NBE special electrons and one QM particle
-         call RXCHFmult_fock_xchf(LGAM4,LG4DSCF,LG4IC,
-     x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
-     x                   NG4CHK,NG3CHK,NG2CHK,
-     x                   dimXCHF4,dimXCHF3,dimXCHF2,
-     x                   npebf,nebf,nebf2,npbf,npbf2,NBE,
-     x                   ngee,ng1,ng2,ng3,ng4,DBE,DP,
-     x                   XCHF_GAM4,XCHF_GAM3,XCHF_GAM2,XCHF_GAM2s,
-     x                   ng2prm,ngtg1,ng3prm,
-     x                   nat,pmass,cat,zan,bcoef1,gamma1,
-     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                   FBE,FP,SBE_XCHF,SP_XCHF,
-     x                   E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
-     x                   E_XCHF_gam3,E_XCHF_gam4,
-     x                   S_total,S_gam1,S_gam2)
-
-C Call interaction Fock build for all particles
-         call RXCHFmult_fock_int(LCMF,nelec,NAE,NBE,
-     x                           nebf,nebf2,npbf,npbf2,
-     x                           ng1,ng2,ng3,ng4,
-     x                           dimINT2,dimINT3,dimINT4,
-     x                           NG2CHK,NG3CHK,NG4CHK,
-     x                           DAE,DBE,DP,
-     x                           INT_GAM2,INT_GAM3,INT_GAM4,
-     x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
-     x                           FPint,FAEint,FBEint, 
-     x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
-     x                           E_int)
-
-C ARS( no interaction
-      E_int=0.0d+00
-      E_HF=0.0d+00
-C          call add2fock(npbf,FPint,FP)
-C          call add2fock(nebf,FAEint,FAE)
-C          call add2fock(nebf,FBEint,FBE)
-C )
-
-          IF (LCMF) then
-           npbflt=npbf*(npbf+1)/2
-           write(*,*)
-           write(*,*) "FAE:"
-           call prt_lower_triangle(nebf,nebflt,FAE)
-           write(*,*)
-           write(*,*) "FBE:"
-           call prt_lower_triangle(nebf,nebflt,FBE)
-           write(*,*)
-           write(*,*) "FP:"
-           call prt_lower_triangle(npbf,npbflt,FP)
-           write(*,*)
-          END IF  
-
-          E_total=E_HF+E_XCHF+E_int+E_nuc
-
-! Calculate updated Fock matrix in MO basis
-      call fock2mobasis(nebf,FBE,vecBE,FBEmo)
-      write(*,*)
-      write(*,*) "FBE in MO basis:"
-      write(*,*)
-      call PREVNU(FBEmo,BEE,nebf,nebf,nebf)
-      CALL COPYDEN(vecBE0,vecBE,NEBF)
-
-! Diagonalize in MO basis
-      CALL RS(nebf,nebf,FBEmo,BEE,2,vecBE,work1,work2,IERR)
-      call fock2mobasis(nebf,FBEmo,vecBE,FBEmo)
-      write(*,*)
-      write(*,*) "FBE after diagonalization in MO basis:"
-      write(*,*)
-      call PREVNU(FBEmo,BEE,nebf,nebf,nebf)
-
-! Output density matrix
-      write(*,*)
-      write(*,*) "DBE before diagonalization:"
-      write(*,*)
-      call PREVNU(DBE,BEE,nebf,nebf,nebf)
-
-C! Diagonalize only nuclear part without reforming
-         call UROOTHAN(vecP,EP,xxsp,FP,npbf)
-         call construct_DP(nucst,npbf,vecP,DP)
-
-C! Reform Fock matrices before diagonalizing electronic parts
+C      if(LSOSCFB) then
+C
+C! Rebuild Fock matrices
 CC Call HF Fock build for NAE regular electrons
 C         call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
 C     x                          DAE,GAM_ecore,GAM_ee,
@@ -1108,11 +1137,14 @@ C     x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
 C     x                           E_int)
 C
 CC ARS( no interaction
-C      E_int=0.0d+00
-C      E_HF=0.0d+00
-CC          call add2fock(npbf,FPint,FP)
-CC          call add2fock(nebf,FAEint,FAE)
-CC          call add2fock(nebf,FBEint,FBE)
+C      if(LNOINT) then
+C          E_int=0.0d+00
+C          E_HF=0.0d+00
+C      else
+C          call add2fock(npbf,FPint,FP)
+C          call add2fock(nebf,FAEint,FAE)
+C          call add2fock(nebf,FBEint,FBE)
+C      end if
 CC )
 C
 C          IF (LCMF) then
@@ -1130,110 +1162,199 @@ C           write(*,*)
 C          END IF  
 C
 C          E_total=E_HF+E_XCHF+E_int+E_nuc
-
-C! Diagonalize post-FP-diagonalized electronic Fock matrices
-         call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
-         call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
-
-         call UROOTHAN(vecBE,BEE,xxse,FBE,nebf)
-         call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
-
-! Calculate updated Fock matrix in MO basis
-      call fock2mobasis(nebf,FBE,vecBE,FBEmo)
-      write(*,*)
-      write(*,*) "FBE in MO basis before rebuild:"
-      write(*,*)
-      call PREVNU(FBEmo,BEE,nebf,nebf,nebf)
-      CALL COPYDEN(vecBE0,vecBE,NEBF)
-
-! Output density matrix
-      write(*,*)
-      write(*,*) "DBE after diagonalization:"
-      write(*,*)
-      call PREVNU(DBE,BEE,nebf,nebf,nebf)
-
-
-! Output energy and density change
-         Delta_E_tot=E_total-E_total_old
-         E_total_old=E_total
-
-         CALL DENDIF(DP0,DP,NPBF,DIFFP)
-         CALL COPYDEN(DP0,DP,NPBF)
-         CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
-         CALL COPYDEN(DAE0,DAE,NEBF)
-         CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
-         CALL COPYDEN(DBE0,DBE,NEBF)
-
-         write(*,*) "After diag without reforming after FP diag:"
-         write(*,*) "E_total:        ",E_total
-         write(*,*) "Delta_E_total:  ",Delta_E_tot
-         write(*,*) "Max DAE change: ",DIFFAE
-         write(*,*) "Max DBE change: ",DIFFBE
-         write(*,*) "Max DP change: ",DIFFP
-
-! One more build and diagonalization
-C Call XCHF Fock build for NBE special electrons and one QM particle
-         call RXCHFmult_fock_xchf(LGAM4,LG4DSCF,LG4IC,
-     x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
-     x                   NG4CHK,NG3CHK,NG2CHK,
-     x                   dimXCHF4,dimXCHF3,dimXCHF2,
-     x                   npebf,nebf,nebf2,npbf,npbf2,NBE,
-     x                   ngee,ng1,ng2,ng3,ng4,DBE,DP,
-     x                   XCHF_GAM4,XCHF_GAM3,XCHF_GAM2,XCHF_GAM2s,
-     x                   ng2prm,ngtg1,ng3prm,
-     x                   nat,pmass,cat,zan,bcoef1,gamma1,
-     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                   FBE,FP,SBE_XCHF,SP_XCHF,
-     x                   E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
-     x                   E_XCHF_gam3,E_XCHF_gam4,
-     x                   S_total,S_gam1,S_gam2)
-
-          E_total=E_HF+E_XCHF+E_int+E_nuc
-
-! Calculate updated Fock matrix in (new) MO basis
-      call fock2mobasis(nebf,FBE,vecBE,FBEmo)
-      write(*,*)
-      write(*,*) "FBE in MO basis:"
-      write(*,*)
-      call PREVNU(FBEmo,BEE,nebf,nebf,nebf)
-
-! Calculate updated Fock matrix in (old) MO basis
-      call fock2mobasis(nebf,FBE,vecBE0,FBEmo)
-      write(*,*)
-      write(*,*) "FBE in old MO basis:"
-      write(*,*)
-      call PREVNU(FBEmo,BEE,nebf,nebf,nebf)
-
-! Output density matrix
-      write(*,*)
-      write(*,*) "DBE before diagonalization:"
-      write(*,*)
-      call PREVNU(DBE,BEE,nebf,nebf,nebf)
-
-! Diagonalize
-      call UROOTHAN(vecBE,BEE,xxse,FBE,nebf)
-      call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
-
-! Output density matrix
-      write(*,*)
-      write(*,*) "DBE after diagonalization:"
-      write(*,*)
-      call PREVNU(DBE,BEE,nebf,nebf,nebf)
-
-! Output energy and density change
-      Delta_E_tot=E_total-E_total_old
-      E_total_old=E_total
-
-      CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
-      CALL COPYDEN(DBE0,DBE,NEBF)
-
-      write(*,*) "After last FBE diag:"
-      write(*,*) "E_total:        ",E_total
-      write(*,*) "Delta_E_total:  ",Delta_E_tot
-      write(*,*) "Max DBE change: ",DIFFBE
-
-      end if
+C
+C! Calculate updated Fock matrix in MO basis
+C      call fock2mobasis(nebf,FBE,vecBE,FBEmo)
+C      write(*,*)
+C      write(*,*) "FBE in MO basis:"
+C      write(*,*)
+C      call PREVNU(FBEmo,BEE,nebf,nebf,nebf)
+C      CALL COPYDEN(vecBE0,vecBE,NEBF)
+C
+C! Diagonalize in MO basis
+C      CALL RS(nebf,nebf,FBEmo,BEE,2,vecBE,work1,work2,IERR)
+C      call fock2mobasis(nebf,FBEmo,vecBE,FBEmo)
+C      write(*,*)
+C      write(*,*) "FBE after diagonalization in MO basis:"
+C      write(*,*)
+C      call PREVNU(FBEmo,BEE,nebf,nebf,nebf)
+C
+C! Output density matrix
+C      write(*,*)
+C      write(*,*) "DBE before diagonalization:"
+C      write(*,*)
+C      call PREVNU(DBE,BEE,nebf,nebf,nebf)
+C
+CC! Diagonalize only nuclear part without reforming
+C         call UROOTHAN(vecP,EP,xxsp,FP,npbf)
+C         call construct_DP(nucst,npbf,vecP,DP)
+C
+CC! Reform Fock matrices before diagonalizing electronic parts
+CCC Call HF Fock build for NAE regular electrons
+CC         call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
+CC     x                          DAE,GAM_ecore,GAM_ee,
+CC     x                          FAE,E_HF,E_HF_ecore,E_HF_ee)
+CC
+CCC Call XCHF Fock build for NBE special electrons and one QM particle
+CC         call RXCHFmult_fock_xchf(LGAM4,LG4DSCF,LG4IC,
+CC     x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
+CC     x                   NG4CHK,NG3CHK,NG2CHK,
+CC     x                   dimXCHF4,dimXCHF3,dimXCHF2,
+CC     x                   npebf,nebf,nebf2,npbf,npbf2,NBE,
+CC     x                   ngee,ng1,ng2,ng3,ng4,DBE,DP,
+CC     x                   XCHF_GAM4,XCHF_GAM3,XCHF_GAM2,XCHF_GAM2s,
+CC     x                   ng2prm,ngtg1,ng3prm,
+CC     x                   nat,pmass,cat,zan,bcoef1,gamma1,
+CC     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+CC     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+CC     x                   FBE,FP,SBE_XCHF,SP_XCHF,
+CC     x                   E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
+CC     x                   E_XCHF_gam3,E_XCHF_gam4,
+CC     x                   S_total,S_gam1,S_gam2)
+CC
+CCC Call interaction Fock build for all particles
+CC         call RXCHFmult_fock_int(LCMF,nelec,NAE,NBE,
+CC     x                           nebf,nebf2,npbf,npbf2,
+CC     x                           ng1,ng2,ng3,ng4,
+CC     x                           dimINT2,dimINT3,dimINT4,
+CC     x                           NG2CHK,NG3CHK,NG4CHK,
+CC     x                           DAE,DBE,DP,
+CC     x                           INT_GAM2,INT_GAM3,INT_GAM4,
+CC     x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
+CC     x                           FPint,FAEint,FBEint, 
+CC     x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
+CC     x                           E_int)
+CC
+CCC ARS( no interaction
+CC      if (LNOINT) then
+CC          E_int=0.0d+00
+CC          E_HF=0.0d+00
+CC      else
+CC          call add2fock(npbf,FPint,FP)
+CC          call add2fock(nebf,FAEint,FAE)
+CC          call add2fock(nebf,FBEint,FBE)
+CC      end if
+CCC )
+CC
+CC          IF (LCMF) then
+CC           npbflt=npbf*(npbf+1)/2
+CC           write(*,*)
+CC           write(*,*) "FAE:"
+CC           call prt_lower_triangle(nebf,nebflt,FAE)
+CC           write(*,*)
+CC           write(*,*) "FBE:"
+CC           call prt_lower_triangle(nebf,nebflt,FBE)
+CC           write(*,*)
+CC           write(*,*) "FP:"
+CC           call prt_lower_triangle(npbf,npbflt,FP)
+CC           write(*,*)
+CC          END IF  
+CC
+CC          E_total=E_HF+E_XCHF+E_int+E_nuc
+C
+CC! Diagonalize post-FP-diagonalized electronic Fock matrices
+C         call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
+C         call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+C
+C         call UROOTHAN(vecBE,BEE,xxse,FBE,nebf)
+C         call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
+C
+C! Calculate updated Fock matrix in MO basis
+C      call fock2mobasis(nebf,FBE,vecBE,FBEmo)
+C      write(*,*)
+C      write(*,*) "FBE in MO basis before rebuild:"
+C      write(*,*)
+C      call PREVNU(FBEmo,BEE,nebf,nebf,nebf)
+C      CALL COPYDEN(vecBE0,vecBE,NEBF)
+C
+C! Output density matrix
+C      write(*,*)
+C      write(*,*) "DBE after diagonalization:"
+C      write(*,*)
+C      call PREVNU(DBE,BEE,nebf,nebf,nebf)
+C
+C
+C! Output energy and density change
+C         Delta_E_tot=E_total-E_total_old
+C         E_total_old=E_total
+C
+C         CALL DENDIF(DP0,DP,NPBF,DIFFP)
+C         CALL COPYDEN(DP0,DP,NPBF)
+C         CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
+C         CALL COPYDEN(DAE0,DAE,NEBF)
+C         CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
+C         CALL COPYDEN(DBE0,DBE,NEBF)
+C
+C         write(*,*) "After diag without reforming after FP diag:"
+C         write(*,*) "E_total:        ",E_total
+C         write(*,*) "Delta_E_total:  ",Delta_E_tot
+C         write(*,*) "Max DAE change: ",DIFFAE
+C         write(*,*) "Max DBE change: ",DIFFBE
+C         write(*,*) "Max DP change: ",DIFFP
+C
+C! One more build and diagonalization
+CC Call XCHF Fock build for NBE special electrons and one QM particle
+C         call RXCHFmult_fock_xchf(LGAM4,LG4DSCF,LG4IC,
+C     x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
+C     x                   NG4CHK,NG3CHK,NG2CHK,
+C     x                   dimXCHF4,dimXCHF3,dimXCHF2,
+C     x                   npebf,nebf,nebf2,npbf,npbf2,NBE,
+C     x                   ngee,ng1,ng2,ng3,ng4,DBE,DP,
+C     x                   XCHF_GAM4,XCHF_GAM3,XCHF_GAM2,XCHF_GAM2s,
+C     x                   ng2prm,ngtg1,ng3prm,
+C     x                   nat,pmass,cat,zan,bcoef1,gamma1,
+C     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+C     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+C     x                   FBE,FP,SBE_XCHF,SP_XCHF,
+C     x                   E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
+C     x                   E_XCHF_gam3,E_XCHF_gam4,
+C     x                   S_total,S_gam1,S_gam2)
+C
+C          E_total=E_HF+E_XCHF+E_int+E_nuc
+C
+C! Calculate updated Fock matrix in (new) MO basis
+C      call fock2mobasis(nebf,FBE,vecBE,FBEmo)
+C      write(*,*)
+C      write(*,*) "FBE in MO basis:"
+C      write(*,*)
+C      call PREVNU(FBEmo,BEE,nebf,nebf,nebf)
+C
+C! Calculate updated Fock matrix in (old) MO basis
+C      call fock2mobasis(nebf,FBE,vecBE0,FBEmo)
+C      write(*,*)
+C      write(*,*) "FBE in old MO basis:"
+C      write(*,*)
+C      call PREVNU(FBEmo,BEE,nebf,nebf,nebf)
+C
+C! Output density matrix
+C      write(*,*)
+C      write(*,*) "DBE before diagonalization:"
+C      write(*,*)
+C      call PREVNU(DBE,BEE,nebf,nebf,nebf)
+C
+C! Diagonalize
+C      call UROOTHAN(vecBE,BEE,xxse,FBE,nebf)
+C      call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
+C
+C! Output density matrix
+C      write(*,*)
+C      write(*,*) "DBE after diagonalization:"
+C      write(*,*)
+C      call PREVNU(DBE,BEE,nebf,nebf,nebf)
+C
+C! Output energy and density change
+C      Delta_E_tot=E_total-E_total_old
+C      E_total_old=E_total
+C
+C      CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
+C      CALL COPYDEN(DBE0,DBE,NEBF)
+C
+C      write(*,*) "After last FBE diag:"
+C      write(*,*) "E_total:        ",E_total
+C      write(*,*) "Delta_E_total:  ",Delta_E_tot
+C      write(*,*) "Max DBE change: ",DIFFBE
+C
+C      end if
 C )
 
 !     PRINT FINAL ENERGY AND PUNCH THE ORBITALS
@@ -1263,6 +1384,15 @@ C )
       call write_MOs(853,npbf,VECP)
 ! PUNCH-OUT-THE-FINAL-VECTORS-FOR-E-AND-NUC----------------------------)
 !
+      if(LOCBSE2) then
+       if(allocated(wWRKw))   deallocate(wWRKw)
+       if(allocated(wGBw))    deallocate(wGBw)
+       if(allocated(wFLTw))   deallocate(wFLTw)
+       if(allocated(wBEenw))  deallocate(wBEenw)
+       if(allocated(wvecBEw)) deallocate(wvecBEw)
+       if(allocated(wFBEw))   deallocate(wFBEw)
+       if(allocated(WB))      deallocate(WB)
+      end if
 
       RETURN
       END
@@ -1676,6 +1806,184 @@ C )
 
       call RXCHF_matmult(nbf,nbf,nbf,nbf,F,C,aux)
       call RXCHF_matmult(nbf,nbf,nbf,nbf,Ctrans,aux,Fmo)
+
+      return
+      end
+
+!======================================================================
+      subroutine RXCHFmult_OCBSE_transF(nebf,nocca,nwbf,
+     x                                  vecAE,FBE,WB,wFBEw)
+!
+!     OCBSE Procedure:
+!       - Construct transformation matrix for special electrons (WB)
+!       - Transform FBE (wFBEw)
+!
+!  Transformation to virtual space of regular electrons (in vecAE)
+!
+!======================================================================
+      implicit none
+! Input Variables
+      integer nebf
+      integer nocca,nwbf
+      double precision vecAE(nebf,nebf)
+      double precision FBE(nebf,nebf)
+! Variables Returned
+      double precision WB(nebf,nwbf)
+      double precision wFBEw(nwbf,nwbf)
+! Local variables
+      integer i,j
+      double precision WBtrans(nwbf,nebf)
+      double precision AUXB(nebf,nwbf)
+      double precision zero1(nebf),zero2(nwbf)
+      double precision zero
+      parameter(zero=0.0d+00)
+
+      logical debug
+      debug=.false.
+
+! Initialize
+      WB=zero
+      WBtrans=zero
+      wFBEw=zero
+      zero1=zero
+      zero2=zero
+
+      if (debug) then
+       write(*,*) "nebf-nocca,nwbf:",nebf-nocca,nwbf
+       write(*,*) "MATRIX vecAE:"
+       call PREVNU(vecAE,zero1,nebf,nebf,nebf)
+      end if
+
+! Form special electronic transformation matrix
+      do i=1,nwbf
+        do j=1,nebf
+          WB(j,i)=vecAE(j,nocca+i)
+        end do
+      end do
+
+C ARS(
+      if (debug) then
+       write(*,*) "MATRIX WB:"
+       call PREVNU(WB,zero2,nwbf,nebf,nebf)
+      end if
+C )
+
+! Form transpose
+      do i=1,nwbf
+        do j=1,nebf
+          WBtrans(i,j)=WB(j,i)
+        end do
+      end do
+
+! Transform FBE as Wtrans * FBE * W
+      call RXCHF_matmult(nebf,nebf,nebf,nwbf,
+     x                   FBE,WB,AUXB)
+      call RXCHF_matmult(nwbf,nebf,nebf,nwbf,
+     x                   WBtrans,AUXB,wFBEw)
+
+      return
+      end
+
+!======================================================================
+      subroutine RXCHFmult_OCBSE_diag(nebf,nwbf,WB,wFBEw,
+     x                                wvecBEw,wBEenw,vecBE,BEen)
+!
+!     OCBSE Procedure:
+!       - Read in transformation (WB) 
+!       - Read in transformed Fock matrix (wFBEw)
+!       - Diagonalize Fock matrix (wvecBEw,wBEenw)
+!       - Transform eigenvectors (vecBE,BEen)
+!
+!======================================================================
+      implicit none
+! Input Variables
+      integer nebf
+      integer nwbf
+      double precision WB(nebf,nwbf)
+      double precision wFBEw(nwbf,nwbf)
+! Variables Returned
+      double precision BEen(nebf)
+      double precision wBEenw(nwbf)
+      double precision vecBE(nebf,nebf)
+      double precision wvecBEw(nwbf,nwbf)
+! Local variables
+      integer i,j
+      integer ierr
+      double precision work1(nwbf),work2(nwbf)
+      double precision zero
+      parameter(zero=0.0d+00)
+
+      logical debug
+      debug=.false.
+
+! Initialize
+      wBEenw=zero
+      wvecBEw=zero
+      work1=zero
+      work2=zero
+
+! Diagonalize transformed FBE to obtain solutions in new basis
+      call RS(nwbf,nwbf,wFBEw,wBEenw,2,wvecBEw,work1,work2,ierr)
+
+      if (debug) then
+       WRITE(*,*) "MATRIX wvecBEw:"
+       call PREVNU(wvecBEw,wBEenw,nwbf,nwbf,nwbf)
+      end if
+
+      call RXCHFmult_OCBSE_transV(nebf,nwbf,WB,wvecBEw,wBEenw,
+     x                            vecBE,BEen)
+
+      return
+      end
+
+!======================================================================
+      subroutine RXCHFmult_OCBSE_transV(nebf,nwbf,WB,wvecBEw,wBEenw,
+     x                                  vecBE,BEen)
+!
+!     OCBSE Procedure:
+!       - Transform eigenvectors (wvecBEw,wBEenw) -> (vecBE,BEen)
+!       - Fill in extra parts of transformed solutions with zeros
+!
+!======================================================================
+      implicit none
+! Input Variables
+      integer nebf
+      integer nwbf
+      double precision WB(nebf,nwbf)
+      double precision wBEenw(nwbf)
+      double precision wvecBEw(nwbf,nwbf)
+! Variables Returned
+      double precision vecBE(nebf,nebf)
+      double precision BEen(nebf)
+! Local variables
+      integer i,j
+      double precision blockvecBE(nebf,nwbf)
+      double precision zero
+      parameter(zero=0.0d+00)
+
+      logical debug
+      debug=.false.
+
+! Initialize
+      blockvecBE=zero
+      vecBE=zero
+      BEen=zero
+
+! Transform evectors to AO basis as vecBE = W * xvecBE
+      call RXCHF_matmult(nebf,nwbf,nwbf,nwbf,WB,wvecBEw,blockvecBE)
+
+! Pass evectors to output variables (zeros for unfilled part)
+      do i=1,nwbf
+        BEen(i)=wBEenw(i)
+        do j=1,nebf
+          vecBE(j,i)=blockvecBE(j,i)
+        end do
+      end do
+
+      if (debug) then
+       WRITE(*,*) "MATRIX New vecBE:"
+       call PREVNU(vecBE,BEen,nebf,nebf,nebf)
+      end if
 
       return
       end
