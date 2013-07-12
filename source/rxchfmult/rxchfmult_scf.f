@@ -361,7 +361,7 @@ C       noccvirtb=nebf-nocca
        write(*,*) "nebf,nwbf:",nebf,nwbf
 
        if(allocated(WB)) deallocate(WB)
-       allocate(WB(nwbf,nwbf))
+       allocate(WB(nebf,nwbf))
        if(allocated(wFBEw)) deallocate(wFBEw)
        allocate(wFBEw(nwbf,nwbf))
        if(allocated(wvecBEw)) deallocate(wvecBEw)
@@ -1672,7 +1672,6 @@ C )
       xvecBE=zero
       blockvecBE=zero
 
-C ARS(
       if (debug) then
       write(*,*) "nae,nbe:",nae,nbe
       write(*,*) "nocca,noccb:",nocca,noccb
@@ -1683,7 +1682,6 @@ C ARS(
       write(*,*) "MATRIX Previous S:"
       call PREVNU(Selec,BEen,nebf,nebf,nebf)
       end if
-C )
 
 !!!!!!!!!!!!!!!! Solve for special electronic solution !!!!!!!!!!!!!!!!
 
@@ -1694,12 +1692,10 @@ C )
         end do
       end do
 
-C ARS(
       if (debug) then
       write(*,*) "MATRIX WB:"
       call PREVNU(WB,xBEen,noccvirtb,nebf,nebf)
       end if
-C )
 
 ! Form transpose
       do i=1,noccvirtb
@@ -1720,22 +1716,18 @@ C )
       call RXCHF_matmult(noccvirtb,nebf,nebf,noccvirtb,
      x                   WBtrans,AUXB,wSBw)
 
-C ARS(
       if (debug) then
       write(*,*) "MATRIX wSBw:"
       call PREVNU(wSBw,xBEen,noccvirtb,noccvirtb,noccvirtb)
       end if
-C )
 
 ! Diagonalize transformed FBE to obtain solutions in new basis
       call UROOTHAN(xvecBE,xBEen,wSBw,wFBEw,noccvirtb)
 
-C ARS(
       if (debug) then
       WRITE(*,*) "MATRIX xvecBE:"
       call PREVNU(xvecBE,xBEen,noccvirtb,noccvirtb,noccvirtb)
       end if
-C )
 
 ! Transform evectors to AO basis as vecBE = W * xvecBE
       call RXCHF_matmult(nebf,noccvirtb,noccvirtb,noccvirtb,
@@ -1749,12 +1741,10 @@ C )
         end do
       end do
 
-C ARS(
       if (debug) then
       WRITE(*,*) "MATRIX New vecBE:"
       call PREVNU(vecBE,BEen,nebf,nebf,nebf)
       end if
-C )
 
       return
       end
@@ -1861,12 +1851,10 @@ C )
         end do
       end do
 
-C ARS(
       if (debug) then
        write(*,*) "MATRIX WB:"
        call PREVNU(WB,zero2,nwbf,nebf,nebf)
       end if
-C )
 
 ! Form transpose
       do i=1,nwbf
@@ -1880,6 +1868,11 @@ C )
      x                   FBE,WB,AUXB)
       call RXCHF_matmult(nwbf,nebf,nebf,nwbf,
      x                   WBtrans,AUXB,wFBEw)
+
+      if (debug) then
+       write(*,*) "MATRIX wFBEw:"
+       call PREVNU(wFBEw,zero2,nwbf,nwbf,nwbf)
+      end if
 
       return
       end
