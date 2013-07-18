@@ -15,7 +15,8 @@ if [ -e $EXEDIR/$EXE.exe ] ; then
 fi
 
 F77=ifort
-OPT='-openmp -parallel -fpp -traceback -check all -integer-size 64'
+#OPT='-openmp -parallel -fpp -traceback -check all -integer-size 64'
+OPT='-O2 -openmp -parallel -fpp -traceback -integer-size 64 -fp-model strict -no-ftz -ipo'
 
 FILS='../object/*.o'
 

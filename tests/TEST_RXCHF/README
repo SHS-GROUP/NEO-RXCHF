@@ -4,10 +4,10 @@ TEST01
 ======
 
 System:      e+Hydride (2 electrons + 1 positron)
-Level:       NEO-RXCHF/6s/8s
+Level:       NEO-RXCHF-ne/6s/8s
 Compare to:  Corresponding NEO-UHF calculation
 
-RXCHF:  FINAL NEORXCHF ENERGY IS       -0.6666367359 AFTER 128 ITERATIONS
+RXCHF:  FINAL NEORXCHF ENERGY IS       -0.6666367359 AFTER   7 ITERATIONS
 XCUHF:   FINAL NEOXCHF ENERGY IS       -0.6666367346 AFTER  16 ITERATIONS
 
 
@@ -16,10 +16,10 @@ TEST02
 ======
 
 System:      He (2 electrons) separated by 20 Ang from e+H (1 electron + 1 positron)
-Level:       NEO-RXCHF/6s/16s
+Level:       NEO-RXCHF-ne/6s/16s
 Compare to:  Corresponding NEO-UHF calculation
 
-RXCHF:  FINAL NEORXCHF ENERGY IS       -3.3455079185 AFTER   6 ITERATIONS
+RXCHF:  FINAL NEORXCHF ENERGY IS       -3.3455079185 AFTER   3 ITERATIONS
 XCUHF:   FINAL NEOXCHF ENERGY IS       -3.3455079167 AFTER   8 ITERATIONS
 
 
