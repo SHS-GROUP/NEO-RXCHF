@@ -2,6 +2,7 @@
       program xcneo_hybrid
 
 !=======================================================================
+      use table
       implicit none
 !     include 'mpif.h'
       include 'omp_lib.h'
@@ -13,14 +14,15 @@
 
 !     call xcneo_hybrid_driver(nproc,myid)
       call xcneo_driver
-
+      print *,'small_t, large_t, L/S',small_t,large_t,
+     $        dble(large_t)/(small_t) 
 !     call mpi_final(ierr)
-
       end
 !=======================================================================
       subroutine xcneo_driver
 
 !=======================================================================
+      use shell
       implicit none
 !     include 'mpif.h'
       include 'omp_lib.h'
@@ -101,8 +103,22 @@
       integer ngee
       integer ng1,ng2,ng3,ng4
       integer ng1prm,ng2prm,ng3prm,ng4prm
+cko shell related
+      integer junk,ijprod
+      integer,allocatable,dimension(:) :: nssh,npsh,ndsh,nfsh
+      integer,allocatable,dimension(:) :: pnssh,pnpsh,pndsh,pnfsh
+      integer :: itmp,itmd,itmf,loopi,loopf
+      integer ncenter,iic,istrt,iend,npcenter
+      integer,allocatable :: shfunc(:)
+      double precision :: coords(3)       
+cko eatom: the atom(or center) to which a given primitive belongs to
+cko ectrfst/ectrlst: the first/last(largest) primitive index that a given center has
+cko fshell : array of the indices for the primitives in a given shell
+      integer,allocatable,dimension(:) ::eatom,patom,ectrfst,pctrfst
+      integer,allocatable,dimension(:) ::ectrlst,pctrlst,neshell,nnshell
+      type(eshell),allocatable :: esh(:)
+      type(pshell),allocatable :: psh(:)
 
-      integer junk
 
       double precision wtime,wtime1,wtime2
 
@@ -147,6 +163,9 @@
          allocate( ELCAM(npebf,3),stat=istat )
          if(allocated(ELCBFC)) deallocate(ELCBFC)
          allocate( ELCBFC(npebf,3),stat=istat )
+cko eatom: the atom(or point in space) on which an elec primitive is centered
+         if(allocated(eatom)) deallocate(eatom)
+         allocate( eatom(npebf),stat=istat )
          do i=1,npebf
             read(9,*)idum,AMPEB2C(i),ELCAM(i,1),ELCAM(i,2),ELCAM(i,3),
      x    ELCEX(i),AGEBFCC(i),ELCBFC(i,1),ELCBFC(i,2),ELCBFC(i,3)
@@ -154,6 +173,166 @@
                ELCBFC(i,j)=a2bohr*ELCBFC(i,j)
             end do
          end do
+
+        coords=ELCBFC(1,:)
+        ncenter=1
+        eatom=1
+        do i=2,npebf
+          if(abs(sum(coords-ELCBFC(i,:)))>1.0d-14)then 
+            ncenter=ncenter+1
+            eatom(i)=ncenter
+            coords=ELCBFC(i,:)
+          endif
+        enddo
+
+         if(allocated(nssh)) deallocate(nssh)
+         allocate( nssh(ncenter),stat=istat )
+         if(allocated(npsh)) deallocate(npsh)
+         allocate( npsh(ncenter),stat=istat )
+         if(allocated(ndsh)) deallocate(ndsh)
+         allocate( ndsh(ncenter),stat=istat )
+         if(allocated(nfsh)) deallocate(nfsh)
+         allocate( nfsh(ncenter),stat=istat )
+
+         if(allocated(ectrfst)) deallocate(ectrfst)
+         allocate( ectrfst(ncenter),stat=istat )
+         if(allocated(ectrlst)) deallocate(ectrlst)
+         allocate( ectrlst(ncenter),stat=istat )
+       
+cko determine the number of electronic/QM nuc shells
+        nssh=0
+        npsh=0
+        ndsh=0
+        nfsh=0
+        itmp=0
+        itmd=0
+        itmf=0
+        ectrfst=0
+        ectrlst=0
+cko figuring out the first and last primitive that belong to a given center.
+        print *,'eatom',eatom
+        j=1
+        ectrfst(1)=1
+        do i=1,npebf-1
+           if(eatom(i)<eatom(i+1))then
+            ectrlst(j)=i
+            j=j+1
+            ectrfst(j)=i+1
+            if(i==npebf-1)ectrlst(j)=npebf
+           else
+            if(i==npebf-1)ectrlst(j)=npebf
+           endif
+        enddo 
+
+
+cko (here it is assumed that the shells are ordered with
+cko increasing angular momentum.)
+
+cko S shell
+       DO iic=1,ncenter
+        istrt=ectrfst(iic)
+        iend =ectrlst(iic)
+        print *,'istrt,iend',istrt,iend
+        do i=istrt,iend
+         if(sum(ELCAM(i,:))==0)nssh(iic)=nssh(iic)+1
+        enddo
+
+cko P shell
+        do i=istrt,iend
+         if(sum(ELCAM(i,:))==1)npsh(iic)=npsh(iic)+1
+        enddo
+
+         allocate(shfunc(istrt+nssh(iic):istrt+nssh(iic)+npsh(iic)-1))
+         loopi=istrt+nssh(iic)
+         loopf=istrt+nssh(iic)+npsh(iic)-1
+
+        shfunc=1
+        itmp=npsh(iic)
+        do i=loopi,loopf-1
+           do j=i+1,loopf
+             ijprod=shfunc(i)*shfunc(j)
+             if(abs(ELCEX(i)-ELCEX(j))<eps .and. ijprod==1) then
+                npsh(iic)=npsh(iic)-1
+                shfunc(j)=0
+             endif
+           enddo
+        enddo 
+        deallocate(shfunc)
+
+cko D shell
+        do i=istrt,iend
+         if(sum(ELCAM(i,:))==2)ndsh(iic)=ndsh(iic)+1
+        enddo
+
+        allocate(shfunc(istrt+nssh(iic)+itmp:istrt+nssh(iic)
+     $                  +itmp+ndsh(iic)-1))
+        loopi=istrt+nssh(iic)+itmp
+        loopf=istrt+nssh(iic)+itmp+ndsh(iic)-1
+        shfunc=1
+        itmd=ndsh(iic)
+        do i=loopi,loopf-1
+           do j=i+1,loopf
+             ijprod=shfunc(i)*shfunc(j)
+             if(abs(ELCEX(i)-ELCEX(j))<eps .and. ijprod==1) then
+                ndsh(iic)=ndsh(iic)-1
+                shfunc(j)=0
+             endif
+           enddo
+        enddo 
+        deallocate(shfunc)
+
+cko F shell
+        do i=istrt,iend
+         if(sum(ELCAM(i,:))==3)nfsh(iic)=nfsh(iic)+1
+        enddo
+
+        allocate(shfunc(istrt+nssh(iic)+itmp+itmd:istrt+nssh(iic)
+     $                  +itmp+itmd+nfsh(iic)-1))
+        loopi=istrt+nssh(iic)+itmp+itmd
+        loopf=istrt+nssh(iic)+itmp+itmd+nfsh(iic)-1
+        shfunc=1
+        itmf=nfsh(iic)
+        if(iend-istrt+1 /=nssh(iic)+itmp+itmd+itmf)then
+          print *,'Currently Up to F shell'
+          stop
+        endif
+        do i=loopi,loopf-1
+           do j=i+1,loopf
+             ijprod=shfunc(i)*shfunc(j)
+             if(abs(ELCEX(i)-ELCEX(j))<eps .and. ijprod==1) then
+                nfsh(iic)=nfsh(iic)-1
+                shfunc(j)=0
+             endif
+           enddo
+        enddo 
+        deallocate(shfunc)
+
+        print *,'total # of ncenter, current center',ncenter,iic
+        print *,'itmp,itmd,itmf',itmp,itmd,itmf
+        print *,'nssh,npsh,ndsh,nfsh ',nssh,npsh,ndsh,nfsh
+       ENDDO   
+        
+       neshell=0
+       do i=1,ncenter
+          neshell=neshell+nssh(i)+npsh(i)+ndsh(i)+nfsh(i)
+       enddo
+c       print *,'total elec shell',neshell
+
+       if(allocated(esh)) deallocate(esh)
+       allocate( esh(neshell),stat=istat )
+! Build an array of elec shell: esh
+       call build_shell(npebf,neshell,ncenter,ectrfst,ectrlst,
+     $                  ELCAM,ELCEX,ELCBFC,
+     $                  nssh,npsh,ndsh,nfsh,esh)
+
+        do i=1,neshell
+           print *,'shell,expt ',i,esh(i)%expt
+           print *,'shell,ang  ',i,esh(i)%ang
+           print *,'shell,coord ',i,esh(i)%coord
+           print *,'shell,nfunc ',i,esh(i)%nfunc
+           print *,'shell,peindex ',i,esh(i)%peindex
+        enddo
+       deallocate(eatom,nssh,npsh,ndsh,nfsh,ectrfst,ectrlst)
 
          read(9,*)npbf
          if(allocated(NUCEX)) deallocate(NUCEX)
@@ -164,6 +343,8 @@
          allocate( NUCAM(npbf,3),stat=istat )
          if(allocated(NUCBFC)) deallocate(NUCBFC)
          allocate( NUCBFC(npbf,3),stat=istat )
+         if(allocated(patom)) deallocate(patom)
+         allocate( patom(npbf),stat=istat )
          do i=1,npbf
             read(9,*)idum,idum,NUCAM(i,1),NUCAM(i,2),NUCAM(i,3),
      x    NUCEX(i),AGNBFCC(i),NUCBFC(i,1),NUCBFC(i,2),NUCBFC(i,3)
@@ -171,7 +352,164 @@
                NUCBFC(i,j)=a2bohr*NUCBFC(i,j)
             end do
          end do
+c       print *,'hello' 
+C Nuc basis centers
+       coords=NUCBFC(1,:)
+       npcenter=1 
+       patom=1
+       do i=2,npbf
+          if(abs(sum(coords-NUCBFC(i,:)))>1.0d-14)then 
+            npcenter=npcenter+1
+            patom(i)=npcenter
+            coords=NUCBFC(i,:)
+          endif
+       enddo
+       print *,'npcenter',npcenter 
+         if(allocated(pnssh)) deallocate(pnssh)
+         allocate(pnssh(npcenter),stat=istat )
+         if(allocated(pnpsh)) deallocate(pnpsh)
+         allocate(pnpsh(npcenter),stat=istat )
+         if(allocated(pndsh)) deallocate(pndsh)
+         allocate(pndsh(npcenter),stat=istat )
+         if(allocated(pnfsh)) deallocate(pnfsh)
+         allocate(pnfsh(npcenter),stat=istat )
 
+         if(allocated(pctrfst)) deallocate(pctrfst)
+         allocate( pctrfst(npcenter),stat=istat )
+         if(allocated(pctrlst)) deallocate(pctrlst)
+         allocate( pctrlst(npcenter),stat=istat )
+
+        pnssh=0
+        pnpsh=0
+        pndsh=0
+        pnfsh=0
+        itmp=0
+        itmd=0
+        itmf=0
+        pctrfst=0
+        pctrlst=0
+
+        print *,'patom',patom
+        j=1
+        pctrfst(1)=1
+        do i=1,npbf-1
+           if(patom(i)<patom(i+1))then
+            pctrlst(j)=i
+            j=j+1
+            pctrfst(j)=i+1
+            if(i==npbf-1)pctrlst(j)=npbf
+           else
+            if(i==npbf-1)pctrlst(j)=npbf
+           endif
+        enddo 
+
+      DO iic=1,npcenter
+         istrt=pctrfst(iic)
+         iend =pctrlst(iic)
+C QM nuclei S shells
+        do i=istrt,iend
+         if(sum(NUCAM(i,:))==0)pnssh(iic)=pnssh(iic)+1
+        enddo
+
+cko P shell
+        do i=istrt,iend
+         if(sum(NUCAM(i,:))==1)pnpsh(iic)=pnpsh(iic)+1
+        enddo
+
+        allocate(shfunc(istrt+pnssh(iic):istrt+pnssh(iic)+pnpsh(iic)-1))
+        loopi=istrt+pnssh(iic)
+        loopf=istrt+pnssh(iic)+pnpsh(iic)-1
+
+        shfunc=1
+        itmp=pnpsh(iic)
+        do i=loopi,loopf-1
+           do j=i+1,loopf
+             ijprod=shfunc(i)*shfunc(j)
+             if(abs(NUCEX(i)-NUCEX(j))<eps .and. ijprod==1) then
+                pnpsh(iic)=pnpsh(iic)-1
+                shfunc(j)=0
+             endif
+           enddo
+        enddo 
+        deallocate(shfunc)
+
+cko D shell
+        do i=istrt,iend
+         if(sum(NUCAM(i,:))==2)pndsh(iic)=pndsh(iic)+1
+        enddo
+
+        allocate(shfunc(istrt+pnssh(iic)+itmp:istrt+pnssh(iic)
+     $                  +itmp+pndsh(iic)-1))
+
+        loopi=istrt+pnssh(iic)+itmp
+        loopf=istrt+pnssh(iic)+itmp+pndsh(iic)-1
+
+        shfunc=1
+        itmd=pndsh(iic)
+        do i=loopi,loopf-1
+           do j=i+1,loopf
+             ijprod=shfunc(i)*shfunc(j)
+             if(abs(NUCEX(i)-NUCEX(j))<eps .and. ijprod==1) then
+                pndsh(iic)=pndsh(iic)-1
+                shfunc(j)=0
+             endif
+           enddo
+        enddo 
+        deallocate(shfunc)
+
+cko F shell
+        do i=istrt,iend
+         if(sum(NUCAM(i,:))==3)pnfsh(iic)=pnfsh(iic)+1
+        enddo
+
+        allocate(shfunc(istrt+pnssh(iic)+itmp+itmd:istrt+pnssh(iic)
+     $           +itmp+itmd+pnfsh(iic)-1))
+        loopi=istrt+pnssh(iic)+itmp+itmd
+        loopf=istrt+pnssh(iic)+itmp+itmd+pnfsh(iic)-1
+        shfunc=1
+        itmf=pnfsh(iic)
+        if(iend-istrt+1 /=pnssh(iic)+itmp+itmd+itmf)then
+          print *,'Currently Up to F Nuc shell'
+          stop
+        endif
+        do i=loopi,loopf-1
+           do j=i+1,loopf
+             ijprod=shfunc(i)*shfunc(j)
+             if(abs(NUCEX(i)-NUCEX(j))<eps .and. ijprod==1) then
+                pnfsh(iic)=pnfsh(iic)-1
+                shfunc(j)=0
+             endif
+           enddo
+        enddo 
+        deallocate(shfunc)
+
+        print *,'pnssh,pnpsh,pndsh,pnfsh ',pnssh,pnpsh,pndsh,pnfsh
+        print *,'total # of npcenter, current center',npcenter,iic
+        print *,'itmp,itmd,itmf',itmp,itmd,itmf
+      ENDDO
+
+       nnshell=0
+       do i=1,npcenter
+          nnshell=nnshell+pnssh(i)+pnpsh(i)+pndsh(i)+pnfsh(i)
+       enddo
+c       print *,'total QM nuc shell',nnshell
+
+       if(allocated(psh)) deallocate(psh)
+       allocate( psh(nnshell),stat=istat )
+! Build an array of QM nuc shell: psh
+       call build_shell(npbf,nnshell,npcenter,pctrfst,pctrlst,
+     $                  NUCAM,NUCEX,NUCBFC,
+     $                  pnssh,pnpsh,pndsh,pnfsh,psh)
+
+        do i=1,nnshell
+           print *,'pshell,expt ',i,psh(i)%expt
+           print *,'pshell,ang  ',i,psh(i)%ang
+           print *,'pshell,coord ',i,psh(i)%coord
+           print *,'pshell,nfunc ',i,psh(i)%nfunc
+           print *,'pshell,peindex ',i,psh(i)%peindex
+        enddo
+
+       deallocate(patom,pnssh,pnpsh,pndsh,pnfsh,pctrfst,pctrlst)
          read(9,*)pmass
          read(9,*)nelec
          read(9,*)NAE
@@ -283,6 +621,11 @@ c     ng4prm=npebf*npebf*npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
        write(*,*) "Exiting..."
        return
       end if
+
+cko: the system-independent table of the Boys function values. 
+      call calc_table
+cko: double factorial calculation
+c      call dble_fac
 
       if(LRXCUHF) then
 
@@ -537,10 +880,11 @@ c     write(*,*)'ng4prm=',ng4prm
      x                       AMPEB2C,AGEBFCC,AGNBFCC,
      x                       ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
           else
-            call GAM1_OMP_MD(nebf,npebf,npbf,ng1,ng1prm,nat,ngtg1,
+            call GAM1_Shell(nebf,npebf,npbf,ng1,ng1prm,nat,ngtg1,
      x                       pmass,cat,zan,bcoef1,gamma1,
      x                       AMPEB2C,AGEBFCC,AGNBFCC,
-     x                       ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+     x                       ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     $                       neshell,nnshell,esh,psh)
           end if
 
             if(nelec.gt.1) then

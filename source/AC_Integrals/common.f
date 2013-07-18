@@ -266,7 +266,8 @@ C------------M-LOOP-------------------
          elseif(im .eq. 1) then
             do jp=1,JMAX+1
                j = jp - 1
-               call iboys(j,T,Fj)
+cko            call iboys(j,T,Fj)
+               call boys_interpol(j,T,Fj)
                Rm(im,jp) = ((-2.0d0*alp)**j)*Fj
             end do
          end if
@@ -324,7 +325,7 @@ C     Fm(T)  =  |   x  e       dx                  |
 C               /0                                 |
 C                                                  |
 C--------------------------------------------------+
-      PARAMETER (TMAX=20, ACCY=1.D-12, SQRPI=0.88622692545275801365D0)
+      PARAMETER (TMAX=35, ACCY=1.D-12, SQRPI=0.88622692545275801365D0)
       DIMENSION F(0:M)
       PT5PM = 0.5D0+M
       IF (T.GT.TMAX) THEN
@@ -341,6 +342,10 @@ C--------------------------------------------------+
           SUMK = SUMK + TERM
   25      IF (TERM.LT.ACCY) GOTO 35
   35    F(M) = EXPTI*SUMK
+cko
+c        print *,'accy in gammaf ', term
+c        print *,'# of iters in gammaf ',k
+cko
         DO 50 L=M-1,0,-1
   50      F(L) = (F(L+1)*TI2 + EXPTI) / (2D0*L + 1D0)
       ENDIF
@@ -390,29 +395,29 @@ C
 		END
 
 C*****************************************************
-      FUNCTION gammln(xx)
+c      FUNCTION gammln(xx)
 C*****************************************************
 C Returns the value of ln[Gamma(xx)] for xx > 0
 C
-      DOUBLE PRECISION gammln,xx
-      INTEGER j
-      DOUBLE PRECISION ser,stp,tmp,x,y,cof(6)
-      SAVE cof,stp
-      DATA cof,stp/76.18009172947146d0,-86.50532032941677d0,
-     *24.01409824083091d0,-1.231739572450155d0,.1208650973866179d-2,
-     *-.5395239384953d-5,2.5066282746310005d0/
-      x=xx
-      y=x
-      tmp=x+5.5d0
-      tmp=(x+0.5d0)*log(tmp)-tmp
-      ser=1.000000000190015d0
-      do 11 j=1,6
-        y=y+1.d0
-        ser=ser+cof(j)/y
-11    continue
-      gammln=tmp+log(stp*ser/x)
-      return
-      END
+c      DOUBLE PRECISION gammln,xx
+c      INTEGER j
+c      DOUBLE PRECISION ser,stp,tmp,x,y,cof(6)
+c      SAVE cof,stp
+c      DATA cof,stp/76.18009172947146d0,-86.50532032941677d0,
+c     *24.01409824083091d0,-1.231739572450155d0,.1208650973866179d-2,
+c     *-.5395239384953d-5,2.5066282746310005d0/
+c      x=xx
+c      y=x
+c      tmp=x+5.5d0
+c      tmp=(x+0.5d0)*log(tmp)-tmp
+c      ser=1.000000000190015d0
+c      do 11 j=1,6
+c        y=y+1.d0
+c        ser=ser+cof(j)/y
+c11    continue
+c      gammln=tmp+log(stp*ser/x)
+c      return
+c      END
 
 C********************************************
       SUBROUTINE gser(gamser,a,x,gln)

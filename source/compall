@@ -33,3 +33,7 @@ cd ../rxchfne/
 ../comp *.f
 mv *.o ../../object
 
+cd ../interpolation/
+../comp *.f
+mv *.o ../../object
+

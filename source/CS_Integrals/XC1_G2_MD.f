@@ -197,6 +197,7 @@ c     subroutine cws_gam1_xggvec(I1,J1,K1,A1,Amat1,
 C Test xggvec integral using analytical Persson + Taylor
 C expressions (uses s-p-d-functions)
 C======================================================================
+c      use table
       implicit none
 
 C Input variables
@@ -270,6 +271,10 @@ C Local variables
       double precision Ev2(0:K2+N2)
 
 
+c      if(i1==0 .and. j1==0 .and. k1==0 .and. i2==0 .and. j2==0. and.
+c     $   k2==0)then 
+c      print *,'ftable(:,100)',ftable(:,100) 
+c      endif
       GAM=gamma1+gamma2
 
 C Calculate overlap distributions:  

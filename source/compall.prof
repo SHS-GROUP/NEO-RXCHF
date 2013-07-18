@@ -1,0 +1,39 @@
+#!/bin/bash
+
+FILS='xcneo_HYBRID.f gam_ee.f gam_1_OMP.f gam_2_OMP.f gam2_CONV_OMP.f gam2_DSCF_OMP.f gam2_IC1_OMP.f gam_3_OMP.f gam3_DSCF_OMP.f gam3_CONV_OMP.f gam3_IC1_OMP.f gam3_IC2_OMP.f gam_4_OMP.f gam4_DSCF_OMP.f gam4_ICR_OMP.f'
+
+./comp.prof $FILS
+mv *.o ../object
+
+cd xchf1_independent/
+../comp.prof *.f
+mv *.o ../../object
+
+cd ../CS_Integrals/
+../comp.prof *.f
+mv *.o ../../object
+
+cd Spot_Check/
+../../comp.prof pack_GAM.f zero_gam.f
+mv *.o ../../../object
+
+cd ../../AC_Integrals/
+../comp.prof *.f
+mv *.o ../../object
+
+cd ../xcuhf/
+../comp.prof *.f
+mv *.o ../../object
+
+cd ../rxchf/
+../comp.prof *.f
+mv *.o ../../object
+
+cd ../rxchfne/
+../comp.prof *.f
+mv *.o ../../object
+
+cd ../interpolation/
+../comp *.f
+mv *.o ../../object
+

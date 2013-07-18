@@ -379,9 +379,11 @@ C     Initialization
          end do
       end do
 
+c      print *,'nLim,expt',nLim,expt
 C     ===R(0,0,0,n)===
       do n=0,nLim
-         call iboys2(n,expt,Fmx)
+c         call iboys2(n,expt,Fmx)
+         call boys_interpol(n,expt,Fmx)
          R(0,0,0,n)=(-two * alpha)**dble(n) * Fmx
       end do  
 c     call gammaF(F,expt,nLim)
