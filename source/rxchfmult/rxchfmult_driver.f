@@ -252,12 +252,12 @@ C     => XCHF_GAM4
 
       wtime1 = omp_get_wtime() - wtime
 
-      write(*,*) "dimINT2:",dimINT2
-      write(*,*) "dimINT3:",dimINT3
-      write(*,*) "dimINT4:",dimINT4
-      write(*,*) "dimXCHF2:",dimXCHF2
-      write(*,*) "dimXCHF3:",dimXCHF3
-      write(*,*) "dimXCHF4:",dimXCHF4
+C      write(*,*) "dimINT2:",dimINT2
+C      write(*,*) "dimINT3:",dimINT3
+C      write(*,*) "dimINT4:",dimINT4
+C      write(*,*) "dimXCHF2:",dimXCHF2
+C      write(*,*) "dimXCHF3:",dimXCHF3
+C      write(*,*) "dimXCHF4:",dimXCHF4
 
 C Kick-off SCF
       wtime  = omp_get_wtime()

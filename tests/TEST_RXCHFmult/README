@@ -38,5 +38,42 @@ Level:       NEO-RXCHF with LiPs parameters (8s/6s basis set, NGTG=8) from 2012 
 Compare to:  Corresponding RHF calculation for He and XCHF calculation for LiPs(data from 2012 JCP)
 Notes:       Converges to a solution that splits the special electrons
               - happens even when localized orbitals are given as starting guess
-              - unclear how to test this at this point
+              - * NEED TO TEST 4-PARTICLE INTERACTION INTEGRALS *
+
+
+======
+TEST03
+======
+
+System:      HeH+ (2 electrons) with nontrivial geminals
+Level:       NEO-RXCHF (just G-ansatz XCHF part) / pc0/5s
+Compare to:  Corresponding NEO-XCHF calculation
+
+RXCHF :  FINAL NEORXCHF ENERGY IS       -2.7643081822 AFTER   9 ITERATIONS
+XCHF  :   FINAL NEOXCHF ENERGY IS       -2.7643081827 AFTER  37 ITERATIONS
+
+
+======
+TEST04
+======
+
+System:      LiPs (4 electrons) with trivial geminals
+Level:       NEO-RXCHF (just G-ansatz XCHF part) / pc0/5s
+Compare to:  Corresponding NEO-XCHF calculation
+
+RXCHF :  FINAL NEORXCHF ENERGY IS       -7.9270489817 AFTER   6 ITERATIONS
+XCHF  :   FINAL NEOXCHF ENERGY IS       -7.9270489800 AFTER   9 ITERATIONS
+
+
+======
+TEST05
+======
+
+System:      LiPs (4 electrons) with nontrivial geminals
+Level:       NEO-RXCHF (just G-ansatz XCHF part) / pc0/5s
+Compare to:  Corresponding NEO-XCHF calculation
+Notes:       Orbitals not exactly identical: perhaps due to convergence criteria/microiterating
+
+RXCHF :  FINAL NEORXCHF ENERGY IS       -7.9467704905 AFTER   6 ITERATIONS
+XCHF  :   FINAL NEOXCHF ENERGY IS       -7.9467704908 AFTER  13 ITERATIONS
 

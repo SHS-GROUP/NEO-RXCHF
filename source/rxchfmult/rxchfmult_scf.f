@@ -358,8 +358,6 @@ C       noccvirtb=nebf-nocca
        L0w=nwbf
        L1w=nwbf
 
-       write(*,*) "nebf,nwbf:",nebf,nwbf
-
        if(allocated(WB)) deallocate(WB)
        allocate(WB(nebf,nwbf))
        if(allocated(wFBEw)) deallocate(wFBEw)
