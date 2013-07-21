@@ -3,7 +3,8 @@
 FIL=$@
 
 F77=ifort
-OPT='-openmp -parallel -fpp -traceback -check all -integer-size 64 -c'
+#OPT='-openmp -parallel -fpp -traceback -check all -integer-size 64 -c'
+OPT='-O2 -openmp -parallel -integer-size 64 -fp-model strict -no-ftz -ipo -c'
 
 set echo
 

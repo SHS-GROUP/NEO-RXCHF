@@ -254,20 +254,28 @@
  npbf   =                     8
  ng1    =                  6400
   Available processors:           16
-  Available threads                8
+  Available threads               16
   Threads in use                   1
  **************************************
  
-  Hello from process                      0
-  Hello from process                      1
- Threads in use           8
-  Hello from process                      5
   Hello from process                      2
-  Hello from process                      4
   Hello from process                      7
+  Hello from process                      0
+ Threads in use          16
+  Hello from process                      1
   Hello from process                      3
+  Hello from process                      5
+  Hello from process                      4
   Hello from process                      6
- TIME TO CALCULATE GAM_1 INTEGRALS:    2.36016511917114     
+  Hello from process                      9
+  Hello from process                      8
+  Hello from process                     15
+  Hello from process                     13
+  Hello from process                     10
+  Hello from process                     14
+  Hello from process                     11
+  Hello from process                     12
+ TIME TO CALCULATE GAM_1 INTEGRALS:    1.79308414459229     
 
       +---------------------------------------------+
       |     CALCULATING 3-PARTICLE INTEGRALS        |
@@ -280,64 +288,64 @@
           COMPUTATIONAL RESOURCES:
           ------------------------
              CORES PER NODE:  16
-                  AVAILABLE:   8
+                  AVAILABLE:  16
             NUMBER OF NODES:   1
 
-            TIME TO EVALUATE BLOCK     1       0.72
-            TIME TO EVALUATE BLOCK     2       0.70
-            TIME TO EVALUATE BLOCK     3       0.68
-            TIME TO EVALUATE BLOCK     4       0.66
-            TIME TO EVALUATE BLOCK     5       0.66
-            TIME TO EVALUATE BLOCK     6       0.66
-            TIME TO EVALUATE BLOCK     7       0.67
-            TIME TO EVALUATE BLOCK     8       0.68
-            TIME TO EVALUATE BLOCK     9       0.68
-            TIME TO EVALUATE BLOCK    10       0.66
-            TIME TO EVALUATE BLOCK    11       0.66
-            TIME TO EVALUATE BLOCK    12       0.67
-            TIME TO EVALUATE BLOCK    13       0.67
-            TIME TO EVALUATE BLOCK    14       0.67
-            TIME TO EVALUATE BLOCK    15       0.67
-            TIME TO EVALUATE BLOCK    16       0.67
-            TIME TO EVALUATE BLOCK    17       0.66
-            TIME TO EVALUATE BLOCK    18       0.66
-            TIME TO EVALUATE BLOCK    19       0.66
-            TIME TO EVALUATE BLOCK    20       0.66
-            TIME TO EVALUATE BLOCK    21       0.66
-            TIME TO EVALUATE BLOCK    22       0.66
-            TIME TO EVALUATE BLOCK    23       0.66
-            TIME TO EVALUATE BLOCK    24       0.66
-            TIME TO EVALUATE BLOCK    25       0.66
-            TIME TO EVALUATE BLOCK    26       0.66
-            TIME TO EVALUATE BLOCK    27       0.66
-            TIME TO EVALUATE BLOCK    28       0.66
-            TIME TO EVALUATE BLOCK    29       0.66
-            TIME TO EVALUATE BLOCK    30       0.66
-            TIME TO EVALUATE BLOCK    31       0.66
-            TIME TO EVALUATE BLOCK    32       0.66
-            TIME TO EVALUATE BLOCK    33       0.66
-            TIME TO EVALUATE BLOCK    34       0.66
-            TIME TO EVALUATE BLOCK    35       0.66
-            TIME TO EVALUATE BLOCK    36       0.68
-            TIME TO EVALUATE BLOCK    37       0.68
-            TIME TO EVALUATE BLOCK    38       0.68
-            TIME TO EVALUATE BLOCK    39       0.66
-            TIME TO EVALUATE BLOCK    40       0.66
-            TIME TO EVALUATE BLOCK    41       0.66
-            TIME TO EVALUATE BLOCK    42       0.66
-            TIME TO EVALUATE BLOCK    43       0.66
-            TIME TO EVALUATE BLOCK    44       0.66
-            TIME TO EVALUATE BLOCK    45       0.66
-            TIME TO EVALUATE BLOCK    46       0.66
-            TIME TO EVALUATE BLOCK    47       0.66
-            TIME TO EVALUATE BLOCK    48       0.66
-            TIME TO EVALUATE BLOCK    49       0.65
-            TIME TO EVALUATE BLOCK    50       0.65
+            TIME TO EVALUATE BLOCK     1       0.41
+            TIME TO EVALUATE BLOCK     2       0.41
+            TIME TO EVALUATE BLOCK     3       0.41
+            TIME TO EVALUATE BLOCK     4       0.41
+            TIME TO EVALUATE BLOCK     5       0.41
+            TIME TO EVALUATE BLOCK     6       0.41
+            TIME TO EVALUATE BLOCK     7       0.41
+            TIME TO EVALUATE BLOCK     8       0.41
+            TIME TO EVALUATE BLOCK     9       0.41
+            TIME TO EVALUATE BLOCK    10       0.41
+            TIME TO EVALUATE BLOCK    11       0.41
+            TIME TO EVALUATE BLOCK    12       0.41
+            TIME TO EVALUATE BLOCK    13       0.41
+            TIME TO EVALUATE BLOCK    14       0.41
+            TIME TO EVALUATE BLOCK    15       0.41
+            TIME TO EVALUATE BLOCK    16       0.41
+            TIME TO EVALUATE BLOCK    17       0.41
+            TIME TO EVALUATE BLOCK    18       0.41
+            TIME TO EVALUATE BLOCK    19       0.41
+            TIME TO EVALUATE BLOCK    20       0.41
+            TIME TO EVALUATE BLOCK    21       0.41
+            TIME TO EVALUATE BLOCK    22       0.41
+            TIME TO EVALUATE BLOCK    23       0.41
+            TIME TO EVALUATE BLOCK    24       0.41
+            TIME TO EVALUATE BLOCK    25       0.41
+            TIME TO EVALUATE BLOCK    26       0.41
+            TIME TO EVALUATE BLOCK    27       0.41
+            TIME TO EVALUATE BLOCK    28       0.41
+            TIME TO EVALUATE BLOCK    29       0.41
+            TIME TO EVALUATE BLOCK    30       0.41
+            TIME TO EVALUATE BLOCK    31       0.41
+            TIME TO EVALUATE BLOCK    32       0.41
+            TIME TO EVALUATE BLOCK    33       0.41
+            TIME TO EVALUATE BLOCK    34       0.41
+            TIME TO EVALUATE BLOCK    35       0.41
+            TIME TO EVALUATE BLOCK    36       0.41
+            TIME TO EVALUATE BLOCK    37       0.41
+            TIME TO EVALUATE BLOCK    38       0.41
+            TIME TO EVALUATE BLOCK    39       0.41
+            TIME TO EVALUATE BLOCK    40       0.41
+            TIME TO EVALUATE BLOCK    41       0.41
+            TIME TO EVALUATE BLOCK    42       0.41
+            TIME TO EVALUATE BLOCK    43       0.41
+            TIME TO EVALUATE BLOCK    44       0.41
+            TIME TO EVALUATE BLOCK    45       0.41
+            TIME TO EVALUATE BLOCK    46       0.41
+            TIME TO EVALUATE BLOCK    47       0.41
+            TIME TO EVALUATE BLOCK    48       0.41
+            TIME TO EVALUATE BLOCK    49       0.41
+            TIME TO EVALUATE BLOCK    50       0.41
 
           TIMING SUMMARY FOR 3-PARTICLE INTEGRALS:
           ----------------------------------------
-            TIME TO EVALUATE ALL INTEGRALS:      33.2556
-              TIME TO SYMMETRIZE INTEGRALS:       0.0102
+            TIME TO EVALUATE ALL INTEGRALS:      20.3631
+              TIME TO SYMMETRIZE INTEGRALS:       0.0080
 
  Using LOCBSE2
  READ IN NUC REPULSION
@@ -380,28 +388,28 @@
    3       -6.8934219468    -0.0096695093     0.0038436077     0.8504269799     3.5322485658     0.0081430514
    4       -6.8937429068    -0.0003209600     0.0030005997     0.0908911128     3.5322485658     0.0133517943
    5       -6.8938565017    -0.0001135949     0.0011684345     0.2169844735     3.5322485658     0.0023470157
-   6       -6.8938998711    -0.0000433694     0.0001884518     0.3828098281     3.5322485658     0.0003820177
-   7       -6.8939131166    -0.0000132455     0.0000064832     0.7039615407     3.5322485658     0.0000496960
-   8       -6.8939154138    -0.0000022973     0.0000011325     0.2485459599     3.5322485658     0.0000049304
-   9       -6.8939154875    -0.0000000737     0.0000001320     0.0393489371     3.5322485658     0.0000002229
+   6       -6.8938998711    -0.0000433694     0.0001884518     0.3828098280     3.5322485658     0.0003820177
+   7       -6.8939131166    -0.0000132455     0.0000064832     0.7039615406     3.5322485658     0.0000496960
+   8       -6.8939154139    -0.0000022973     0.0000011325     0.2485459598     3.5322485658     0.0000049304
+   9       -6.8939154875    -0.0000000737     0.0000001320     0.0393489376     3.5322485658     0.0000002229
   10       -6.8939155207    -0.0000000331     0.0000002349     0.0006868863     3.5322485658     0.0000001387
-  11       -6.8939154939     0.0000000268     0.0000002008     0.0010084615     3.5322485658     0.0000005911
-  12       -6.8939154941    -0.0000000002     0.0000000038     0.0004554801     3.5322485658     0.0000000141
-  13       -6.8939154939     0.0000000002     0.0000000035     0.0000076713     3.5322485658     0.0000000046
+  11       -6.8939154939     0.0000000268     0.0000002008     0.0010084618     3.5322485658     0.0000005911
+  12       -6.8939154941    -0.0000000002     0.0000000038     0.0004554805     3.5322485658     0.0000000141
+  13       -6.8939154939     0.0000000002     0.0000000035     0.0000076711     3.5322485658     0.0000000046
   14       -6.8939154939     0.0000000000     0.0000000001     0.0000038161     3.5322485658     0.0000000003
-  15       -6.8939154939     0.0000000000     0.0000000000     0.0000000930     3.5322485658     0.0000000000
+  15       -6.8939154939     0.0000000000     0.0000000000     0.0000000934     3.5322485658     0.0000000000
  CONVERGED ITERATION   1 IN  15 MICROITERATIONS
 
 
  STARTING MICROITERATIONS FOR ITERATION   2
 
  ITER      TOTAL ENERGY        E CHANGE       ALPHA DENS       BETA DENS        QMP DENS         ORBGRAD_A 
-   1       -7.3288966650    -0.4349811711     0.0058305957     1.5529608869     3.6687348396     0.0000000000
+   1       -7.3288966650    -0.4349811711     0.0058305957     1.5529608873     3.6687348396     0.0000000000
           ---------------START SECOND ORDER SCF---------------
-   2       -7.3288568653     0.0000397997     0.0007611897     0.7742989206     3.6687348396     0.0006920778
-   3       -7.3288559492     0.0000009161     0.0001200494     0.4747557417     3.6687348396     0.0000983905
-   4       -7.3288557108     0.0000002385     0.0000016041     0.0050382959     3.6687348396     0.0000044291
-   5       -7.3288557822    -0.0000000715     0.0000012567     0.0022139417     3.6687348396     0.0000074961
+   2       -7.3288568653     0.0000397997     0.0007611897     0.7742989205     3.6687348396     0.0006920778
+   3       -7.3288559492     0.0000009161     0.0001200494     0.4747557414     3.6687348396     0.0000983905
+   4       -7.3288557108     0.0000002385     0.0000016041     0.0050382960     3.6687348396     0.0000044291
+   5       -7.3288557822    -0.0000000715     0.0000012567     0.0022139416     3.6687348396     0.0000074961
    6       -7.3288557899    -0.0000000077     0.0000000941     0.0004556695     3.6687348396     0.0000002026
    7       -7.3288557919    -0.0000000020     0.0000000254     0.0000412375     3.6687348396     0.0000000717
    8       -7.3288557919     0.0000000000     0.0000000006     0.0000139816     3.6687348396     0.0000000006
@@ -416,9 +424,9 @@
           ---------------START SECOND ORDER SCF---------------
    2       -7.4313715650    -0.0000721529     0.0001132139     0.4289925635     5.4906156544     0.0002916477
    3       -7.4313752027    -0.0000036377     0.0000321942     0.1675009893     5.4906156544     0.0000563923
-   4       -7.4313751226     0.0000000801     0.0000028272     0.0114412541     5.4906156544     0.0000108862
+   4       -7.4313751226     0.0000000801     0.0000028272     0.0114412542     5.4906156544     0.0000108862
    5       -7.4313751247    -0.0000000021     0.0000013062     0.0002575623     5.4906156544     0.0000033797
-   6       -7.4313751297    -0.0000000050     0.0000003779     0.0000088328     5.4906156544     0.0000008774
+   6       -7.4313751297    -0.0000000050     0.0000003779     0.0000088329     5.4906156544     0.0000008774
    7       -7.4313751295     0.0000000002     0.0000000130     0.0000162544     5.4906156544     0.0000000231
    8       -7.4313751295     0.0000000000     0.0000000004     0.0000008328     5.4906156544     0.0000000015
  CONVERGED ITERATION   3 IN   8 MICROITERATIONS
@@ -490,11 +498,11 @@
  STARTING MICROITERATIONS FOR ITERATION   9
 
  ITER      TOTAL ENERGY        E CHANGE       ALPHA DENS       BETA DENS        QMP DENS         ORBGRAD_A 
-   1       -7.4810392308    -0.0001373167     0.0000104284     0.0742067531     0.7385120372     0.0000000000
+   1       -7.4810392308    -0.0001373167     0.0000104284     0.0742067531     0.7385120373     0.0000000000
           ---------------START SECOND ORDER SCF---------------
-   2       -7.4810392590    -0.0000000282     0.0000043244     0.0011703326     0.7385120372     0.0000100558
-   3       -7.4810392630    -0.0000000039     0.0000008928     0.0000023601     0.7385120372     0.0000010867
-   4       -7.4810392631    -0.0000000001     0.0000000946     0.0000004126     0.7385120372     0.0000001092
+   2       -7.4810392590    -0.0000000282     0.0000043244     0.0011703326     0.7385120373     0.0000100558
+   3       -7.4810392630    -0.0000000039     0.0000008928     0.0000023601     0.7385120373     0.0000010867
+   4       -7.4810392631    -0.0000000001     0.0000000946     0.0000004126     0.7385120373     0.0000001092
  CONVERGED ITERATION   9 IN   4 MICROITERATIONS
 
 
@@ -651,6 +659,6 @@
           +--------------------------------------+
           |    TIMING SUMMARY FOR CALCULATION    |
           +--------------------------------------+
-            TIME TO EVALUATE INTEGRALS:      35.7468
-                          TIME FOR SCF:      48.5385
+            TIME TO EVALUATE INTEGRALS:      22.2787
+                          TIME FOR SCF:      52.4360
 

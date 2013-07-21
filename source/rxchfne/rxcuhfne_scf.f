@@ -116,9 +116,9 @@ C      integer SZG4IC
 
 !     integer noccE ! Number of occupied elec orbs
 !     integer noccP ! Number of occupied nuc orbs
-      integer maxit
+      integer maxit,maxmicroit
 
-      integer i
+      integer i,ielec
       integer j
       integer k
       integer l
@@ -186,9 +186,8 @@ C      integer SZG4IC
       logical LDIFFE
 
 !--------SOSCF-RELATED-VARIABLES------------(
-      logical LSOSCF
+      logical LSOSCF,LSOSCFA,LSOSCFB
       logical EIGAVL
-      integer NA
       integer ITER
       integer ITSOA ! SOSCF iteration counter
       integer ITSOB ! SOSCF iteration counter
@@ -236,11 +235,21 @@ C      integer SZG4IC
 
  9050 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
      * 'ALPHA DENS       BETA DENS        SPEC DENS        ',
-     x 'QMP DENS         ORBGRAD_A        ORBGRAD_B')
+     * 'QMP DENS         ORBGRAD_A ')
+
+ 9051 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
+     * 'ALPHA DENS       BETA DENS        SPEC DENS        ',
+     * 'QMP DENS         ORBGRAD_B ')
+
+ 9052 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
+     * 'ALPHA DENS       BETA DENS        SPEC DENS        ',
+     * 'QMP DENS         ORBGRAD_A        ORBGRAD_B ')
 
  9100 FORMAT(1X,I3,F20.10,F17.10,4F17.10)
 
- 9150 FORMAT(1X,I3,F20.10,F17.10,6F17.10)
+ 9150 FORMAT(1X,I3,F20.10,F17.10,5F17.10)
+
+ 9151 FORMAT(1X,I3,F20.10,F17.10,6F17.10)
 
  9200 FORMAT(/1X,'FINAL NEORXCUHF ENERGY IS',F20.10,' AFTER',I4,
      *           ' ITERATIONS')
@@ -269,6 +278,11 @@ C      integer SZG4IC
  9700 FORMAT(/1X,'      QM PARTICLE ORBITALS AND EIGENVALUES:         ')
 
  9800 FORMAT(10X,15(1H-),'START SECOND ORDER SCF',15(1H-))
+
+ 2001 FORMAT(/1X,'STARTING MICROITERATIONS FOR ITERATION',1X,I3)
+
+ 2000 FORMAT(1X,'CONVERGED ITERATION',1X,I3,1X,'IN',
+     x       1X,I3,1X,'MICROITERATIONS',/)
                                            
 !--------OUTPUT-FORMATTING---------------------------------------------)
 
@@ -360,24 +374,28 @@ C      LADDEXCH=.false.
 !-------------INITIAL-GUESSES------------------------------------------)
 
 !-------------SETUP-FOR-POSSIBLE-SOSCF---------------------------------(
-!     LSOSCF=.FALSE.
-      if(((NAalpE.eq.1).and.(NAbetE.eq.1)).or.LOCBSE) then
-         LSOSCF=.FALSE.
+      if (LSOSCF) then
+         SOGTOL=1.0d+00
+         SMALL=1.0D-06
+         L0=nebf
+         L1=nebf
+         LSOSCFA=.true.
+         LSOSCFB=.true.
+         if((NAalpE.eq.1).or.LOCBSE) LSOSCFA=.FALSE.
+         if((NAbetE.eq.1).or.LOCBSE) LSOSCFB=.FALSE.
+      else
+         LSOSCFA=.false.
+         LSOSCFB=.false.
       end if
-
-      if(LSOSCF) THEN
+      if(LSOSCFA) THEN
           NFT15=15
           OPEN(NFT15, FILE='WORK15', STATUS='UNKNOWN',
      *         ACCESS='SEQUENTIAL', FORM='UNFORMATTED')
-          ITSOA=0
+      end if
+      if(LSOSCFB) THEN
           NFT16=16
           OPEN(NFT16, FILE='WORK16', STATUS='UNKNOWN',
      *         ACCESS='SEQUENTIAL', FORM='UNFORMATTED')
-          ITSOB=0
-          SOGTOL=1.0d+00
-          SMALL=1.0D-06
-          L0=nebf
-          L1=nebf
       end if
 !-------------SETUP-FOR-POSSIBLE-SOSCF---------------------------------)
 
@@ -387,6 +405,7 @@ C      LADDEXCH=.false.
       TOLE = 1.0D-06
       TOLP = 1.0D-04
       maxit=100
+      maxmicroit=200
       if(LOCBSE) maxit=400
 !
 !     ZERO OUT 'OLD' DENSITY MATRICES
@@ -412,7 +431,59 @@ C      LADDEXCH=.false.
 !     write(*,*)'Before call to UHF_FOCK, GAM_EE='
 !     write(*,*)GAM_ee
 !     write(*,*)
-       if((.not.(locbse2)).or.(i.eq.1)) then
+
+        call RXCUHFne_FOCK(LCMF,LNEOHF,LADDEXCH,nelec,NBE,NAalpE,NAbetE,
+     x                    nebf,nebf2,npbf,npbf2,ngee,
+     x                    ng1,ng2,ng3,ng4,
+     x                    SZG2ICR,
+     x                    NG2CHK,
+     x                    DAalpE,DAbetE,DBE,DP,
+     x                    GAM_ecore,GAM_pcore,GAM_ep,GAM_ee,
+     x                    GM2ICR,GM2exICR,
+     x                    FP,FAalpE,FAbetE,FBE, 
+     x                    E_ecore,
+     x                    E_ee,
+     x                    E_OMG1,
+     x                    E_OMG2,
+     x                    E_total,
+     x                    S_total)
+         E_total=E_total+E_nuc
+
+       if(I.eq.1) then
+          WRITE(*,9400)
+          WRITE(*,9300) E_nuc,E_ecore,E_ee,
+     x    E_OMG1,E_OMG2,S_total,E_total
+       end if
+
+!        Fockp diag
+       call UROOTHAN(vecP,EP,xxsp,FP,npbf)
+       call construct_DP(nucst,npbf,vecP,DP)
+
+       CALL DENDIF(DP0,DP,NPBF,DIFFP)
+       CALL COPYDEN(DP0,DP,NPBF)
+
+       if(LSOSCFA) ITSOA=0
+       if(LSOSCFB) ITSOB=0
+       ORBGRDA=0.0d+00
+       ORBGRDB=0.0d+00
+       PGRADA=0.0d+00
+       PGRADB=0.0d+00
+
+       write(*,2001) I
+
+       if((LSOSCFA).and.(LSOSCFB)) then 
+        WRITE(*,9052)
+       else if ((LSOSCFA).and.(.not.(LSOSCFB))) then
+        WRITE(*,9050)
+       else if ((LSOSCFB).and.(.not.(LSOSCFA))) then
+        WRITE(*,9051)
+       else
+        WRITE(*,9000)
+       end if
+
+         do ielec=1,maxmicroit
+
+       if((.not.(locbse2)).or.(ielec.eq.1)) then
         call RXCUHFne_FOCK(LCMF,LNEOHF,LADDEXCH,nelec,NBE,NAalpE,NAbetE,
      x                    nebf,nebf2,npbf,npbf2,ngee,
      x                    ng1,ng2,ng3,ng4,
@@ -432,30 +503,17 @@ C      LADDEXCH=.false.
        end if
 
 !--------------FORM-FOCK-MATRICES-AND-CALC-ENERGY-COMPONENTS-----------)
-       if(I.eq.1) then
-          WRITE(*,9400)
-          WRITE(*,9300) E_nuc,E_ecore,E_ee,
-     x    E_OMG1,E_OMG2,S_total,E_total
-          if(LSOSCF) then 
-             WRITE(*,9050)
-          else
-             WRITE(*,9000)
-          end if
-       end if
-!        Fockp diag
-       call UROOTHAN(vecP,EP,xxsp,FP,npbf)
-       call construct_DP(nucst,npbf,vecP,DP)
 
        if (LOCBSE2) then
 
 ! Regular electrons
-         if(LSOSCF) THEN
-          ITER=I
-          EIGAVL = ITER.GT.1
-         end if
 
 ! SOSCF alpha
-         IF(LSOSCF .AND.  EIGAVL) THEN
+         if(LSOSCFA) THEN
+          ITER=IELEC
+          EIGAVL = ITER.GT.1
+         end if
+         IF(LSOSCFA .AND. EIGAVL) THEN
 !!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
            call pack_LT(nebf,nebfLT,FAalpE,FLT)
           call SOGRAD(GRADA,FLT,vecAalpE,WRK,NPRA,NAalpE,
@@ -465,9 +523,9 @@ C      LADDEXCH=.false.
 !!!!!!         CVGING=.TRUE.
 !!!!!!         GO TO 900  ! Check on convergence behavior
 !!!!!!      END IF
-            IF(ORBGRDA.LT.SOGTOL  .OR.  ITSOA.GT.0) THEN
+            IF(ORBGRDA.LT.SOGTOL .OR. ITSOA.GT.0) THEN
               IF(ITSOA.EQ.0) THEN
-              WRITE(*,9800)
+                 WRITE(*,9800)
                  call SOHESS(HSTARTA,AalpEE,NPRA,L0,NAalpE,NAalpE)
               END IF
               ITSOA = ITSOA+1
@@ -493,7 +551,11 @@ C      LADDEXCH=.false.
          CALL COPYDEN(DAalpE0,DAalpE,NEBF)
 
 ! SOSCF beta
-         IF(LSOSCF .AND.  EIGAVL) THEN
+         if(LSOSCFB) THEN
+           ITER=IELEC
+           EIGAVL = ITER.GT.1
+         end if
+         IF(LSOSCFB .AND. EIGAVL) THEN
 !!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
            call pack_LT(nebf,nebfLT,FAbetE,FLT)
           call SOGRAD(GRADB,FLT,vecAbetE,WRK,NPRB,NAbetE,
@@ -503,9 +565,9 @@ C      LADDEXCH=.false.
 !!!!!!         CVGING=.TRUE.
 !!!!!!         GO TO 910  ! Check on convergence behavior
 !!!!!!      END IF
-            IF(ORBGRDB.LT.SOGTOL  .OR.  ITSOB.GT.0) THEN
+            IF(ORBGRDB.LT.SOGTOL .OR. ITSOB.GT.0) THEN
               IF(ITSOB.EQ.0) THEN
-!              WRITE(*,9800)
+                 WRITE(*,9800)
                  call SOHESS(HSTARTB,AbetEE,NPRB,L0,NAbetE,NAbetE)
               END IF
               ITSOB = ITSOB+1
@@ -567,7 +629,11 @@ C      LADDEXCH=.false.
        else      ! if not ocbse2
 
 ! SOSCF alpha
-         IF(LSOSCF .AND.  EIGAVL) THEN
+         if(LSOSCFA) THEN
+          ITER=IELEC
+          EIGAVL = ITER.GT.1
+         end if
+         IF(LSOSCFA .AND. EIGAVL) THEN
 !!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
            call pack_LT(nebf,nebfLT,FAalpE,FLT)
           call SOGRAD(GRADA,FLT,vecAalpE,WRK,NPRA,NAalpE,
@@ -577,7 +643,7 @@ C      LADDEXCH=.false.
 !!!!!!         CVGING=.TRUE.
 !!!!!!         GO TO 700  ! Check on convergence behavior
 !!!!!!      END IF
-            IF(ORBGRDA.LT.SOGTOL  .OR.  ITSOA.GT.0) THEN
+            IF(ORBGRDA.LT.SOGTOL .OR. ITSOA.GT.0) THEN
               IF(ITSOA.EQ.0) THEN
               WRITE(*,9800)
                  call SOHESS(HSTARTA,AalpEE,NPRA,L0,NAalpE,NAalpE)
@@ -605,7 +671,11 @@ C      LADDEXCH=.false.
          CALL COPYDEN(DAalpE0,DAalpE,NEBF)
 
 ! SOSCF beta
-         IF(LSOSCF .AND.  EIGAVL) THEN
+         if(LSOSCFB) THEN
+           ITER=IELEC
+           EIGAVL = ITER.GT.1
+         end if
+         IF(LSOSCFB .AND. EIGAVL) THEN
 !!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
            call pack_LT(nebf,nebfLT,FAbetE,FLT)
           call SOGRAD(GRADB,FLT,vecAbetE,WRK,NPRB,NAbetE,
@@ -615,9 +685,9 @@ C      LADDEXCH=.false.
 !!!!!!         CVGING=.TRUE.
 !!!!!!         GO TO 800  ! Check on convergence behavior
 !!!!!!      END IF
-            IF(ORBGRDB.LT.SOGTOL  .OR.  ITSOB.GT.0) THEN
+            IF(ORBGRDB.LT.SOGTOL .OR. ITSOB.GT.0) THEN
               IF(ITSOB.EQ.0) THEN
-!              WRITE(*,9800)
+                 WRITE(*,9800)
                  call SOHESS(HSTARTB,AbetEE,NPRB,L0,NAbetE,NAbetE)
               END IF
               ITSOB = ITSOB+1
@@ -651,23 +721,25 @@ C      LADDEXCH=.false.
 
        end if ! end if for not ocbse2
 
-!        --> FIND LARGEST CHANGE IN P DENSITY
-       CALL DENDIF(DP0,DP,NPBF,DIFFP)
-       CALL COPYDEN(DP0,DP,NPBF)
-
 !        --> CALCULATE CHANGE IN TOTAL ENERGY
        Delta_E_tot=E_total-E_total_old
        E_total_old=E_total
 
 !        --> PRINT SUMMARY OF THIS ITERATION
-       if(LSOSCF) then
-          WRITE(*,9150) I,E_total,Delta_E_tot,
-     x                  DIFFAalpE,DIFFAbetE,DIFFBE,DIFFP,
-     x                  ORBGRDA,ORBGRDB
+       if((LSOSCFA).and.(LSOSCFB)) then
+          WRITE(*,9151) IELEC,E_total,Delta_E_tot,
+     x                  DIFFAalpE,DIFFAbetE,DIFFBE,DIFFP,ORBGRDA,ORBGRDB
+       else if ((LSOSCFA).and.(.not.(LSOSCFB))) then
+          WRITE(*,9150) IELEC,E_total,Delta_E_tot,
+     x                  DIFFAalpE,DIFFAbetE,DIFFBE,DIFFP,ORBGRDA
+       else if ((LSOSCFB).and.(.not.(LSOSCFA))) then
+          WRITE(*,9150) IELEC,E_total,Delta_E_tot,
+     x                  DIFFAalpE,DIFFAbetE,DIFFBE,DIFFP,ORBGRDB
        else
-          WRITE(*,9100) I,E_total,Delta_E_tot,
+          WRITE(*,9100) IELEC,E_total,Delta_E_tot,
      x                  DIFFAalpE,DIFFAbetE,DIFFBE,DIFFP
        end if
+
 ! Output the vectors for this iteration for restart if necessary:
        call write_MOs(870,nebf,VECAalpE)
        call write_MOs(871,nebf,VECAbetE)
@@ -677,21 +749,25 @@ C      LADDEXCH=.false.
        LDIFFE=( (DIFFAalpE.LT.TOLE).and.
      x          (DIFFAbetE.LT.TOLE).and.
      x          (DIFFBE.LT.TOLE) )
-       if(npbf.gt.1) then
-          IF((LDIFFE).and.(DIFFP.LT.TOLP)) GOTO 100
-       else
-          IF(LDIFFE) GOTO 100
-       end if
+       IF(LDIFFE) GOTO 200
+       IF(IELEC.EQ.MAXIT) GOTO 10
+
+       END DO  ! microiterations
+
+  200 CONTINUE
+!      IF WE GET HERE - MICROITERATION CONVERGENCE ACHIEVED
+       write(*,2000) i,ielec
+
+       IF(DIFFP.LT.TOLP) GOTO 100
        IF(I.EQ.MAXIT) GOTO 10
-      END DO
+
+      END DO   ! iterations
  
   10  CONTINUE
 !     IF WE GET HERE SOMETHING WENT WRONG
 
-      if(LSOSCF) THEN
-         close(NFT15)
-         close(NFT16)
-      end if
+      if(LSOSCFA) close(NFT15)
+      if(LSOSCFB) close(NFT16)
 
       WRITE(*,*)
       WRITE(*,*)'WARNING:  ITERATION LIMIT EXCEEDED'
@@ -702,10 +778,8 @@ C      LADDEXCH=.false.
   100 CONTINUE
 !     IF WE GET HERE WE ARE DONE - CONVERGENCE ACHIEVED
 
-      if(LSOSCF) THEN
-         close(NFT15)
-         close(NFT16)
-      end if
+      if(LSOSCFA) close(NFT15)
+      if(LSOSCFB) close(NFT16)
 
 !     PRINT FINAL ENERGY AND PUNCH THE ORBITALS
       WRITE(*,9200) E_TOTAL,I
@@ -738,3 +812,4 @@ C     IFIL=871 :: FinalCAbetE.dat
 
       RETURN
       END
+
