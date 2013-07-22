@@ -3,7 +3,7 @@
      x                 npebf,nebf,nebf2,npbf,npbf2,ngee,
      x                 ngtg1,ng1,ng2,ng3,ng4,NG4CHK,NG3CHK,NG2CHK,
      x                 read_CE,read_CP,
-     x                 LNEOHF,LGAM4,LG4DSCF,LG3DSCF,LG2DSCF,LCMF,
+     x                 LNEOHF,LGAM4,LG4DSCF,LG3DSCF,LG2DSCF,LSOSCF,LCMF,
      x                 ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
      x                 KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                 ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
@@ -158,7 +158,7 @@
       double precision Delta_E_tot
 
 !--------SOSCF-RELATED-VARIABLES------------(
-      logical SOSCF
+      logical LSOSCF
       logical EIGAVL
       integer NA
       integer ITER
@@ -187,6 +187,12 @@
 !cc   double precision CCC(nebf,nebf) !WRK(L0)
 !cc   NPR=(L0-NA)*NA ! Line 2134 RHFCL ?NA is NUM ALPHA E?
 !--------SOSCF-RELATED-VARIABLES------------)
+C ARS( testing variables
+      double precision FEmo(nebf,nebf)
+      double precision work1(nebf,nebf)
+      double precision work2(nebf,nebf)
+      integer ierr
+C )
 
 !--------OUTPUT-FORMATTING---------------------------------------------(
  9000 FORMAT(/' ITER     TOTAL ENERGY        E CHANGE     E DENSITY ',
@@ -313,13 +319,11 @@
 !-------------INITIAL-GUESSES------------------------------------------)
 
 !-------------SETUP-FOR-POSSIBLE-SOSCF---------------------------------(
-!c    SOSCF=.FALSE.
-      SOSCF=.TRUE.
       if(nelec.eq.1) then
-         SOSCF=.FALSE.
+         LSOSCF=.FALSE.
       end if
 
-      if(SOSCF) THEN
+      if(LSOSCF) THEN
          NFT15=15
          OPEN(NFT15, FILE='WORK15', STATUS='UNKNOWN',
      *        ACCESS='SEQUENTIAL', FORM='UNFORMATTED')
@@ -453,10 +457,10 @@ C-ELEC---------FORM-FOCK-MATRICES-AND-CALC-ENERGY-COMPONENTS-----------(
 C-ELEC---------FORM-FOCK-MATRICES-AND-CALC-ENERGY-COMPONENTS-----------)
 
 C-----------------------POSSIBLE-SOSCF---------------------------------(
-c        if(SOSCF) THEN
+c        if(LSOSCF) THEN
          ITER=I
          EIGAVL = ITER.GT.1
-         IF(SOSCF .AND.  EIGAVL) THEN
+         IF(LSOSCF .AND.  EIGAVL) THEN
 Cc          --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
             call pack_LT(nebf,nebfLT,focke,FLT)
             call SOGRAD(GRAD,FLT,vecE,WRK,NPR,NA,L0,L1,NEBFLT,ORBGRD)
@@ -519,7 +523,7 @@ c        WRITE(*,*)I, E, DIFFE, DIFFP, EE(1), EP(1)
   10  CONTINUE
 C     IF WE GET HERE SOMETHING WENT WRONG
 
-      if(SOSCF) THEN
+      if(LSOSCF) THEN
          close(NFT15)
       end if
 
@@ -532,9 +536,61 @@ C
   100 CONTINUE
 C     IF WE GET HERE WE ARE DONE - CONVERGENCE ACHIEVED
 
-      if(SOSCF) THEN
+      if(LSOSCF) THEN
          close(NFT15)
       end if
+
+CC ARS( test convergence
+C      if(LSOSCF) then
+C
+C! Rebuild Fock matrices
+C         call xchf1_fock(LNEOHF,LGAM4,LG4DSCF,LG4IC,
+C     x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
+C     x                   NG4CHK,NG3CHK,NG2CHK,
+C     x                   SZG4IC,SZG3IC1,SZG2ICR,
+C     x                   npebf,nebf,nebf2,npbf,npbf2,nelec,
+C     x                   ngee,ng1,ng2,ng3,ng4,DE,DP,
+C     x                   GAM_ecore,GAM_pcore,GAM_ep,GAM_ee,
+C     x                   GM4ICR,GM3IC1,GM2ICR,GM2SICR,
+C     x                   ng2prm,ngtg1,ng3prm,
+C     x                   nat,pmass,cat,zan,bcoef1,gamma1,
+C     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+C     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+C     x                   focke,fockp,Xfocke,Xfockp,
+C     x                   E_total,E_nuc,E_ecore,E_pcore,E_ep,
+C     x                   E_ee,E_gam1,E_gam2,E_gam3,E_gam4,
+C     x                   S_total,S_gam1,S_gam2)
+C
+C! Calculate updated Fock matrix in MO basis
+C      call fock2mobasis(nebf,focke,vecE,FEmo)
+C      write(*,*)
+C      write(*,*) "FE in MO basis:"
+C      write(*,*)
+C      call PREVNU(FEmo,EE,nebf,nebf,nebf)
+C
+C! Diagonalize in MO basis
+C      CALL RS(nebf,nebf,FEmo,EE,2,vecE,work1,work2,IERR)
+C      call fock2mobasis(nebf,FEmo,vecE,FEmo)
+C      write(*,*)
+C      write(*,*) "FE after diagonalization in MO basis:"
+C      write(*,*)
+C      call PREVNU(FEmo,EE,nebf,nebf,nebf)
+C
+C      call ROOTHAN(DP,vecP,EP,xxsp,fockp,npbf,1,2,NUCST)
+C      call ROOTHAN(DE,vecE,EE,xxse,focke,nebf,nelec,1,NUCST)
+C
+C      Delta_E_tot=E_total-E_total_old
+C      E_total_old=E_total
+C      CALL DENDIF(DE0,DE,NEBF,DIFFE)
+C
+C      write(*,*) "After diag without reforming after FP diag:"
+C      write(*,*) "E_total:        ",E_total
+C      write(*,*) "Delta_E_total:  ",Delta_E_tot
+C      write(*,*) "Max DE change: ",DIFFE
+C      write(*,*) "Max DP change: ",DIFFP
+C
+C      end if
+CC )
 
 C     PRINT FINAL ENERGY AND PUNCH THE ORBITALS
       WRITE(*,9200) E_TOTAL,I
@@ -826,6 +882,12 @@ C
       CALL MATMULT(NB,NB,NB,NB,F,X,FV4)
       CALL MATMULT(NB,NB,NB,NB,XP,FV4,FP)
 C
+      IF(DEBUG) THEN
+         WRITE(*,*)
+         WRITE(*,*) "FOCK BEFORE DIAGONALIZING:"
+         CALL PREVNU(FP,EVS,NB,NB,NB)
+      END IF
+C
 C     DIAGONALIZE FOCK MATRIX 
 C
       CALL RS(NB,NB,FP,EVF,2,CP,FV1,FV2,IERR)
@@ -834,7 +896,7 @@ C     TRANSFORM MO COEFFICIENTS
 C      C = X.CP  
 C   
       CALL MATMULT(NB,NB,NB,NB,X,CP,C)
-
+C
 C-----FORM-DENSITY-MATRIX----------------------------------------------(
       if(i_particle.eq.1) then
          if(n_particle.gt.1) then

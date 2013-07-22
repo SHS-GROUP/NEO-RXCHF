@@ -1001,7 +1001,7 @@ C Above hack commented out as should be handled by EXCHLEV=0
      x                 npebf,nebf,nebf2,npbf,npbf2,ngee,
      x                 ngtg1,ng1,ng2,ng3,ng4,NG4CHK,NG3CHK,NG2CHK,
      x                 read_CE,read_CP,
-     x                 LNEOHF,LGAM4,LG4DSCF,LG3DSCF,LG2DSCF,LCMF,
+     x                 LNEOHF,LGAM4,LG4DSCF,LG3DSCF,LG2DSCF,LSOSCF,LCMF,
      x                 ng2prm,ng3prm,nat,pmass,cat,zan,bcoef1,gamma1,
      x                 KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                 ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,

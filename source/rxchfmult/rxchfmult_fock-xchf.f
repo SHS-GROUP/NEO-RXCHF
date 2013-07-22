@@ -206,21 +206,10 @@ C Variables for overlap contributions to Fock matrices
      *            se1,sp1,se2,sp2,focke,fockp,CHKfockp,CHKS)
 
       if(LCMF) then
-         call Fock_sym_check(nebf,npbf,focke,fockp)
-
-C Adapt testing below for G ansatz
-C         npbfLT=npbf*(npbf+1)/2
-C         nebfLT=nebf*(nebf+1)/2
-C         E_check=E_pcore+E_ep+E_gam1+E_gam2+E_gam3+E_gam4
-C         call CHK_my_fockp(npbf,npbfLT,E_check,S_total,DP,
-C     x                     CHKfockp,CHKS)
-C
-C         call Focking_Around(nebf,nebfLT,npbf,npbfLT,
-C     x                       DE,DP,focke,fockp,se1,se2,sp1,sp2,
-C     x                       psiHpsi,S_total,E_pcore,E_ecore,
-C     x                       E_ep,E_ee,E_gam1,E_gam2,E_gam3,E_gam4)
-C
-C         call NonGem_OVLAP_check(nebf,npbf,nelec,DE,DP)
+        call RXCHFmult_xchfFock_testing(nebf,npbf,focke,fockp,DE,DP,
+     x                                  E_total,S_total,
+     x                                  E_gam2,E_gam3,E_gam4,S_gam2)
+        call Fock_sym_check(nebf,npbf,focke,fockp)
 
         nebflt=nebf*(nebf+1)/2
         npbflt=npbf*(npbf+1)/2
@@ -250,4 +239,49 @@ C Store overlap contributions to Fock matrices separately for interaction routin
 
       return
       end
+!======================================================================
+      subroutine RXCHFmult_xchfFock_testing(nebf,npbf,FE,FP,DE,DP,
+     x                                  E_total,S_total,
+     x                                  E_OMG2,E_OMG3,E_OMG4,S_OMG2)
+C Tests Fock matrices by summing up with density matrices
+!======================================================================
+      implicit none
 
+! Input variables
+      integer nebf,npbf
+      double precision FE(nebf,nebf)
+      double precision FP(npbf,npbf)
+      double precision DE(nebf,nebf)
+      double precision DP(npbf,npbf)
+      double precision E_total                 ! On entry already div by S_total
+      double precision E_OMG2,E_OMG3,E_OMG4    ! On entry not div by S_total
+      double precision S_total,S_OMG2
+
+! Local variables
+      integer i,j
+      double precision fdsum,ans
+      double precision zero,two,three
+      parameter(zero=0.0d+00,two=2.0d+00,three=3.0d+00)
+
+      fdsum=zero
+      do i=1,npbf
+        do j=1,npbf
+          fdsum=fdsum+DP(j,i)*FP(j,i)
+        end do
+      end do
+      ans=zero
+      write(*,*) "Proton Fock matrix test:"
+      write(*,*) fdsum,ans
+
+      fdsum=zero
+      do i=1,nebf
+        do j=1,nebf
+          fdsum=fdsum+DE(j,i)*FE(j,i)
+        end do
+      end do
+      ans=(E_OMG2+two*E_OMG3+three*E_OMG4-S_OMG2*E_total)/S_total
+      write(*,*) "Electron Fock matrix test:"
+      write(*,*) fdsum,ans
+
+      return
+      end

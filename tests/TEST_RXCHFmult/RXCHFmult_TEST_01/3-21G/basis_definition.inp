@@ -33,8 +33,8 @@
 .false. =LXCROHF
 .true.  =LRXCHF
 .false. =LRXCUHF
-.true.   =read_CE optional read in elec vectors from guessCE.inp
-.true.   =read_CP optional read in nuc vectors from guessCP.inp
+.false.  =read_CE optional read in elec vectors from guessCE.inp
+.false.  =read_CP optional read in nuc vectors from guessCP.inp
 .false. =read_GAM2  |
 .false. =read_GAM3  | Options to read integrals from file
 .false. =read_GAM4  |
@@ -49,7 +49,7 @@
 50      =NG2CHK Number of domains for 3-particle integrals
 .false. =LG2DSCF  Direct SCF for 3-particle integrals
 .true.  =LG2IC1 in-core 3-particle integrals: loop over contracted BF
-.true.  =LCMF Activates on-the-fly Fock matrix checking
+.false. =LCMF Activates on-the-fly Fock matrix checking
 .true.  =LSOSCF
 .true.  =LOCBSE
 0       =EXCHLEV

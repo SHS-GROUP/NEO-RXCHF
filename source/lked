@@ -16,11 +16,7 @@ fi
 
 F77=ifort
 #OPT='-openmp -parallel -fpp -traceback -check all -integer-size 64'
-OPT='-O2 -openmp -parallel -fpp -traceback -integer-size 64 -fp-model strict -no-ftz -ipo'    # ifort_O2_opts
-#OPT='-O2 -openmp -integer-size 64'    # ifort_O2
-
-#F77=openf90
-#OPT='-O2 -mp -i8 -no-ftz -static -ipa'    # open64_O2_opts
+OPT='-O2 -openmp -parallel -integer-size 64 -fp-model strict -no-ftz -ipo'
 
 FILS='../object/*.o'
 

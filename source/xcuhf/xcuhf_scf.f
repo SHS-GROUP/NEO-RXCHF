@@ -755,6 +755,12 @@ C
       CALL MATMULT(NB,NB,NB,NB,F,X,FV4)
       CALL MATMULT(NB,NB,NB,NB,XP,FV4,FP)
 C
+      IF(DEBUG) THEN
+         WRITE(*,*)
+         WRITE(*,*) "FOCK BEFORE DIAGONALIZING:"
+         CALL PREVNU(FP,EVS,NB,NB,NB)
+      END IF
+C
 C     DIAGONALIZE FOCK MATRIX 
 C
       CALL RS(NB,NB,FP,EVF,2,CP,FV1,FV2,IERR)
@@ -763,7 +769,7 @@ C     TRANSFORM MO COEFFICIENTS
 C      C = X.CP  
 C   
       CALL MATMULT(NB,NB,NB,NB,X,CP,C)
-
+C
 CDDD
 c     write(*,*) 
 c     write(*,*)'--------ORTHO-CHEC----------' 
