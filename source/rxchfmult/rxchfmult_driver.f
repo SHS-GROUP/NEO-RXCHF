@@ -14,14 +14,11 @@ C=======================================================================
      x                            LSOSCF,LOCBSE,LCMF)
 
 C Driver to calculate RXCHF integrals for nbe > 1
-C   XCHF_GAM* : integrals needed for XCHF contribution
-C    INT_GAM* : integrals needed for interaction contribution
+C (nbe = 1 is handled in regular RXCHF routines)
+C   - XCHF_GAM* : integrals needed for XCHF contribution
+C   -  INT_GAM* : integrals needed for interaction contribution
 C
 C Maximum dimension of integral needed is nbe + 1
-C In this routine, both XCHF_GAM? and INT_GAM? are calculated up to
-C this dimension and XCHF_GAM[max] is deallocated at the end
-C  - this doesn't incur any additional cost (aside from temp memory)
-C  - the case of XCHF_GAM4 (nbe > 3) is dealt with separately at the end
 C=======================================================================
       implicit none
       include "omp_lib.h"
@@ -221,9 +218,9 @@ C Output reordered basis
       write(*,*)'PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-'
       write(*,*)'INDEX INDEX   MOM                  COEF'
       do i=1,npebf
-        write(*,1000) i,XAMPEB2C(i),XELCAM(i,1),XELCAM(i,2),
-     x                XELCAM(i,3),XELCEX(i),XAGEBFCC(i),
-     x                XELCBFC(i,1),XELCBFC(i,2),XELCBFC(i,3)
+        write(*,1000) i,AMPEB2C(i),ELCAM(i,1),ELCAM(i,2),
+     x                ELCAM(i,3),ELCEX(i),AGEBFCC(i),
+     x                ELCBFC(i,1),ELCBFC(i,2),ELCBFC(i,3)
       end do
       write(*,*)
       write(*,*)' CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS '
@@ -239,20 +236,40 @@ C Output special electron basis
       write(*,*)'PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-'
       write(*,*)'INDEX INDEX   MOM                  COEF'
       do i=1,npebfBE
-        write(*,1000) i,XAMPEB2C(i),XELCAM(i,1),XELCAM(i,2),
-     x                XELCAM(i,3),XELCEX(i),XAGEBFCC(i),
-     x                XELCBFC(i,1),XELCBFC(i,2),XELCBFC(i,3)
+        write(*,1000) i,AMPEB2C_be(i),ELCAM_be(i,1),ELCAM_be(i,2),
+     x                ELCAM_be(i,3),ELCEX_be(i),AGEBFCC_be(i),
+     x                ELCBFC_be(i,1),ELCBFC_be(i,2),ELCBFC_be(i,3)
       end do
       write(*,*)
       write(*,*)' CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS '
       write(*,*)'CONT INDEX    KPESTR     KPEEND'
       do i=1,nebfBE
-         write(*,2000) i,KPESTR(i),KPEEND(i)
+         write(*,2000) i,KPESTR_be(i),KPEEND_be(i)
       end do
 
-      STOP
+C Calculate inexpensive integrals usually calculated in main driver
+C since the all-electron basis set was reordered
+      call class_nuc_rep(nat,zan,cat)
 
-C Calculate integrals
+      call elec_ovlap(npebf,nebf,nebf*nebf,
+     x                AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
+
+      call check_elec_ovlap(nebf)
+
+      call nuc_ovlap(npbf,npbf*npbf,
+     x               AGNBFCC,NUCEX,NUCAM,NUCBFC)
+
+      call check_nuc_ovlap(npbf)
+
+      call calc_GAM_epcore(nebf,npebf,npbf,nebf*nebf,npbf*npbf,
+     x                     nat,pmass,zan,cat,
+     x                     AMPEB2C,AGEBFCC,AGNBFCC,
+     x                     ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+
+      call calc_GAM_ee(nebf,npebf,ngee,
+     x                 AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
+
+C Calculate geminal integrals
       wtime = omp_get_wtime()
 
 C Initialize dimensions
@@ -263,12 +280,16 @@ C Initialize dimensions
       dimINT3  = 1
       dimINT4  = 1
 
-C nbe >= 1
+C nbe >= 2
 C  - calculate two-particle integrals and write to disk
 C     => XCHF_GAM1
 C     => XCHF_GAM1s
 C  - calculate three-particle integrals and store in memory
 C     => INT_GAM2
+C     => XCHF_GAM2
+C     => XCHF_GAM2s
+C  - calculate four-particle integrals and store in memory
+C     => INT_GAM3
 
       write(*,*)
       write(*,*) "---------------------------"
@@ -285,15 +306,46 @@ C     => INT_GAM2
       write(*,*)
       write(*,*) "---------------------------"
       write(*,*) " Calculating:     INT_GAM2 "
+      write(*,*) "                 XCHF_GAM2 "
+      write(*,*) "                XCHF_GAM2s "
       write(*,*) "---------------------------"
       write(*,*)
 
       dimINT2=nebf*nebf*nebfBE*nebfBE*npbf*npbf
+      dimXCHF2=nebfBE*nebfBE*nebfBE*nebfBE*npbf*npbf
       if(allocated(INT_GAM2)) deallocate(INT_GAM2)
       allocate(INT_GAM2(dimINT2))
+      if(allocated(XCHF_GAM2)) deallocate(XCHF_GAM2)
+      allocate(XCHF_GAM2(dimXCHF2))
+      if(allocated(XCHF_GAM2s)) deallocate(XCHF_GAM2s)
+      allocate(XCHF_GAM2s(dimXCHF2))
 
-      call RXCHFmult_GAM2_IC1(ng2chk,nebf,npebf,nebfBE,npebfBE,npbf,
-     x                        dimINT2,dimXCHF2,nat,ngtg1,
+      call RXCHFmult_GAM2(ng2chk,
+     x                    nebf,npebf,nebfBE,npebfBE,npbf,
+     x                    dimINT2,dimXCHF2,nat,ngtg1,
+     x                    pmass,cat,zan,bcoef1,gamma1,
+     x                    KPESTR,KPEEND,
+     x                    AMPEB2C,AGEBFCC,
+     x                    ELCEX,ELCAM,ELCBFC,
+     x                    KPESTR_be,KPEEND_be,
+     x                    AMPEB2C_be,AGEBFCC_be,
+     x                    ELCEX_be,ELCAM_be,ELCBFC_be,
+     x                    AGNBFCC,NUCEX,NUCAM,NUCBFC,
+     x                    INT_GAM2,XCHF_GAM2,XCHF_GAM2s)
+
+      write(*,*)
+      write(*,*) "---------------------------"
+      write(*,*) " Calculating:     INT_GAM3 "
+      write(*,*) "---------------------------"
+      write(*,*)
+
+      dimINT3=nebf*nebf*nebfBE*nebfBE*nebfBE*nebfBE*npbf*npbf
+      if(allocated(INT_GAM3)) deallocate(INT_GAM3)
+      allocate(INT_GAM3(dimINT3))
+
+      call RXCHFmult_GAM3_INT(ng3chk,
+     x                        nebf,npebf,nebfBE,npebfBE,npbf,
+     x                        dimINT3,nat,ngtg1,
      x                        pmass,cat,zan,bcoef1,gamma1,
      x                        KPESTR,KPEEND,
      x                        AMPEB2C,AGEBFCC,
@@ -302,88 +354,18 @@ C     => INT_GAM2
      x                        AMPEB2C_be,AGEBFCC_be,
      x                        ELCEX_be,ELCAM_be,ELCBFC_be,
      x                        AGNBFCC,NUCEX,NUCAM,NUCBFC,
-     x                        INT_GAM2,XCHF_GAM2)
+     x                        INT_GAM3)
 
-      if (nbe.le.1) then
+      if (nbe.le.2) then
 
-        if(allocated(XCHF_GAM2)) deallocate(XCHF_GAM2)
-        if(allocated(XCHF_GAM2s)) deallocate(XCHF_GAM2s)
-        if(allocated(INT_GAM3)) deallocate(INT_GAM3)
         if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
         if(allocated(INT_GAM4)) deallocate(INT_GAM4)
         if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
-        allocate(XCHF_GAM2(dimXCHF2))
-        allocate(XCHF_GAM2s(dimXCHF2))
-        allocate(INT_GAM3(dimINT3))
         allocate(XCHF_GAM3(dimXCHF3))
         allocate(INT_GAM4(dimINT4))
         allocate(XCHF_GAM4(dimXCHF4))
 
       else
-
-C nbe >= 2
-C  - calculate three-particle integrals and store in memory
-C     => XCHF_GAM2
-C     => XCHF_GAM2s
-C  - calculate four-particle integrals and store in memory
-C     => INT_GAM3
-
-        write(*,*)
-        write(*,*) "---------------------------"
-        write(*,*) " Calculating:    XCHF_GAM2 "
-        write(*,*) "---------------------------"
-        write(*,*)
-
-        dimXCHF2=nebfBE*nebfBE*nebfBE*nebfBE*npbf*npbf
-        if(allocated(XCHF_GAM2)) deallocate(XCHF_GAM2)
-        allocate(XCHF_GAM2(dimXCHF2))
-        if(allocated(XCHF_GAM2s)) deallocate(XCHF_GAM2s)
-        allocate(XCHF_GAM2s(dimXCHF2))
-
-        call RXCHFmult_GAM2_IC1(ng2chk,
-     x                          nebfBE,npebfBE,nebfBE,npebfBE,npbf,
-     x                          dimXCHF2,dimXCHF2,nat,ngtg1,
-     x                          pmass,cat,zan,bcoef1,gamma1,
-     x                          KPESTR_be,KPEEND_be,
-     x                          AMPEB2C_be,AGEBFCC_be,
-     x                          ELCEX_be,ELCAM_be,ELCBFC_be,
-     x                          KPESTR_be,KPEEND_be,
-     x                          AMPEB2C_be,AGEBFCC_be,
-     x                          ELCEX_be,ELCAM_be,ELCBFC_be,
-     x                          AGNBFCC,NUCEX,NUCAM,NUCBFC,
-     x                          XCHF_GAM2,XCHF_GAM2s)
-
-        write(*,*) "---------------------------"
-        write(*,*) " Calculating:     INT_GAM3 "
-        write(*,*) "---------------------------"
-        write(*,*)
-
-        dimINT3=nebf*nebf*nebfBE*nebfBE*nebfBE*nebfBE*npbf*npbf
-        if(allocated(INT_GAM3)) deallocate(INT_GAM3)
-        allocate(INT_GAM3(dimINT3))
-
-        call RXCHFmult_GAM3_INT(ng3chk,nebf,npebf,nebfBE,npebfBE,npbf,
-     x                          dimINT3,nat,ngtg1,
-     x                          pmass,cat,zan,bcoef1,gamma1,
-     x                          KPESTR,KPEEND,
-     x                          AMPEB2C,AGEBFCC,
-     x                          ELCEX,ELCAM,ELCBFC,
-     x                          KPESTR_be,KPEEND_be,
-     x                          AMPEB2C_be,AGEBFCC_be,
-     x                          ELCEX_be,ELCAM_be,ELCBFC_be,
-     x                          AGNBFCC,NUCEX,NUCAM,NUCBFC,
-     x                          INT_GAM3)
-
-        if (nbe.le.2) then
-
-          if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
-          if(allocated(INT_GAM4)) deallocate(INT_GAM4)
-          if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
-          allocate(XCHF_GAM3(dimXCHF3))
-          allocate(INT_GAM4(dimINT4))
-          allocate(XCHF_GAM4(dimXCHF4))
-
-        else
 
 C nbe >= 3
 C  - calculate four-particle integrals and store in memory
@@ -391,77 +373,98 @@ C     => XCHF_GAM3
 C  - calculate five-particle integrals and store in memory
 C     => INT_GAM4
 
-          write(*,*) "---------------------------"
-          write(*,*) " Calculating:    XCHF_GAM3 "
-          write(*,*) "---------------------------"
-          write(*,*)
+        write(*,*)
+        write(*,*) "---------------------------"
+        write(*,*) " Calculating:    XCHF_GAM3 "
+        write(*,*) "---------------------------"
+        write(*,*)
+      
+        dimXCHF3=nebfBE*nebfBE*nebfBE*nebfBE*nebfBE*nebfBE*npbf*npbf
+        if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
+        allocate(XCHF_GAM3(dimXCHF3))
         
-          dimXCHF3=nebfBE*nebfBE*nebfBE*nebfBE*nebfBE*nebfBE*npbf*npbf
-          if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
-          allocate(XCHF_GAM3(dimXCHF3))
-        
-          call RXCHFmult_GAM3_XCHF(ng3chk,nebfBE,npebfBE,npbf,
-     x                             dimXCHF3,nat,ngtg1,
-     x                             pmass,cat,zan,bcoef1,gamma1,
-     x                             KPESTR_be,KPEEND_be,
-     x                             AMPEB2C_be,AGEBFCC_be,
-     x                             ELCEX_be,ELCAM_be,ELCBFC_be,
-     x                             AGNBFCC,NUCEX,NUCAM,NUCBFC,
-     x                             XCHF_GAM3)
+        call RXCHFmult_GAM3_XCHF(ng3chk,
+     x                           nebfBE,npebfBE,npbf,
+     x                           dimXCHF3,nat,ngtg1,
+     x                           pmass,cat,zan,bcoef1,gamma1,
+     x                           KPESTR_be,KPEEND_be,
+     x                           AMPEB2C_be,AGEBFCC_be,
+     x                           ELCEX_be,ELCAM_be,ELCBFC_be,
+     x                           AGNBFCC,NUCEX,NUCAM,NUCBFC,
+     x                           XCHF_GAM3)
 
-          write(*,*)
-          write(*,*) "---------------------------"
-          write(*,*) " Calculating:     INT_GAM4 "
-          write(*,*) "---------------------------"
-          write(*,*)
+        write(*,*)
+        write(*,*) "---------------------------"
+        write(*,*) " Calculating:     INT_GAM4 "
+        write(*,*) "---------------------------"
+        write(*,*)
 
-          dimINT4=npbf*npbf*nebf*nebf*
-     x            nebfBE*nebfBE*nebfBE*nebfBE*nebfBE*nebfBE
-          if(allocated(INT_GAM4)) deallocate(INT_GAM4)
-          allocate(INT_GAM4(dimINT4))
+        dimINT4=npbf*npbf*nebf*nebf*
+     x          nebfBE*nebfBE*nebfBE*nebfBE*nebfBE*nebfBE
+        if(allocated(INT_GAM4)) deallocate(INT_GAM4)
+        allocate(INT_GAM4(dimINT4))
 
-????          call RXCHFmult_GAM4_INT(ng4chk,nebf,npbf,ngee,ng2,ng4,
-????     x                            XCHF_GAM2s,INT_GAM4)
+        call RXCHFmult_GAM4_INT(ng4chk,nebf,nebfBE,npbf,
+     x                          ngee,dimXCHF2,dimINT4,
+     x                          XCHF_GAM2s,INT_GAM4)
 
-          if (nbe.le.3) then
+        if (nbe.le.3) then
 
-            if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
-            allocate(XCHF_GAM4(dimXCHF4))
+          if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
+          allocate(XCHF_GAM4(dimXCHF4))
 
-          else
+        else
 
 C nbe >= 4
 C  - calculate five-particle integrals and store in memory
 C     => XCHF_GAM4
 
-            write(*,*)
-            write(*,*) "---------------------------"
-            write(*,*) " Calculating:    XCHF_GAM4 "
-            write(*,*) "---------------------------"
-            write(*,*)
+          write(*,*)
+          write(*,*) "---------------------------"
+          write(*,*) " Calculating:    XCHF_GAM4 "
+          write(*,*) "---------------------------"
+          write(*,*)
 
-            dimXCHF4=npbf*npbf*nebfBE*nebfBE*
-     x               nebfBE*nebfBE*nebfBE*nebfBE*nebfBE*nebfBE
-            if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
-            allocate(XCHF_GAM4(dimXCHF4))
+          dimXCHF4=npbf*npbf*nebfBE*nebfBE*
+     x             nebfBE*nebfBE*nebfBE*nebfBE*nebfBE*nebfBE
+          if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
+          allocate(XCHF_GAM4(dimXCHF4))
 
-            call GAM4_ICR(ng4chk,nebfBE,npbf,ngeeBE,dimXCHF2,dimXCHF4,
-     x                    XCHF_GAM2s,XCHF_GAM4)
+          call RXCHFmult_GAM4_XCHF(ng4chk,nebf,nebfBE,npbf,
+     x                             ngee,dimXCHF2,dimXCHF4,
+     x                             XCHF_GAM2s,XCHF_GAM4)
 
-          end if ! nbe >= 4
+        end if ! nbe >= 4
 
-        end if ! nbe >= 3
-
-      end if ! nbe >= 2
+      end if ! nbe >= 3
 
       wtime1 = omp_get_wtime() - wtime
 
-C      write(*,*) "dimINT2:",dimINT2
-C      write(*,*) "dimINT3:",dimINT3
-C      write(*,*) "dimINT4:",dimINT4
-C      write(*,*) "dimXCHF2:",dimXCHF2
-C      write(*,*) "dimXCHF3:",dimXCHF3
-C      write(*,*) "dimXCHF4:",dimXCHF4
+      write(*,*) "dimINT2:",dimINT2
+      write(*,*) "dimINT3:",dimINT3
+      write(*,*) "dimINT4:",dimINT4
+      write(*,*) "dimXCHF2:",dimXCHF2
+      write(*,*) "dimXCHF3:",dimXCHF3
+      write(*,*) "dimXCHF4:",dimXCHF4
+
+C TEST INTEGRALS HERE!
+
+C Temporary debug cleanup
+      if(allocated(XCHF_GAM4))  deallocate(XCHF_GAM4)
+      if(allocated(INT_GAM4))   deallocate(INT_GAM4)
+      if(allocated(XCHF_GAM3))  deallocate(XCHF_GAM3)
+      if(allocated(INT_GAM3))   deallocate(INT_GAM3)
+      if(allocated(XCHF_GAM2s)) deallocate(XCHF_GAM2s)
+      if(allocated(XCHF_GAM2))  deallocate(XCHF_GAM2)
+      if(allocated(INT_GAM2))   deallocate(INT_GAM2)
+
+      if(allocated(AMPEB2C_be)) deallocate(AMPEB2C_be)
+      if(allocated(ELCEX_be))   deallocate(ELCEX_be)
+      if(allocated(AGEBFCC_be)) deallocate(AGEBFCC_be)
+      if(allocated(ELCAM_be))   deallocate(ELCAM_be)
+      if(allocated(ELCBFC_be))  deallocate(ELCBFC_be)
+      STOP
+
 
 C Kick-off SCF
       wtime  = omp_get_wtime()

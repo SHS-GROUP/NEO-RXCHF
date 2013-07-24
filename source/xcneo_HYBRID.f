@@ -495,6 +495,9 @@ c     write(*,*)'ng4prm=',ng4prm
 !----CALCULATE-INEXPENSIVE-INTEGRALS-ON-MASTER-NODE--------------------(
 ! NOTE:  GEMINAL INTEGRALS WILL STILL BE OVER AVAILABLE OMP THREADS
 ! Standard NEO-HF integrals:
+
+C RXCHFmult( do these in the RXCHFmult driver after basis set reordering
+      if(.not.(((LRXCHF).or.(LRXCUHF)).and.(NBE.gt.1))) then
          call class_nuc_rep(nat,zan,cat)
 
          call elec_ovlap(npebf,nebf,nebf*nebf,
@@ -524,6 +527,8 @@ c     write(*,*)'ng4prm=',ng4prm
      x                    AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
 
          write(*,*)'all done in calc_GAM_ee'
+      end if
+C )
 !----CALCULATE-INEXPENSIVE-INTEGRALS-ON-MASTER-NODE--------------------)
 
          if(LNEOHF.or.(nelec.lt.2)) then
@@ -1033,8 +1038,8 @@ C Above hack commented out as should be handled by EXCHLEV=0
      x        8X,'    TIME TO EVALUATE INTEGRALS:',1X,F12.4/
      x        8X,'                  TIME FOR SCF:',1X,F12.4/)
 
- 8000 format(/1X,I3,I6,I5)
- 9000 format(/1X,I3,I6,I5,I3,I3,F12.6,F10.6,F10.6,F10.6,F10.6)
+ 8000 format(1X,I3,I6,I5)
+ 9000 format(1X,I3,I6,I5,I3,I3,F12.6,F10.6,F10.6,F10.6,F10.6)
 
 
       return

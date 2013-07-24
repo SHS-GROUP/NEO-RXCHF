@@ -121,7 +121,7 @@
       double precision xxsp(npbf,npbf)  ! Nuc overlap matrix
       double precision GAM_pcore(npbf2)
       double precision GAM_ecore(nebf2)
-      double precision GAM_ep(ng1)
+!      double precision GAM_ep(ng1)
       double precision GAM_ee(ngee)
 
 !     integer noccE ! Number of occupied elec orbs
@@ -408,8 +408,8 @@ C )
       write(*,*)'READ IN GAM_ECORE'
       call read_GAM_pcore(npbf,npbf2,GAM_pcore)
       write(*,*)'READ IN GAM_PCORE'
-      call read_GAM_ep(nebf,npbf,ng1,GAM_ep)
-      write(*,*)'READ IN GAM_EP'
+!      call read_GAM_ep(nebf,npbf,ng1,GAM_ep)
+!      write(*,*)'READ IN GAM_EP'
       call read_GAM_ee(nebf,ngee,GAM_ee)
       write(*,*)'READ IN GAM_EE'
       write(*,*)
