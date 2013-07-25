@@ -133,17 +133,8 @@ C Local variables
       integer           iec3,jec3  !
       integer           iec4,jec4  !
       integer           imap,ia
-      integer           ia_1234
-      integer           ia_1243
-      integer           ia_1324
-      integer           ia_1342
-      integer           ia_1423
-      integer           ia_1432
       double precision  val
       double precision  wtime
-      double precision  half
-
-      half=0.50d+00
 
 C GM4ICR stored as:
 C        ip,jp : QM particle indicies
@@ -153,7 +144,6 @@ C    iec3,jec3 : special electron 2 indicies
 C    iec4,jec4 : special electron 3 indicies
 
 !$omp parallel 
-!$ompx shared(half)
 !$ompx shared(loop_map)
 !$ompx shared(istart,iend)
 !$ompx shared(nebf,npbf,ng4_seg)
@@ -161,13 +151,12 @@ C    iec4,jec4 : special electron 3 indicies
 !$ompx shared(DAE,DBE,DP)
 !$ompx shared(GM4ICR)
 !$ompx private(iLp) 
-!$ompx private(imap)
+!$ompx private(imap,ia)
 !$ompx private(ip,jp) 
 !$ompx private(iec1,jec1)
 !$ompx private(iec2,jec2)
 !$ompx private(iec3,jec3)
 !$ompx private(iec4,jec4)
-!$ompx private(ia_1234,ia_1243,ia_1324,ia_1342,ia_1423,ia_1432)
 !$ompx private(val)
 !$ompx reduction(+:XFAE)
 !$ompx reduction(+:E_AE_OMG4)
@@ -188,21 +177,9 @@ C    iec4,jec4 : special electron 3 indicies
          ip =loop_map(imap,10)
 
          call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec2,iec3,jec3,iec4,jec4,ia_1234)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec2,iec3,jec4,iec4,jec3,ia_1243)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec3,iec3,jec2,iec4,jec4,ia_1324)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec3,iec3,jec4,iec4,jec2,ia_1342)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec4,iec3,jec2,iec4,jec3,ia_1423)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec4,iec3,jec3,iec4,jec2,ia_1432)
+     x                       iec2,jec2,iec3,jec3,iec4,jec4,ia)
 
-         val =            GM4ICR(ia_1234) -      half*GM4ICR(ia_1243)
-     x        -      half*GM4ICR(ia_1324) + half*half*GM4ICR(ia_1342)
-     x        + half*half*GM4ICR(ia_1423) -      half*GM4ICR(ia_1432)
+         val = GM4ICR(ia)
 
          XFAE(iec1,jec1)=XFAE(iec1,jec1)+DP(ip,jp)*DBE(iec2,jec2)*
      x                   DBE(iec3,jec3)*DBE(iec4,jec4)*val
@@ -350,17 +327,8 @@ C Local variables
       integer           iec3,jec3  !
       integer           iec4,jec4  !
       integer           imap,ia
-      integer           ia_1234
-      integer           ia_1243
-      integer           ia_1324
-      integer           ia_1342
-      integer           ia_1423
-      integer           ia_1432
       double precision  val
       double precision  wtime
-      double precision  half
-
-      half=0.50d+00
 
 C GM4ICR stored as:
 C        ip,jp : QM particle indicies
@@ -370,7 +338,6 @@ C    iec3,jec3 : special electron 2 indicies
 C    iec4,jec4 : special electron 3 indicies
 
 !$omp parallel 
-!$ompx shared(half)
 !$ompx shared(loop_map)
 !$ompx shared(istart,iend)
 !$ompx shared(nebf,npbf,ng4_seg)
@@ -378,13 +345,12 @@ C    iec4,jec4 : special electron 3 indicies
 !$ompx shared(DAE,DBE,DP)
 !$ompx shared(GM4ICR)
 !$ompx private(iLp) 
-!$ompx private(imap)
+!$ompx private(imap,ia)
 !$ompx private(ip,jp) 
 !$ompx private(iec1,jec1)
 !$ompx private(iec2,jec2)
 !$ompx private(iec3,jec3)
 !$ompx private(iec4,jec4)
-!$ompx private(ia_1234,ia_1243,ia_1324,ia_1342,ia_1423,ia_1432)
 !$ompx private(val)
 !$ompx reduction(+:XFP)
 !$ompx reduction(+:E_P_OMG4)
@@ -405,21 +371,9 @@ C    iec4,jec4 : special electron 3 indicies
          ip =loop_map(imap,10)
 
          call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec2,iec3,jec3,iec4,jec4,ia_1234)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec2,iec3,jec4,iec4,jec3,ia_1243)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec3,iec3,jec2,iec4,jec4,ia_1324)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec3,iec3,jec4,iec4,jec2,ia_1342)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec4,iec3,jec2,iec4,jec3,ia_1423)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec4,iec3,jec3,iec4,jec2,ia_1432)
+     x                       iec2,jec2,iec3,jec3,iec4,jec4,ia)
 
-         val =            GM4ICR(ia_1234) -      half*GM4ICR(ia_1243)
-     x        -      half*GM4ICR(ia_1324) + half*half*GM4ICR(ia_1342)
-     x        + half*half*GM4ICR(ia_1423) -      half*GM4ICR(ia_1432)
+         val = GM4ICR(ia)
 
          XFP(ip,jp)=XFP(ip,jp)+DAE(iec1,jec1)*DBE(iec2,jec2)*
      x              DBE(iec3,jec3)*DBE(iec4,jec4)*val
@@ -575,9 +529,8 @@ C Local variables
       integer           ia_1432
       double precision  val
       double precision  wtime
-      double precision  half,three
+      double precision  three
 
-      half=0.50d+00
       three=3.0d+00
 
 C GM4ICR stored as:
@@ -588,7 +541,7 @@ C    iec3,jec3 : special electron 2 indicies
 C    iec4,jec4 : special electron 3 indicies
 
 !$omp parallel 
-!$ompx shared(half,three)
+!$ompx shared(three)
 !$ompx shared(loop_map)
 !$ompx shared(istart,iend)
 !$ompx shared(nebf,npbf,ng4_seg)
@@ -596,13 +549,12 @@ C    iec4,jec4 : special electron 3 indicies
 !$ompx shared(DAE,DBE,DP)
 !$ompx shared(GM4ICR)
 !$ompx private(iLp) 
-!$ompx private(imap)
+!$ompx private(imap,ia)
 !$ompx private(ip,jp) 
 !$ompx private(iec1,jec1)
 !$ompx private(iec2,jec2)
 !$ompx private(iec3,jec3)
 !$ompx private(iec4,jec4)
-!$ompx private(ia_1234,ia_1243,ia_1324,ia_1342,ia_1423,ia_1432)
 !$ompx private(val)
 !$ompx reduction(+:XFBE)
 !$ompx reduction(+:E_BE_OMG4)
@@ -623,21 +575,9 @@ C    iec4,jec4 : special electron 3 indicies
          ip =loop_map(imap,10)
 
          call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec2,iec3,jec3,iec4,jec4,ia_1234)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec2,iec3,jec4,iec4,jec3,ia_1243)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec3,iec3,jec2,iec4,jec4,ia_1324)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec3,iec3,jec4,iec4,jec2,ia_1342)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec4,iec3,jec2,iec4,jec3,ia_1423)
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec4,iec3,jec3,iec4,jec2,ia_1432)
+     x                       iec2,jec2,iec3,jec3,iec4,jec4,ia)
 
-         val =            GM4ICR(ia_1234) -      half*GM4ICR(ia_1243)
-     x        -      half*GM4ICR(ia_1324) + half*half*GM4ICR(ia_1342)
-     x        + half*half*GM4ICR(ia_1423) -      half*GM4ICR(ia_1432)
+         val = GM4ICR(ia)
 
          XFBE(iec2,jec2)=XFBE(iec2,jec2)+three*DAE(iec1,jec1)*
      x                   DBE(iec3,jec3)*DBE(iec4,jec4)*DP(ip,jp)*val
