@@ -32,7 +32,7 @@ C Allows all subsequent calls to be to original XCHF routines
 C Read in GAMee over all-electron basis set
       if(allocated(GAM_ee)) deallocate(GAM_ee)
       allocate( GAM_ee(ngee),stat=istat )
-      call read_GAM_ee(ne,ngee,GAM_ee) 
+      call read_GAM_ee(nebf,ngee,GAM_ee) 
 
 C Store GAMee over reduced basis set
       ngeeBE=nebfBE*nebfBE*nebfBE*nebfBE

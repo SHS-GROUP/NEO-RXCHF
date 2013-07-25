@@ -264,7 +264,7 @@ C Unsymmetrized integrals in INT_GAM2
       end
 !=======================================================================
       subroutine RXCHFmult_thread_gam2(istart,iend,ng2_seg,ng2,
-     x                               nebf,npebf,nebf,npebfBE,npbf,
+     x                               nebf,npebf,nebfBE,npebfBE,npbf,
      x                               nat,ngtg1,
      x                               pmass,cat,zan,bcoef1,gamma1,
      x                               loop_map,XG2_1ICR,XG2_2ICR,XG2sICR,

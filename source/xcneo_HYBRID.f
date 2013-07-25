@@ -570,9 +570,7 @@ C Call separate routine for RXCHF(nbe>1) integral calculations
             write(*,*) "STARTING DRIVER FOR RXCHFMULT CALCULATION"
             write(*,*)
             call RXCHFmult_driver(nelec,nae,nbe,nucst,
-     x                            nebf,npebf,npbf,nat,ngtg1,
-     x                            ng1,ng2,ng3,ng4,ngee,
-     x                            ng1prm,ng2prm,ng3prm,
+     x                            nebf,npebf,npbf,nat,ngtg1,ngee,
      x                            pmass,cat,zan,bcoef1,gamma1,
      x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,

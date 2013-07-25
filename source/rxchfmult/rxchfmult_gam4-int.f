@@ -29,7 +29,7 @@
       if(allocated(GAM_ee)) deallocate(GAM_ee)
       allocate( GAM_ee(ngee),stat=istat )
 !     write(*,*) 'allocate GAM_ee: ',istat
-      call read_GAM_ee(ne,ngee,GAM_ee) 
+      call read_GAM_ee(nebf,ngee,GAM_ee) 
 
 !     if(.NOT.LG2IC1) then
 !        if(allocated(GAM_2s)) deallocate(GAM_2s)
@@ -372,7 +372,8 @@ c     logical prin
       integer ie4,je4
       double precision ans
 
-      call RXCHFmult_calc_GAM_4_integral(nebf,nebfBE,np,ng2,ngee,
+      call RXCHFmult_calc_GAM_4_integral(nebf,nebfBE,
+     x                                   npbf,ng2,ngee,
      x                                   GAM_2s,GAM_ee,ip,jp,
      x                                   ie1,je1,ie2,je2,
      x                                   ie3,je3,ie4,je4,
@@ -383,7 +384,8 @@ c     logical prin
 
 
 C======================================================================
-      subroutine RXCHFmult_calc_GAM_4_integral(nebf,nebfBE,np,ng2,ngee,
+      subroutine RXCHFmult_calc_GAM_4_integral(nebf,nebfBE,
+     x                                         npbf,ng2,ngee,
      x                                         GAM_2s,GAM_ee,ip,jp,
      x                                         ie1,je1,ie2,je2,
      x                                         ie3,je3,ie4,je4,
@@ -397,7 +399,7 @@ C======================================================================
       parameter(half=0.5d+00,three=3.0d+00)
 
       integer nebf,nebfBE
-      integer np
+      integer npbf
       integer ng2
       integer ngee
       integer ip

@@ -1,8 +1,6 @@
 C=======================================================================
       subroutine RXCHFmult_driver(nelec,nae,nbe,nucst,
-     x                            nebf,npebf,npbf,nat,ngtg1,
-     x                            ng1,ng2,ng3,ng4,ngee,
-     x                            ng1prm,ng2prm,ng3prm,
+     x                            nebf,npebf,npbf,nat,ngtg1,ngee,
      x                            pmass,cat,zan,bcoef1,gamma1,
      x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
@@ -298,10 +296,11 @@ C     => INT_GAM3
       write(*,*)
 
       ng1=nebfBE*nebfBE*npbf*npbf
-      call RXCHFmult_GAM1_OMP_MD(nebfBE,npebfBE,npbf,ng1,ng1prm,nat,
-     x                           ngtg1,pmass,cat,zan,bcoef1,gamma1,
-     x                           AMPEB2C_be,AGEBFCC_be,AGNBFCC,ELCEX_be,
-     x                           NUCEX,ELCAM_be,NUCAM,ELCBFC_be,NUCBFC)
+      ng1prm=npebfBE*npebfBE*npbf*npbf
+      call RXCHFmult_GAM1_MD(nebfBE,npebfBE,npbf,ng1,ng1prm,nat,
+     x                       ngtg1,pmass,cat,zan,bcoef1,gamma1,
+     x                       AMPEB2C_be,AGEBFCC_be,AGNBFCC,ELCEX_be,
+     x                       NUCEX,ELCAM_be,NUCAM,ELCBFC_be,NUCBFC)
 
       write(*,*)
       write(*,*) "---------------------------"
@@ -447,7 +446,53 @@ C     => XCHF_GAM4
       write(*,*) "dimXCHF3:",dimXCHF3
       write(*,*) "dimXCHF4:",dimXCHF4
 
-C TEST INTEGRALS HERE!
+C Integral testing(
+C     write(*,*)
+C     write(*,*) "Writing integrals to disk"
+C     write(*,*)
+C
+C     write(*,*) "Writing 3-particle integrals"
+C     open(unit=31,file="INT_GAM2.out")
+C     open(unit=32,file="XCHF_GAM2.out")
+C     open(unit=33,file="XCHF_GAM2s.out")
+C     do i=1,dimINT2
+C       write(31,'(G20.12)') INT_GAM2(i)
+C     end do
+C     do i=1,dimXCHF2
+C       write(32,'(G20.12)') XCHF_GAM2(i)
+C       write(33,'(G20.12)') XCHF_GAM2s(i)
+C     end do
+C     close(33)
+C     close(32)
+C     close(31)
+C     write(*,*) "Done"
+C
+C     write(*,*) "Writing 4-particle integrals"
+C     open(unit=41,file="INT_GAM3.out")
+C     open(unit=42,file="XCHF_GAM3.out")
+C     do i=1,dimINT3
+C       write(41,'(G20.12)') INT_GAM3(i)
+C     end do
+C     do i=1,dimXCHF3
+C       write(42,'(G20.12)') XCHF_GAM3(i)
+C     end do
+C     close(42)
+C     close(41)
+C     write(*,*) "Done"
+C
+C     write(*,*) "Writing 5-particle integrals"
+C     open(unit=51,file="INT_GAM4.out")
+C     open(unit=52,file="XCHF_GAM4.out")
+C     do i=1,dimINT4
+C       write(51,'(G20.12)') INT_GAM4(i)
+C     end do
+C     do i=1,dimXCHF4
+C       write(52,'(G20.12)') XCHF_GAM4(i)
+C     end do
+C     close(52)
+C     close(51)
+C     write(*,*) "Done"
+C )
 
 C Temporary debug cleanup
       if(allocated(XCHF_GAM4))  deallocate(XCHF_GAM4)
@@ -491,6 +536,13 @@ C Kick-off SCF
       end if
       nebflt=nebf*(nebf+1)/2
 
+C Fix these definitions before calling SCF driver(
+      ng2=dimXCHF2
+      ng3=dimXCHF3
+      ng4=dimXCHF4
+      ng2prm=dimXCHF2
+      ng3prm=dimXCHF3
+C )
       call RXCHFmult_scf(nelec,nae,nbe,npra,nprb,nebflt,nucst,
      x                   npebf,nebf,nebf2,npbf,npbf2,ngee,
      x                   ngtg1,ng1,ng2,ng3,ng4,
