@@ -6,8 +6,6 @@ TEST01
 System:      He (2 electrons) separated by 200 Ang from PsH (2 electron + 1 positron)
 Level:       NEO-RXCHF with PsH parameters (6s/6s basis set, NGTG=2) from 2012 JCP, and 3-21G/6-311G for helium
 Compare to:  Corresponding RHF calculation for He and XCHF calculation for PsH(ngtg=2 data from 2012 JCP)
-Notes:       Need to start from converged orbitals or else RXCHF does not converge
-              - nonconvergence apparent in XCHF calculation of PsH in the presence of the He charge
 
 3-21G
 
@@ -16,7 +14,6 @@ PsH (XCHF)  :  FINAL NEOXCHF ENERGY IS       -0.7351388067 AFTER   9 ITERATIONS
 Total       :                                -3.5708186803
 
 RXCHF       : FINAL NEORXCHF ENERGY IS       -3.5708186802 AFTER   2 ITERATIONS
-
 
 
 6-311G
@@ -35,10 +32,29 @@ TEST02
 
 System:      He (2 electrons) separated by 200 Ang from LiPs (4 electron + 1 positron)
 Level:       NEO-RXCHF with LiPs parameters (8s/6s basis set, NGTG=8) from 2012 JCP, and 3-21G for helium
-Compare to:  Corresponding RHF calculation for He and XCHF calculation for LiPs(data from 2012 JCP)
-Notes:       Converges to a solution that splits the special electrons
-              - happens even when localized orbitals are given as starting guess
-              - * NEED TO TEST 4-PARTICLE INTERACTION INTEGRALS *
+Compare to:  Corresponding RHF calculation for He and XCHF calculation for LiPs(data from 2012 JCP)      (*)
+             Corresponding RHF calculation for He and RXCHF calculation for LiPs(two special electrons) (**)
+Notes:       When localized orbitals are given as a starting guess
+              - converges to the He(RHF) + LiPs(XCHF) solution (*)
+             When normal guess is used
+              - converges to the He(RHF) + LiPs(RXCHF-2e) solution (**)
+
+Localized-orbital guess
+
+He (GAMESS)  :      FINAL RHF ENERGY IS       -2.8356798736 AFTER   2 ITERATIONS
+LiPs (XCHF)  :  FINAL NEOXCHF ENERGY IS       -7.6121703474 AFTER  18 ITERATIONS
+Total        :                               -10.4478502210
+
+RXCHF        : FINAL NEORXCHF ENERGY IS      -10.4478502207 AFTER   2 ITERATIONS
+
+
+Normal guess
+
+He (GAMESS)  :      FINAL RHF ENERGY IS       -2.8356798736 AFTER   2 ITERATIONS
+LiPs (RXCHF) : FINAL NEORXCHF ENERGY IS       -7.6390315022 AFTER   9 ITERATIONS
+Total        :                               -10.4747113758
+
+RXCHF        : FINAL NEORXCHF ENERGY IS      -10.4747113761 AFTER   9 ITERATIONS
 
 
 ======

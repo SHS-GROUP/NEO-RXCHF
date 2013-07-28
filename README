@@ -17,6 +17,8 @@ In-house NEO code with current support for:
     - RXCHF-ne (RHF and UHF)
     - RXCHF-ae (UHF)
     - RXCHF-fe (UHF)
+ - NEO RXCHF (any number of special electrons)
+    - RXCHF-ne (RHF)
 
 
 ---------------------
@@ -55,4 +57,6 @@ v1.0: NEO-HF and NEO-XCHF methods (closed/open shell), RXCHF-fe (closed shell)
 v1.1: Open-shell RXCHF-fe functionality added
 v1.2: RXCHF-ne (closed/open shell) and RXCHF-ae (open shell) functionality added
 v1.3: Microiterating for RXCHF methods, last stable release before multiple special electrons
+
+v2.0: Multiple special electrons (RXCHF-ne, closed shell)
 
