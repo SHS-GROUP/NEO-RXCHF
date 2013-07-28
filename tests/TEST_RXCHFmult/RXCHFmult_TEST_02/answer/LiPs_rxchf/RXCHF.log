@@ -1,0 +1,712 @@
+ 
+ nat   =                     1
+ npebf =                     8
+ nebf  =                     8
+ npbf  =                     6
+ ngtg1 =                     9
+ ngee  =                  4096
+ ng1   =                  2304
+ ng2   =                147456
+ ng3   =               9437184
+ ng4   =             603979776
+ ng1prm=                  2304
+ ng2prm=                147456
+ ng3prm=               9437184
+ 
+ PMASS   =   1.00000000000000     
+ nelec   =                     4
+ NAE     =                     2 = total number of regular electrons
+ NBE     =                     2 = number of special electrons
+ NUCST   =                     1
+ LNEOHF  = F
+ LXCUHF  = F
+ LXCROHF = F
+ LRXCHF  = T
+ LRXCUHF  = F
+ read_CE = F
+ read_CP = F
+ READ_GAM2= F
+ READ_GAM3= F
+ READ_GAM4= F
+ NG4CHK  =                    50
+ LGAM4   = T
+ LG4DSCF = F
+ LG4IC   = T
+ NG3CHK  =                    50
+ LG3DSCF = F
+ LG3IC1  = T
+ LG3IC2  = F
+ NG2CHK  =                    50
+ LG2DSCF = F
+ LG2IC1  = T
+ LCMF    = F
+ LSOSCF  = T
+ LOCBSE  = T
+ EXCHLEV =                     0  (=2: fe; =1: ae; =0: ne)
+ Geminal parameters: k, b_k, gamm_k
+                     1  0.500000000000000       1.000000000000000E-015
+                     2   19.1778400000000       6.000000000000000E-002
+                     3   27.7918100000000       0.246000000000000     
+                     4   22.4009100000000       0.897000000000000     
+                     5   14.1654500000000        3.91500000000000     
+                     6   7.06552000000000        24.4260000000000     
+                     7  0.550560000000000        162.241000000000     
+                     8   2.12195000000000        191.020000000000     
+                     9   1.06671000000000        1934.59000000000     
+ 
+ 
+ ========================================
+ 
+  Running closed shell RXCHF calculation
+  performed at the RXCHF-ne level
+ 
+ ========================================
+ 
+ 
+  CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS 
+ CONT INDEX    KPESTR     KPEEND
+
+   1     1    1
+
+   2     2    2
+
+   3     3    3
+
+   4     4    4
+
+   5     5    5
+
+   6     6    6
+
+   7     7    7
+
+   8     8    8
+ 
+ ELECTRONIC BASIS FUNCTIONS:
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0    0.026631  1.000000  0.000000  0.000000  0.000000
+
+   2     2    0  0  0    0.099651  1.000000  0.000000  0.000000  0.000000
+
+   3     3    0  0  0    0.372887  1.000000  0.000000  0.000000  0.000000
+
+   4     4    0  0  0    1.395309  1.000000  0.000000  0.000000  0.000000
+
+   5     5    0  0  0    5.221120  1.000000  0.000000  0.000000  0.000000
+
+   6     6    0  0  0   19.536960  1.000000  0.000000  0.000000  0.000000
+
+   7     7    0  0  0   73.105547  1.000000  0.000000  0.000000  0.000000
+
+   8     8    0  0  0  273.554377  1.000000  0.000000  0.000000  0.000000
+ ELECTRONIC BASIS FUNCTIONS:
+ CONTRACT COEFF HAVE BEEN NORMALIZED
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0    0.026631  0.046984  0.000000  0.000000  0.000000
+
+   2     2    0  0  0    0.099651  0.126407  0.000000  0.000000  0.000000
+
+   3     3    0  0  0    0.372887  0.340089  0.000000  0.000000  0.000000
+
+   4     4    0  0  0    1.395309  0.914983  0.000000  0.000000  0.000000
+
+   5     5    0  0  0    5.221120  2.461687  0.000000  0.000000  0.000000
+
+   6     6    0  0  0   19.536960  6.622971  0.000000  0.000000  0.000000
+
+   7     7    0  0  0   73.105547 17.818570  0.000000  0.000000  0.000000
+
+   8     8    0  0  0  273.554377 47.939427  0.000000  0.000000  0.000000
+ 
+ NUCLEAR BASIS FUNCTIONS:
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0    0.012247  1.000000  0.000000  0.000000  0.000000
+
+   2     2    0  0  0    0.028902  1.000000  0.000000  0.000000  0.000000
+
+   3     3    0  0  0    0.068202  1.000000  0.000000  0.000000  0.000000
+
+   4     4    0  0  0    0.160944  1.000000  0.000000  0.000000  0.000000
+
+   5     5    0  0  0    0.379798  1.000000  0.000000  0.000000  0.000000
+
+   6     6    0  0  0    0.896251  1.000000  0.000000  0.000000  0.000000
+ 
+ NUCLEAR BASIS FUNCTIONS:
+ CONTRACT COEFF HAVE BEEN NORMALIZED
+ 
+ PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
+ INDEX INDEX   MOM                  COEF
+
+   1     1    0  0  0    0.012247  0.026239  0.000000  0.000000  0.000000
+
+   2     2    0  0  0    0.028902  0.049958  0.000000  0.000000  0.000000
+
+   3     3    0  0  0    0.068202  0.095117  0.000000  0.000000  0.000000
+
+   4     4    0  0  0    0.160944  0.181099  0.000000  0.000000  0.000000
+
+   5     5    0  0  0    0.379798  0.344806  0.000000  0.000000  0.000000
+
+   6     6    0  0  0    0.896251  0.656496  0.000000  0.000000  0.000000
+ 
+ CONTRACTED ELECTRONIC OVERLAP MATRIX
+ 
+
+             1           2           3           4           5
+
+    1    1.0000000
+    2    0.7369449   1.0000000
+    3    0.3523433   0.7369449   1.0000000
+    4    0.1411785   0.3523433   0.7369449   1.0000000
+    5    0.0535736   0.1411785   0.3523433   0.7369449   1.0000000
+    6    0.0200243   0.0535736   0.1411785   0.3523433   0.7369449
+    7    0.0074540   0.0200243   0.0535736   0.1411785   0.3523433
+    8    0.0027717   0.0074540   0.0200243   0.0535736   0.1411785
+
+             6           7           8
+
+    6    1.0000000
+    7    0.7369449   1.0000000
+    8    0.3523433   0.7369449   1.0000000
+ 
+ NUCLEAR OVERLAP MATRIX
+ 
+
+             1           2           3           4           5
+
+    1    1.0000000
+    2    0.8744414   1.0000000
+    3    0.6090334   0.8744414   1.0000000
+    4    0.3671085   0.6090334   0.8744414   1.0000000
+    5    0.2052288   0.3671085   0.6090334   0.8744414   1.0000000
+    6    0.1107680   0.2052288   0.3671085   0.6090334   0.8744414
+
+             6
+
+    6    1.0000000
+ 
+ **************************************
+  CALCULATING ELEC+NUC CORE INTEGRALS  
+ **************************************
+ 
+ all done in calc_GAM_epcore
+ 
+ **************************************
+     Computing GAM_ep Integrals    
+ **************************************
+ 
+ got here
+ all done in calc_GAM_ep
+ 
+ **************************************
+     Computing GAM_ee Integrals    
+ 
+ nebf =                     8
+ npebf=                     8
+ ngee =                  4096
+ **************************************
+ 
+ all done in calc_GAM_ee
+ 
+ STARTING DRIVER FOR RXCHFMULT CALCULATION
+ 
+ 
+ ---------------------------
+  Calculating:   XCHF_GAM1  
+ ---------------------------
+ 
+ 
+ **************************************
+        GAM_1 Integrals    
+ 
+ METHOD = MD
+ npebf  =                     8
+ nebf   =                     8
+ npbf   =                     6
+ ng1    =                  2304
+  Available processors:           16
+  Available threads               10
+  Threads in use                   1
+ **************************************
+ 
+  Hello from process                      2
+  Hello from process                      7
+  Hello from process                      1
+  Hello from process                      3
+  Hello from process                      6
+  Hello from process                      0
+ Threads in use          10
+  Hello from process                      4
+  Hello from process                      5
+  Hello from process                      9
+  Hello from process                      8
+ TIME TO CALCULATE GAM_1 INTEGRALS:    1.16880607604980     
+ 
+ ---------------------------
+  Calculating:     INT_GAM2 
+                  XCHF_GAM2 
+ ---------------------------
+ 
+
+      +---------------------------------------------+
+      |     CALCULATING 3-PARTICLE INTEGRALS        |
+      |            --IN-CORE APPROACH--             |
+      +---------------------------------------------+
+                                  
+           NUMBER OF 3-PARTICLE INTEGRALS:        147456
+          NUMBER OF BLOCKS (USER DEFINED):            50
+                                  
+          COMPUTATIONAL RESOURCES:
+          ------------------------
+             CORES PER NODE:  16
+                  AVAILABLE:  10
+            NUMBER OF NODES:   1
+
+            TIME TO EVALUATE BLOCK     1       7.75
+            TIME TO EVALUATE BLOCK     2       7.75
+            TIME TO EVALUATE BLOCK     3       7.74
+            TIME TO EVALUATE BLOCK     4       8.00
+            TIME TO EVALUATE BLOCK     5       7.76
+            TIME TO EVALUATE BLOCK     6       7.75
+            TIME TO EVALUATE BLOCK     7       7.73
+            TIME TO EVALUATE BLOCK     8       7.74
+            TIME TO EVALUATE BLOCK     9       7.74
+            TIME TO EVALUATE BLOCK    10       7.74
+            TIME TO EVALUATE BLOCK    11       7.75
+            TIME TO EVALUATE BLOCK    12       7.74
+            TIME TO EVALUATE BLOCK    13       7.76
+            TIME TO EVALUATE BLOCK    14       7.75
+            TIME TO EVALUATE BLOCK    15       7.74
+            TIME TO EVALUATE BLOCK    16       7.74
+            TIME TO EVALUATE BLOCK    17       7.73
+            TIME TO EVALUATE BLOCK    18       7.74
+            TIME TO EVALUATE BLOCK    19       7.74
+            TIME TO EVALUATE BLOCK    20       7.97
+            TIME TO EVALUATE BLOCK    21       7.88
+            TIME TO EVALUATE BLOCK    22       7.82
+            TIME TO EVALUATE BLOCK    23       7.92
+            TIME TO EVALUATE BLOCK    24       7.83
+            TIME TO EVALUATE BLOCK    25       7.83
+            TIME TO EVALUATE BLOCK    26       7.83
+            TIME TO EVALUATE BLOCK    27       7.76
+            TIME TO EVALUATE BLOCK    28       7.84
+            TIME TO EVALUATE BLOCK    29       7.89
+            TIME TO EVALUATE BLOCK    30       7.84
+            TIME TO EVALUATE BLOCK    31       7.83
+            TIME TO EVALUATE BLOCK    32       7.85
+            TIME TO EVALUATE BLOCK    33       7.83
+            TIME TO EVALUATE BLOCK    34       7.84
+            TIME TO EVALUATE BLOCK    35       7.85
+            TIME TO EVALUATE BLOCK    36       7.84
+            TIME TO EVALUATE BLOCK    37       7.84
+            TIME TO EVALUATE BLOCK    38       7.83
+            TIME TO EVALUATE BLOCK    39       7.83
+            TIME TO EVALUATE BLOCK    40       7.83
+            TIME TO EVALUATE BLOCK    41       7.84
+            TIME TO EVALUATE BLOCK    42       7.84
+            TIME TO EVALUATE BLOCK    43       7.85
+            TIME TO EVALUATE BLOCK    44       7.83
+            TIME TO EVALUATE BLOCK    45       7.83
+            TIME TO EVALUATE BLOCK    46       7.85
+            TIME TO EVALUATE BLOCK    47       7.84
+            TIME TO EVALUATE BLOCK    48       7.83
+            TIME TO EVALUATE BLOCK    49       7.84
+            TIME TO EVALUATE BLOCK    50       7.83
+
+          TIMING SUMMARY FOR 3-PARTICLE INTEGRALS:
+          ----------------------------------------
+            TIME TO EVALUATE ALL INTEGRALS:     390.5379
+              TIME TO SYMMETRIZE INTEGRALS:       0.0133
+
+ ---------------------------
+  Calculating:     INT_GAM3 
+                  XCHF_GAM3 
+ ---------------------------
+ 
+
+      +---------------------------------------------+
+      |     CALCULATING 4-PARTICLE INTEGRALS        |
+      |            --IN-CORE APPROACH--             |
+      +---------------------------------------------+
+                                  
+           NUMBER OF 4-PARTICLE INTEGRALS:       9437184
+          NUMBER OF BLOCKS (USER DEFINED):            50
+                                  
+          COMPUTATIONAL RESOURCES:
+          ------------------------
+             CORES PER NODE:  16
+                  AVAILABLE:  10
+            NUMBER OF NODES:   1
+
+            TIME TO EVALUATE BLOCK     1      17.97
+            TIME TO EVALUATE BLOCK     2      17.95
+            TIME TO EVALUATE BLOCK     3      17.98
+            TIME TO EVALUATE BLOCK     4      17.97
+            TIME TO EVALUATE BLOCK     5      17.97
+            TIME TO EVALUATE BLOCK     6      17.98
+            TIME TO EVALUATE BLOCK     7      17.98
+            TIME TO EVALUATE BLOCK     8      17.97
+            TIME TO EVALUATE BLOCK     9      17.97
+            TIME TO EVALUATE BLOCK    10      17.97
+            TIME TO EVALUATE BLOCK    11      17.99
+            TIME TO EVALUATE BLOCK    12      17.94
+            TIME TO EVALUATE BLOCK    13      17.95
+            TIME TO EVALUATE BLOCK    14      17.94
+            TIME TO EVALUATE BLOCK    15      17.96
+            TIME TO EVALUATE BLOCK    16      17.95
+            TIME TO EVALUATE BLOCK    17      17.96
+            TIME TO EVALUATE BLOCK    18      17.97
+            TIME TO EVALUATE BLOCK    19      17.95
+            TIME TO EVALUATE BLOCK    20      17.97
+            TIME TO EVALUATE BLOCK    21      17.95
+            TIME TO EVALUATE BLOCK    22      17.96
+            TIME TO EVALUATE BLOCK    23      17.96
+            TIME TO EVALUATE BLOCK    24      17.95
+            TIME TO EVALUATE BLOCK    25      17.97
+            TIME TO EVALUATE BLOCK    26      17.95
+            TIME TO EVALUATE BLOCK    27      17.97
+            TIME TO EVALUATE BLOCK    28      17.96
+            TIME TO EVALUATE BLOCK    29      17.95
+            TIME TO EVALUATE BLOCK    30      17.88
+            TIME TO EVALUATE BLOCK    31      17.86
+            TIME TO EVALUATE BLOCK    32      17.96
+            TIME TO EVALUATE BLOCK    33      17.95
+            TIME TO EVALUATE BLOCK    34      17.96
+            TIME TO EVALUATE BLOCK    35      17.97
+            TIME TO EVALUATE BLOCK    36      17.97
+            TIME TO EVALUATE BLOCK    37      17.96
+            TIME TO EVALUATE BLOCK    38      17.95
+            TIME TO EVALUATE BLOCK    39      17.97
+            TIME TO EVALUATE BLOCK    40      17.96
+            TIME TO EVALUATE BLOCK    41      17.96
+            TIME TO EVALUATE BLOCK    42      17.96
+            TIME TO EVALUATE BLOCK    43      17.97
+            TIME TO EVALUATE BLOCK    44      17.96
+            TIME TO EVALUATE BLOCK    45      17.96
+            TIME TO EVALUATE BLOCK    46      17.97
+            TIME TO EVALUATE BLOCK    47      17.97
+            TIME TO EVALUATE BLOCK    48      17.95
+            TIME TO EVALUATE BLOCK    49      17.97
+            TIME TO EVALUATE BLOCK    50      17.95
+
+          TIMING SUMMARY FOR 4-PARTICLE INTEGRALS:
+          ----------------------------------------
+            TIME TO EVALUATE ALL INTEGRALS:     897.9116
+              TIME TO SYMMETRIZE INTEGRALS:       1.6073
+
+ 
+ NBE =                      2  <= 2
+ so deallocating XCHF_GAM3
+ 
+ Using LOCBSE2
+ READ IN NUC REPULSION
+ 
+ READ IN NUC OVLAP
+ READ IN ELEC OVLAP
+ READ IN GAM_ECORE
+ READ IN GAM_PCORE
+ READ IN GAM_EP
+ READ IN GAM_EE
+ 
+ ABOUT TO CALL guess_A_elec
+ BACK FROM guess_elec for OCBSE
+ ABOUT TO CALL guess_prot
+ BACK FROM guess_prot
+ 
+
+       ** BEGIN RXCHF SELF-CONSISTENT-FIELD CALCULATION **
+
+           INITIAL GUESS ENERGETICS:            
+
+      -----------------------------------------------
+               NEORXCHF ENERGETIC COMPONENTS         
+      -----------------------------------------------
+                E_NUC=         0.0000000000
+            ---------------------------------
+              E_ECORE=        -8.9941407647
+                 E_EE=         1.8710857385
+                 E_HF=        -7.1230550261
+            ---------------------------------
+               E_GAM1=        -0.0103221246
+               E_GAM2=        -2.0361294368
+               E_GAM3=         0.0000000000
+               E_GAM4=         0.0000000000
+               E_XCHF=        -0.9403639508
+            ---------------------------------
+               E_OMG2=         0.4372137899
+               E_OMG3=         1.6580339307
+               E_OMG4=         0.0000000000
+                E_int=         2.0952477206
+            ---------------------------------
+              S_TOTAL=         2.1762335313
+              E_TOTAL=        -5.9681712563
+      -----------------------------------------------
+
+
+ STARTING MICROITERATIONS FOR ITERATION   1
+
+ ITER      TOTAL ENERGY        E CHANGE       ALPHA DENS       BETA DENS        QMP DENS         ORBGRAD_A        ORBGRAD_B 
+   1       -7.3125163910    -7.3125163910     0.6464411347     0.7494431940     1.8247638181     0.0000000000     0.0000000000
+          ---------------START SECOND ORDER SCF---------------
+          ---------------START SECOND ORDER SCF---------------
+   2       -7.3412032869    -0.0286868959     0.0064484648     0.6600901020     1.8247638181     0.0434252654     0.2004520655
+   3       -7.3493143116    -0.0081110248     0.0197188672     0.1267651033     1.8247638181     0.0219853939     0.0942313114
+   4       -7.3484255642     0.0008887474     0.0121569213     0.1939426824     1.8247638181     0.0392949515     0.0159519223
+   5       -7.3483416861     0.0000838781     0.0007327143     0.0428583534     1.8247638181     0.0019014903     0.0113734750
+   6       -7.3483549554    -0.0000132693     0.0000323157     0.0028226960     1.8247638181     0.0000897141     0.0033603067
+   7       -7.3483566570    -0.0000017016     0.0000159125     0.0005134434     1.8247638181     0.0000341193     0.0001576597
+   8       -7.3483563093     0.0000003477     0.0000038051     0.0000524779     1.8247638181     0.0000095630     0.0000183613
+   9       -7.3483563667    -0.0000000574     0.0000002123     0.0000013447     1.8247638181     0.0000004841     0.0000025170
+  10       -7.3483563654     0.0000000013     0.0000000245     0.0000002552     1.8247638181     0.0000000318     0.0000002083
+ CONVERGED ITERATION   1 IN  10 MICROITERATIONS
+
+
+ STARTING MICROITERATIONS FOR ITERATION   2
+
+ ITER      TOTAL ENERGY        E CHANGE       ALPHA DENS       BETA DENS        QMP DENS         ORBGRAD_A        ORBGRAD_B 
+   1       -7.5616930813    -0.2133367159     0.0011693046     0.3158760982     2.7297795216     0.0000000000     0.0000000000
+          ---------------START SECOND ORDER SCF---------------
+          ---------------START SECOND ORDER SCF---------------
+   2       -7.5617987182    -0.0001056370     0.0003325683     0.0555559707     2.7297795216     0.0010309738     0.0071341330
+   3       -7.5617933631     0.0000053551     0.0000806616     0.0164747687     2.7297795216     0.0003953277     0.0011886034
+   4       -7.5617878397     0.0000055234     0.0000363506     0.0021214467     2.7297795216     0.0001022774     0.0002893110
+   5       -7.5617871017     0.0000007380     0.0000050409     0.0000846992     2.7297795216     0.0000105117     0.0000473195
+   6       -7.5617869850     0.0000001167     0.0000009999     0.0000725488     2.7297795216     0.0000017139     0.0000256948
+   7       -7.5617869399     0.0000000451     0.0000003898     0.0000021568     2.7297795216     0.0000006043     0.0000050429
+   8       -7.5617869601    -0.0000000202     0.0000001615     0.0000006511     2.7297795216     0.0000003613     0.0000012115
+ CONVERGED ITERATION   2 IN   8 MICROITERATIONS
+
+
+ STARTING MICROITERATIONS FOR ITERATION   3
+
+ ITER      TOTAL ENERGY        E CHANGE       ALPHA DENS       BETA DENS        QMP DENS         ORBGRAD_A        ORBGRAD_B 
+   1       -7.6213019026    -0.0595149425     0.0004953463     0.1293134225     3.9559532791     0.0000000000     0.0000000000
+          ---------------START SECOND ORDER SCF---------------
+          ---------------START SECOND ORDER SCF---------------
+   2       -7.6213421109    -0.0000402083     0.0001226668     0.0411653477     3.9559532791     0.0002888851     0.0036426859
+   3       -7.6213423804    -0.0000002695     0.0000424302     0.0138247107     3.9559532791     0.0002349861     0.0008815477
+   4       -7.6213399908     0.0000023896     0.0000236464     0.0019664637     3.9559532791     0.0000748568     0.0003010377
+   5       -7.6213394334     0.0000005574     0.0000051516     0.0002128517     3.9559532791     0.0000112878     0.0001275066
+   6       -7.6213392920     0.0000001414     0.0000014401     0.0002272021     3.9559532791     0.0000024526     0.0000545152
+   7       -7.6213382122     0.0000010798     0.0000104607     0.0000405602     3.9559532791     0.0000024227     0.0000210541
+   8       -7.6213391929    -0.0000009807     0.0000094951     0.0001249731     3.9559532791     0.0000229880     0.0000116388
+   9       -7.6213391506     0.0000000423     0.0000004412     0.0000918948     3.9559532791     0.0000012901     0.0000251442
+  10       -7.6213391659    -0.0000000153     0.0000001556     0.0000066920     3.9559532791     0.0000006529     0.0000012178
+  11       -7.6213391782    -0.0000000123     0.0000001260     0.0000001649     3.9559532791     0.0000002989     0.0000001890
+ CONVERGED ITERATION   3 IN  11 MICROITERATIONS
+
+
+ STARTING MICROITERATIONS FOR ITERATION   4
+
+ ITER      TOTAL ENERGY        E CHANGE       ALPHA DENS       BETA DENS        QMP DENS         ORBGRAD_A        ORBGRAD_B 
+   1       -7.6350655674    -0.0137263892     0.0002321356     0.0160244151     2.9094180737     0.0000000000     0.0000000000
+          ---------------START SECOND ORDER SCF---------------
+          ---------------START SECOND ORDER SCF---------------
+   2       -7.6350655594     0.0000000080     0.0000327730     0.0137153806     2.9094180737     0.0001341588     0.0013221225
+   3       -7.6350663120    -0.0000007526     0.0000024991     0.0031982731     2.9094180737     0.0000094418     0.0004929018
+   4       -7.6350661783     0.0000001336     0.0000051983     0.0001530130     2.9094180737     0.0000263887     0.0000365185
+   5       -7.6350647734     0.0000014049     0.0000150666     0.0000161770     2.9094180737     0.0000309074     0.0000055759
+   6       -7.6350651800    -0.0000004066     0.0000100824     0.0000119786     2.9094180737     0.0000108191     0.0000026040
+   7       -7.6350651812    -0.0000000012     0.0000011906     0.0000045305     2.9094180737     0.0000020869     0.0000012433
+   8       -7.6350651776     0.0000000036     0.0000001185     0.0000011924     2.9094180737     0.0000003269     0.0000003317
+   9       -7.6350651773     0.0000000004     0.0000000064     0.0000000949     2.9094180737     0.0000000128     0.0000001136
+ CONVERGED ITERATION   4 IN   9 MICROITERATIONS
+
+
+ STARTING MICROITERATIONS FOR ITERATION   5
+
+ ITER      TOTAL ENERGY        E CHANGE       ALPHA DENS       BETA DENS        QMP DENS         ORBGRAD_A        ORBGRAD_B 
+   1       -7.6386977344    -0.0036325571     0.0000971032     0.0234972144     1.2518583487     0.0000000000     0.0000000000
+          ---------------START SECOND ORDER SCF---------------
+          ---------------START SECOND ORDER SCF---------------
+   2       -7.6386963937     0.0000013407     0.0000296438     0.0167489345     1.2518583487     0.0001032913     0.0004531353
+   3       -7.6386979753    -0.0000015816     0.0000090414     0.0060590184     1.2518583487     0.0000423168     0.0002885093
+   4       -7.6386978065     0.0000001688     0.0000019728     0.0001357360     1.2518583487     0.0000096765     0.0000871961
+   5       -7.6386974204     0.0000003861     0.0000041708     0.0001565610     1.2518583487     0.0000063291     0.0000438559
+   6       -7.6386975288    -0.0000001084     0.0000011377     0.0000224212     1.2518583487     0.0000024343     0.0000162895
+   7       -7.6386975122     0.0000000166     0.0000001994     0.0000083092     1.2518583487     0.0000005239     0.0000075987
+   8       -7.6386975096     0.0000000026     0.0000000440     0.0000016616     1.2518583487     0.0000001193     0.0000008791
+   9       -7.6386975098    -0.0000000002     0.0000000025     0.0000004165     1.2518583487     0.0000000060     0.0000000605
+ CONVERGED ITERATION   5 IN   9 MICROITERATIONS
+
+
+ STARTING MICROITERATIONS FOR ITERATION   6
+
+ ITER      TOTAL ENERGY        E CHANGE       ALPHA DENS       BETA DENS        QMP DENS         ORBGRAD_A        ORBGRAD_B 
+   1       -7.6390284362    -0.0003309265     0.0000339066     0.0198093958     0.5123926853     0.0000000000     0.0000000000
+          ---------------START SECOND ORDER SCF---------------
+          ---------------START SECOND ORDER SCF---------------
+   2       -7.6390270666     0.0000013696     0.0000227834     0.0138573951     0.5123926853     0.0000710751     0.0003716252
+   3       -7.6390283608    -0.0000012943     0.0000082547     0.0055068572     0.5123926853     0.0000415220     0.0002516436
+   4       -7.6390282978     0.0000000630     0.0000006818     0.0000397949     0.5123926853     0.0000030580     0.0000252017
+   5       -7.6390282088     0.0000000891     0.0000009646     0.0000528683     0.5123926853     0.0000017696     0.0000142621
+   6       -7.6390282143    -0.0000000055     0.0000000483     0.0000020322     0.5123926853     0.0000000889     0.0000050028
+   7       -7.6390282125     0.0000000018     0.0000000231     0.0000011561     0.5123926853     0.0000000923     0.0000023104
+   8       -7.6390282093     0.0000000032     0.0000000463     0.0000001306     0.5123926853     0.0000000675     0.0000000639
+ CONVERGED ITERATION   6 IN   8 MICROITERATIONS
+
+
+ STARTING MICROITERATIONS FOR ITERATION   7
+
+ ITER      TOTAL ENERGY        E CHANGE       ALPHA DENS       BETA DENS        QMP DENS         ORBGRAD_A        ORBGRAD_B 
+   1       -7.6390316749    -0.0000034656     0.0000040161     0.0026327028     0.0540970581     0.0000000000     0.0000000000
+          ---------------START SECOND ORDER SCF---------------
+          ---------------START SECOND ORDER SCF---------------
+   2       -7.6390314112     0.0000002637     0.0000030650     0.0018489450     0.0540970581     0.0000094248     0.0000494602
+   3       -7.6390315180    -0.0000001068     0.0000011023     0.0007375273     0.0540970581     0.0000055515     0.0000336691
+   4       -7.6390315093     0.0000000087     0.0000000930     0.0000050516     0.0540970581     0.0000004124     0.0000032051
+   5       -7.6390314975     0.0000000118     0.0000001274     0.0000067682     0.0540970581     0.0000002376     0.0000018198
+   6       -7.6390314979    -0.0000000004     0.0000000033     0.0000002362     0.0540970581     0.0000000087     0.0000006225
+ CONVERGED ITERATION   7 IN   6 MICROITERATIONS
+
+
+ STARTING MICROITERATIONS FOR ITERATION   8
+
+ ITER      TOTAL ENERGY        E CHANGE       ALPHA DENS       BETA DENS        QMP DENS         ORBGRAD_A        ORBGRAD_B 
+   1       -7.6390315102    -0.0000000123     0.0000001458     0.0000909569     0.0009356281     0.0000000000     0.0000000000
+          ---------------START SECOND ORDER SCF---------------
+          ---------------START SECOND ORDER SCF---------------
+   2       -7.6390314999     0.0000000103     0.0000001146     0.0000650094     0.0009356281     0.0000003492     0.0000017303
+   3       -7.6390315032    -0.0000000033     0.0000000378     0.0000256247     0.0009356281     0.0000001859     0.0000011770
+   4       -7.6390315027     0.0000000005     0.0000000053     0.0000002660     0.0009356281     0.0000000240     0.0000001788
+ CONVERGED ITERATION   8 IN   4 MICROITERATIONS
+
+
+ STARTING MICROITERATIONS FOR ITERATION   9
+
+ ITER      TOTAL ENERGY        E CHANGE       ALPHA DENS       BETA DENS        QMP DENS         ORBGRAD_A        ORBGRAD_B 
+   1       -7.6390315025     0.0000000002     0.0000000023     0.0000023942     0.0000169675     0.0000000000     0.0000000000
+          ---------------START SECOND ORDER SCF---------------
+          ---------------START SECOND ORDER SCF---------------
+   2       -7.6390315021     0.0000000004     0.0000000048     0.0000018551     0.0000169675     0.0000000127     0.0000000620
+   3       -7.6390315022    -0.0000000001     0.0000000010     0.0000006768     0.0000169675     0.0000000042     0.0000000327
+ CONVERGED ITERATION   9 IN   3 MICROITERATIONS
+
+
+ FINAL NEORXCHF ENERGY IS       -7.6390315022 AFTER   9 ITERATIONS
+
+      -----------------------------------------------
+               NEORXCHF ENERGETIC COMPONENTS         
+      -----------------------------------------------
+                E_NUC=         0.0000000000
+            ---------------------------------
+              E_ECORE=        -8.8805838746
+                 E_EE=         1.6477271374
+                 E_HF=        -7.2328567373
+            ---------------------------------
+               E_GAM1=       -11.6974618484
+               E_GAM2=       -41.5171313710
+               E_GAM3=         0.0000000000
+               E_GAM4=         0.0000000000
+               E_XCHF=        -0.9920846074
+            ---------------------------------
+               E_OMG2=         0.0572096159
+               E_OMG3=         0.5287002266
+               E_OMG4=         0.0000000000
+                E_int=         0.5859098425
+            ---------------------------------
+              S_TOTAL=        53.6391682951
+              E_TOTAL=        -7.6390315022
+      -----------------------------------------------
+
+
+  REGULAR ELECTRONIC ORBITALS AND EIGENVALUES:       
+
+                        1          2          3          4          5
+
+                     -2.4996     0.0155     0.1828     1.2077     7.1252
+
+    1  LABEL        0.006133  -1.015112   1.217444  -0.514826  -0.187395
+    2  LABEL       -0.020703  -0.006356  -1.918265   1.585441   0.610657
+    3  LABEL        0.189040   0.047581   0.479844  -2.365419  -1.376179
+    4  LABEL        0.568829   0.096301   0.107237   1.131105   2.274811
+    5  LABEL        0.310867   0.032404   0.077427   0.065625  -1.641125
+    6  LABEL        0.086759   0.009855   0.014595   0.070964   0.058920
+    7  LABEL        0.017299   0.001681   0.003908   0.003724  -0.058946
+    8  LABEL        0.004835   0.000525   0.000841   0.003340  -0.000139
+
+                        6          7          8
+
+                     34.5883   150.9176   636.0233
+
+    1  LABEL        0.076329  -0.033888  -0.015502
+    2  LABEL       -0.245759   0.108464   0.049516
+    3  LABEL        0.565129  -0.246696  -0.112030
+    4  LABEL       -1.190216   0.522405   0.234678
+    5  LABEL        2.081890  -1.082341  -0.485891
+    6  LABEL       -1.834760   1.942604   0.996849
+    7  LABEL        0.168919  -1.851813  -1.783198
+    8  LABEL       -0.049086   0.159317   1.670991
+
+  SPECIAL ELECTRONIC ORBITALS AND EIGENVALUES:       
+
+                        1          2          3          4          5
+
+                     -0.0775     0.0551     1.8400    11.3370    53.9547
+
+    1  LABEL       -0.987472  -1.246533   0.500719   0.182130  -0.076001
+    2  LABEL       -0.062983   1.959912  -1.539744  -0.592297   0.244652
+    3  LABEL        0.094586  -0.539286   2.378518   1.329323  -0.562816
+    4  LABEL        0.085036  -0.088925  -1.185140  -2.252633   1.182180
+    5  LABEL        0.026328  -0.063125  -0.034415   1.652205  -2.074561
+    6  LABEL        0.008432  -0.011866  -0.069882  -0.065244   1.834993
+    7  LABEL        0.001471  -0.003370  -0.002754   0.059639  -0.169001
+    8  LABEL        0.000459  -0.000708  -0.003289   0.000012   0.049108
+
+                        6          7          8
+
+                    234.6111   988.5904     0.0000
+
+    1  LABEL        0.033886  -0.015504   0.000000
+    2  LABEL       -0.108453   0.049524   0.000000
+    3  LABEL        0.246650  -0.112046   0.000000
+    4  LABEL       -0.522344   0.234709   0.000000
+    5  LABEL        1.082064  -0.485955   0.000000
+    6  LABEL       -1.942191   0.996957   0.000000
+    7  LABEL        1.851702  -1.783286   0.000000
+    8  LABEL       -0.159230   1.670999   0.000000
+
+       QM PARTICLE ORBITALS AND EIGENVALUES:         
+
+                        1          2          3          4          5
+
+                      0.0000     0.0513     0.7633     4.0893    12.6838
+
+    1  LABEL        1.434313  -2.481088   1.356701   0.761359  -0.465215
+    2  LABEL       -0.523899   4.640902  -4.416114  -2.670213   1.656914
+    3  LABEL       -0.001897  -2.651499   6.074128   5.197520  -3.491296
+    4  LABEL       -0.044470   0.796562  -3.302197  -5.898071   5.409366
+    5  LABEL        0.004286  -0.217684   0.941919   2.557277  -5.087870
+    6  LABEL       -0.003973   0.032664  -0.182585  -0.393827   1.459163
+
+                        6
+
+                     42.1719
+
+    1  LABEL       -0.283010
+    2  LABEL        1.000827
+    3  LABEL       -2.102257
+    4  LABEL        3.458157
+    5  LABEL       -4.339454
+    6  LABEL        2.934485
+ 
+ FINISHED RXCHFMULT CALCULATION
+ 
+
+          +--------------------------------------+
+          |    TIMING SUMMARY FOR CALCULATION    |
+          +--------------------------------------+
+            TIME TO EVALUATE INTEGRALS:    1291.2602
+                          TIME FOR SCF:     424.5086
+
+ 
