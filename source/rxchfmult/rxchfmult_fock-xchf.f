@@ -4,12 +4,13 @@ C======================================================================
      x                      NG4CHK,NG3CHK,NG2CHK,
      x                      SZG4IC,SZG3IC1,SZG2ICR,
      x                      npebf,nebf,nebf2,npbf,npbf2,nelec,
-     x                      ngee,ng1,ng2,ng3,ng4,DE,DP,
+     x                      ngee,ngtg1,DE,DP,
      x                      GM4ICR,GM3IC1,GM2ICR,GM2SICR,
-     x                      ng2prm,ngtg1,ng3prm,
      x                      nat,pmass,cat,zan,bcoef1,gamma1,
-     x                      KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                      KPESTR,KPEEND,
+     x                      AMPEB2C,AGEBFCC,
+     x                      ELCEX,ELCAM,ELCBFC,
+     x                      AGNBFCC,NUCEX,NUCAM,NUCBFC,
      x                      focke,fockp,SEtot,SPtot,
      x                      E_total,E_gam1,E_gam2,
      x                      E_gam3,E_gam4,
@@ -45,10 +46,6 @@ C Input variables
       integer           ng4
       double precision  DE(nebf,nebf)
       double precision  DP(npbf,npbf)
-      double precision  GAM_ecore(nebf2)
-      double precision  GAM_pcore(npbf2)
-      double precision  GAM_ep(ng1)
-      double precision  GAM_ee(ngee)
       double precision  GM2ICR(SZG2ICR)
       double precision  GM2SICR(SZG2ICR)
       double precision  GM3IC1(SZG3IC1)
@@ -130,6 +127,12 @@ C Variables for overlap contributions to Fock matrices
       sp1=zero
       sp2=zero
 
+      ng1=nebf2*npbf2
+      ng2=SZG2ICR
+      ng3=SZG3IC1
+      ng4=SZG4IC
+      ng2prm=npebf*npebf*npebf*npebf*npbf*npbf
+      ng3prm=npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
 
 ! Calculate energy components and build Fock matrices
 

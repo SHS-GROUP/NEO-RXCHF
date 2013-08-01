@@ -3,6 +3,11 @@
      x                              ngee,ng2,ng4,
      x                              GAM_2s,GAM_4)
 
+C Strategy here is different than other GAM routines:
+C  - each contribution to GAM4 is calculated separately with
+C    symmetrization done each time for a given set of indices
+C  - when used in Fock builds, GAM4 already contains the set of six
+C    terms used in the derived expression
 !======================================================================
       implicit none
       include 'omp_lib.h'

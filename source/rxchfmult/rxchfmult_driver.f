@@ -75,9 +75,12 @@ C Local variables
       integer contrind,primind
       integer numprims,primstart,primend
       integer currcontrind,currprimind
-      integer nebf2,npbf2,nebflt            ! Convenient quantities
+      integer nebf2,nebflt                  !
+      integer nebfBE2,nebfBElt              ! Convenient quantities
+      integer npbf2,npbflt                  !
       integer npra,nprb                     ! Number of distinct electron pairs
-      logical laddbasis
+      logical LALTBAS                       ! Flag to denote distinct special electron basis
+      logical laddbasis                     ! Working variable
 
       integer dimXCHF2                      !
       integer dimXCHF3                      ! Dimensions of XCHF integral arrays
@@ -494,28 +497,24 @@ C     close(51)
 C     write(*,*) "Done"
 C )
 
-C Temporary debug cleanup
-      if(allocated(XCHF_GAM4))  deallocate(XCHF_GAM4)
-      if(allocated(INT_GAM4))   deallocate(INT_GAM4)
-      if(allocated(XCHF_GAM3))  deallocate(XCHF_GAM3)
-      if(allocated(INT_GAM3))   deallocate(INT_GAM3)
-      if(allocated(XCHF_GAM2s)) deallocate(XCHF_GAM2s)
-      if(allocated(XCHF_GAM2))  deallocate(XCHF_GAM2)
-      if(allocated(INT_GAM2))   deallocate(INT_GAM2)
-
-      if(allocated(AMPEB2C_be)) deallocate(AMPEB2C_be)
-      if(allocated(ELCEX_be))   deallocate(ELCEX_be)
-      if(allocated(AGEBFCC_be)) deallocate(AGEBFCC_be)
-      if(allocated(ELCAM_be))   deallocate(ELCAM_be)
-      if(allocated(ELCBFC_be))  deallocate(ELCBFC_be)
-      STOP
-
-
 C Kick-off SCF
       wtime  = omp_get_wtime()
 
+      if (nebf.ne.nebfBE) then
+       LALTBAS=.true.
+      else
+       LALTBAS=.false.
+      end if
+
       nebf2=nebf*nebf
+      nebflt=nebf*(nebf+1)/2
+
+      nebfBE2=nebfBE*nebfBE
+      nebflt=nebfBE*(nebfBE+1)/2
+
       npbf2=npbf*npbf
+      npbflt=npbf*(npbf+1)/2
+
       if(nae.gt.1) then
        npra=(nebf-(nae/2))*(nae/2) ! occ-vir pairs for regular elecs
       else
@@ -534,26 +533,30 @@ C Kick-off SCF
       else
        nprb=nbe*(nebf-nbe)
       end if
-      nebflt=nebf*(nebf+1)/2
 
 C Fix these definitions before calling SCF driver(
       ng2=dimXCHF2
       ng3=dimXCHF3
       ng4=dimXCHF4
-      ng2prm=dimXCHF2
-      ng3prm=dimXCHF3
 C )
-      call RXCHFmult_scf(nelec,nae,nbe,npra,nprb,nebflt,nucst,
-     x                   npebf,nebf,nebf2,npbf,npbf2,ngee,
-     x                   ngtg1,ng1,ng2,ng3,ng4,
+      call RXCHFmult_scf(nelec,nae,nbe,npra,nprb,nucst,
+     x                   npebf,nebf,nebf2,nebflt,
+     x                   npebfBE,nebfBE,nebfBE2,nebfBElt,
+     x                   npbf,npbf2,npbflt,
+     x                   ngtg1,ngee,
      x                   NG2CHK,NG3CHK,NG4CHK,
      x                   read_CE,read_CP,
      x                   LG4DSCF,LG3DSCF,LG2DSCF,
-     x                   LSOSCF,LOCBSE,LCMF,
-     x                   ng2prm,ng3prm,nat,pmass,cat,zan,
+     x                   LSOSCF,LOCBSE,LCMF,LALTBAS,
+     x                   nat,pmass,cat,zan,
      x                   bcoef1,gamma1,
-     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                   KPESTR,KPEEND,
+     x                   AMPEB2C,AGEBFCC,
+     x                   ELCEX,ELCAM,ELCBFC,
+     x                   KPESTR_be,KPEEND_be,
+     x                   AMPEB2C_be,AGEBFCC_be,
+     x                   ELCEX_be,ELCAM_be,ELCBFC_be,
+     x                   AGNBFCC,NUCEX,NUCAM,NUCBFC,
      x                   LG2IC,dimXCHF2,dimINT2,
      x                   XCHF_GAM2,INT_GAM2,XCHF_GAM2s,
      x                   LG3IC,dimXCHF3,dimINT3,

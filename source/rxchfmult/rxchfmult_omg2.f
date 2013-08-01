@@ -1,5 +1,5 @@
 C=======================================================================
-      subroutine RXCHFmult_FAE_OMG2(Nchunks,nebf,npbf,ng2,
+      subroutine RXCHFmult_FAE_OMG2(Nchunks,nebf,nebfBE,npbf,ng2,
      x                              DAE,DBE,DP,GM2ICR,
      x                              FAE,E_AE_OMG2)
 
@@ -13,10 +13,10 @@ C=======================================================================
 
 C Input variables
       integer           Nchunks
-      integer           ng2,nebf,npbf
+      integer           ng2,nebf,nebfBE,npbf
       double precision  GM2ICR(ng2)
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
 
 C Output variables
@@ -52,8 +52,8 @@ C Nested loop compression for this chunk:
          do jp=1,npbf
             do iec1=1,nebf
             do jec1=1,nebf
-               do iec2=1,nebf
-               do jec2=1,nebf
+               do iec2=1,nebfBE
+               do jec2=1,nebfBE
 
                   imas=imas+1 ! imas is master_index
                   if(imas.ge.istart.and.imas.le.iend) then
@@ -74,7 +74,7 @@ C Nested loop compression for this chunk:
          end do
 
          call RXCHFmult_thread_FAE_OMG2(istart,iend,ng2_seg,
-     x                                  ng2,nebf,npbf,
+     x                                  ng2,nebf,nebfBE,npbf,
      x                                  loop_map,DAE,DBE,DP,GM2ICR,
      x                                  XFAE,E_AE_OMG2)
 
@@ -89,7 +89,7 @@ C Update Fock matrix
       end
 C======================================================================
       subroutine RXCHFmult_thread_FAE_OMG2(istart,iend,ng2_seg,
-     x                                     ng2,nebf,npbf,
+     x                                     ng2,nebf,nebfBE,npbf,
      x                                     loop_map,DAE,DBE,DP,GM2ICR,
      x                                     XFAE,E_AE_OMG2)
 C======================================================================
@@ -99,11 +99,12 @@ C======================================================================
 C Input variables
       integer           istart,iend,ng2_seg
       integer           nebf   ! Number contracted electronic basis functions
+      integer           nebfBE ! Number contracted electronic basis functions
       integer           npbf   ! Number nuclear basis functions
       integer           ng2
       integer           loop_map(ng2_seg,6)
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
       double precision  GM2ICR(ng2)
 
@@ -119,7 +120,6 @@ C Local variables
       integer           iec1,jec1
       integer           iec2,jec2
       integer           imap,ia
-      integer           ia_12
       double precision  val
       double precision  wtime
 
@@ -131,7 +131,7 @@ C    iec2,jec2 : special electron indicies
 !$omp parallel 
 !$ompx shared(loop_map)
 !$ompx shared(istart,iend)
-!$ompx shared(nebf,npbf,ng2_seg)
+!$ompx shared(nebf,nebfBE,npbf,ng2_seg)
 !$ompx shared(ng2)
 !$ompx shared(DAE,DBE,DP)
 !$ompx shared(GM2ICR)
@@ -140,7 +140,7 @@ C    iec2,jec2 : special electron indicies
 !$ompx private(ip,jp) 
 !$ompx private(iec1,jec1)
 !$ompx private(iec2,jec2)
-!$ompx private(ia_12)
+!$ompx private(ia)
 !$ompx private(val)
 !$ompx reduction(+:XFAE)
 !$ompx reduction(+:E_AE_OMG2)
@@ -156,8 +156,11 @@ C    iec2,jec2 : special electron indicies
          jp =loop_map(imap,5)
          ip =loop_map(imap,6)
 
-         call index_GAM_2PK(nebf,npbf,ip,jp,iec1,jec1,iec2,jec2,ia_12)
-         val=GM2ICR(ia_12)
+         call RXCHFmult_GAM_2PK(nebf,nebfBE,npbf,
+     x                          ip,jp,
+     x                          iec1,jec1,
+     x                          iec2,jec2,ia)
+         val=GM2ICR(ia)
 
          XFAE(iec1,jec1)=XFAE(iec1,jec1)+DP(ip,jp)*DBE(iec2,jec2)*val
          E_AE_OMG2=E_AE_OMG2+DP(ip,jp)*DAE(iec1,jec1)*DBE(iec2,jec2)*val
@@ -169,7 +172,7 @@ C    iec2,jec2 : special electron indicies
       return
       end
 C=======================================================================
-      subroutine RXCHFmult_FP_OMG2(Nchunks,nebf,npbf,ng2,
+      subroutine RXCHFmult_FP_OMG2(Nchunks,nebf,nebfBE,npbf,ng2,
      x                             DAE,DBE,DP,GM2ICR,
      x                             FP,E_P_OMG2)
 
@@ -183,10 +186,10 @@ C=======================================================================
 
 C Input variables
       integer           Nchunks
-      integer           ng2,nebf,npbf
+      integer           ng2,nebf,nebfBE,npbf
       double precision  GM2ICR(ng2)
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
 
 C Output variables
@@ -222,8 +225,8 @@ C Nested loop compression for this chunk:
          do jp=1,npbf
             do iec1=1,nebf
             do jec1=1,nebf
-               do iec2=1,nebf
-               do jec2=1,nebf
+               do iec2=1,nebfBE
+               do jec2=1,nebfBE
 
                   imas=imas+1 ! imas is master_index
                   if(imas.ge.istart.and.imas.le.iend) then
@@ -244,7 +247,7 @@ C Nested loop compression for this chunk:
          end do
 
          call RXCHFmult_thread_FP_OMG2(istart,iend,ng2_seg,
-     x                                 ng2,nebf,npbf,
+     x                                 ng2,nebf,nebfBE,npbf,
      x                                 loop_map,DAE,DBE,DP,GM2ICR,
      x                                 XFP,E_P_OMG2)
 
@@ -259,7 +262,7 @@ C Update Fock matrix
       end
 C======================================================================
       subroutine RXCHFmult_thread_FP_OMG2(istart,iend,ng2_seg,
-     x                                    ng2,nebf,npbf,
+     x                                    ng2,nebf,nebfBE,npbf,
      x                                    loop_map,DAE,DBE,DP,GM2ICR,
      x                                    XFP,E_P_OMG2)
 C======================================================================
@@ -269,11 +272,12 @@ C======================================================================
 C Input variables
       integer           istart,iend,ng2_seg
       integer           nebf   ! Number contracted electronic basis functions
+      integer           nebfBE ! Number contracted electronic basis functions
       integer           npbf   ! Number nuclear basis functions
       integer           ng2
       integer           loop_map(ng2_seg,6)
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
       double precision  GM2ICR(ng2)
 
@@ -289,7 +293,6 @@ C Local variables
       integer           iec1,jec1
       integer           iec2,jec2
       integer           imap,ia
-      integer           ia_12
       double precision  val
       double precision  wtime
 
@@ -301,7 +304,7 @@ C    iec2,jec2 : special electron indicies
 !$omp parallel 
 !$ompx shared(loop_map)
 !$ompx shared(istart,iend)
-!$ompx shared(nebf,npbf,ng2_seg)
+!$ompx shared(nebf,nebfBE,npbf,ng2_seg)
 !$ompx shared(ng2)
 !$ompx shared(DAE,DBE,DP)
 !$ompx shared(GM2ICR)
@@ -310,7 +313,7 @@ C    iec2,jec2 : special electron indicies
 !$ompx private(ip,jp) 
 !$ompx private(iec1,jec1)
 !$ompx private(iec2,jec2)
-!$ompx private(ia_12)
+!$ompx private(ia)
 !$ompx private(val)
 !$ompx reduction(+:XFP)
 !$ompx reduction(+:E_P_OMG2)
@@ -326,8 +329,11 @@ C    iec2,jec2 : special electron indicies
          jp =loop_map(imap,5)
          ip =loop_map(imap,6)
 
-         call index_GAM_2PK(nebf,npbf,ip,jp,iec1,jec1,iec2,jec2,ia_12)
-         val=GM2ICR(ia_12)
+         call RXCHFmult_GAM_2PK(nebf,nebfBE,npbf,
+     x                          ip,jp,
+     x                          iec1,jec1,
+     x                          iec2,jec2,ia)
+         val=GM2ICR(ia)
 
          XFP(ip,jp)=XFP(ip,jp)+DAE(iec1,jec1)*DBE(iec2,jec2)*val
          E_P_OMG2=E_P_OMG2+DP(ip,jp)*DAE(iec1,jec1)*DBE(iec2,jec2)*val
@@ -339,7 +345,7 @@ C    iec2,jec2 : special electron indicies
       return
       end
 C=======================================================================
-      subroutine RXCHFmult_FBE_OMG2(Nchunks,nebf,npbf,ng2,
+      subroutine RXCHFmult_FBE_OMG2(Nchunks,nebf,nebfBE,npbf,ng2,
      x                              DAE,DBE,DP,GM2ICR,
      x                              FBE,E_BE_OMG2)
 
@@ -353,21 +359,21 @@ C=======================================================================
 
 C Input variables
       integer           Nchunks
-      integer           ng2,nebf,npbf
+      integer           ng2,nebf,nebfBE,npbf
       double precision  GM2ICR(ng2)
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
 
 C Output variables
-      double precision  FBE(nebf,nebf)
+      double precision  FBE(nebfBE,nebfBE)
       double precision  E_BE_OMG2
 
 C Local variables
       integer           istat,ichunk,istart,iend,ng2_seg
       integer           Loopi,imas
       integer           ip,jp,iec1,jec1,iec2,jec2
-      double precision  XFBE(nebf,nebf)
+      double precision  XFBE(nebfBE,nebfBE)
 
       integer,allocatable :: loop_map(:,:)
 
@@ -392,8 +398,8 @@ C Nested loop compression for this chunk:
          do jp=1,npbf
             do iec1=1,nebf
             do jec1=1,nebf
-               do iec2=1,nebf
-               do jec2=1,nebf
+               do iec2=1,nebfBE
+               do jec2=1,nebfBE
 
                   imas=imas+1 ! imas is master_index
                   if(imas.ge.istart.and.imas.le.iend) then
@@ -414,7 +420,7 @@ C Nested loop compression for this chunk:
          end do
 
          call RXCHFmult_thread_FBE_OMG2(istart,iend,ng2_seg,
-     x                                  ng2,nebf,npbf,
+     x                                  ng2,nebf,nebfBE,npbf,
      x                                  loop_map,DAE,DBE,DP,GM2ICR,
      x                                  XFBE,E_BE_OMG2)
 
@@ -423,13 +429,13 @@ C Nested loop compression for this chunk:
       if(allocated(loop_map)) deallocate(loop_map)
 
 C Update Fock matrix
-      call add2fock(nebf,XFBE,FBE)
+      call add2fock(nebfBE,XFBE,FBE)
 
       return
       end
 C======================================================================
       subroutine RXCHFmult_thread_FBE_OMG2(istart,iend,ng2_seg,
-     x                                     ng2,nebf,npbf,
+     x                                     ng2,nebf,nebfBE,npbf,
      x                                     loop_map,DAE,DBE,DP,GM2ICR,
      x                                     XFBE,E_BE_OMG2)
 C======================================================================
@@ -439,16 +445,17 @@ C======================================================================
 C Input variables
       integer           istart,iend,ng2_seg
       integer           nebf   ! Number contracted electronic basis functions
+      integer           nebfBE ! Number contracted electronic basis functions
       integer           npbf   ! Number nuclear basis functions
       integer           ng2
       integer           loop_map(ng2_seg,6)
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
       double precision  GM2ICR(ng2)
 
 C Output variables
-      double precision  XFBE(nebf,nebf)
+      double precision  XFBE(nebfBE,nebfBE)
       double precision  E_BE_OMG2
 
 C Local variables
@@ -459,7 +466,6 @@ C Local variables
       integer           iec1,jec1
       integer           iec2,jec2
       integer           imap,ia
-      integer           ia_12
       double precision  val
       double precision  wtime
 
@@ -471,7 +477,7 @@ C    iec2,jec2 : special electron indicies
 !$omp parallel 
 !$ompx shared(loop_map)
 !$ompx shared(istart,iend)
-!$ompx shared(nebf,npbf,ng2_seg)
+!$ompx shared(nebf,nebfBE,npbf,ng2_seg)
 !$ompx shared(ng2)
 !$ompx shared(DAE,DBE,DP)
 !$ompx shared(GM2ICR)
@@ -480,7 +486,7 @@ C    iec2,jec2 : special electron indicies
 !$ompx private(ip,jp) 
 !$ompx private(iec1,jec1)
 !$ompx private(iec2,jec2)
-!$ompx private(ia_12)
+!$ompx private(ia)
 !$ompx private(val)
 !$ompx reduction(+:XFBE)
 !$ompx reduction(+:E_BE_OMG2)
@@ -496,8 +502,11 @@ C    iec2,jec2 : special electron indicies
          jp =loop_map(imap,5)
          ip =loop_map(imap,6)
 
-         call index_GAM_2PK(nebf,npbf,ip,jp,iec1,jec1,iec2,jec2,ia_12)
-         val=GM2ICR(ia_12)
+         call RXCHFmult_GAM_2PK(nebf,nebfBE,npbf,
+     x                          ip,jp,
+     x                          iec1,jec1,
+     x                          iec2,jec2,ia)
+         val=GM2ICR(ia)
 
          XFBE(iec2,jec2)=XFBE(iec2,jec2)+DAE(iec1,jec1)*DP(ip,jp)*val
          E_BE_OMG2=E_BE_OMG2+DP(ip,jp)*DAE(iec1,jec1)*DBE(iec2,jec2)*val
