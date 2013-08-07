@@ -265,7 +265,6 @@ C ARS(
       write(20) INT_GAM2
       close(20)
       write(*,*) "Done."
-      write(*,*)
 
       write(*,*) "Writing XCHF_GAM2 to disk..."
       open(unit=21,file="XCHF_GAM2.ufm",form="unformatted")
@@ -283,6 +282,27 @@ C ARS(
       open(unit=23,file="INT_GAM3.ufm",form="unformatted")
       write(23) INT_GAM3
       close(23)
+      write(*,*) "Done."
+      write(*,*)
+
+      write(*,*) "Writing XCHF_GAM3 to disk..."
+      open(unit=24,file="XCHF_GAM3.ufm",form="unformatted")
+      write(24) XCHF_GAM3
+      close(24)
+      write(*,*) "Done."
+      write(*,*)
+
+      write(*,*) "Writing INT_GAM4 to disk..."
+      open(unit=25,file="INT_GAM4.ufm",form="unformatted")
+      write(25) INT_GAM4
+      close(25)
+      write(*,*) "Done."
+      write(*,*)
+
+      write(*,*) "Writing XCHF_GAM4 to disk..."
+      open(unit=26,file="XCHF_GAM4.ufm",form="unformatted")
+      write(26) XCHF_GAM4
+      close(26)
       write(*,*) "Done."
       write(*,*)
 C )
