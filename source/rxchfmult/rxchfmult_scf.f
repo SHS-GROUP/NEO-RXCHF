@@ -420,6 +420,38 @@ C )
 !     write(*,*)GAM_ee
 !     write(*,*)
 
+C ARS(
+      INT_GAM2=0.0d+00
+      write(*,*) "Reading INT_GAM2 from disk..."
+      open(unit=20,file="INT_GAM2.ufm",form="unformatted")
+      read(20) INT_GAM2
+      close(20)
+      write(*,*) "Done."
+      write(*,*)
+
+      XCHF_GAM2=0.0d+00
+      write(*,*) "Reading XCHF_GAM2 from disk..."
+      open(unit=21,file="XCHF_GAM2.ufm",form="unformatted")
+      read(21) XCHF_GAM2
+      close(21)
+      write(*,*) "Done."
+
+      XCHF_GAM2s=0.0d+00
+      write(*,*) "Reading XCHF_GAM2s from disk..."
+      open(unit=22,file="XCHF_GAM2s.ufm",form="unformatted")
+      read(22) XCHF_GAM2s
+      close(22)
+      write(*,*) "Done."
+
+      INT_GAM3=0.0d+00
+      write(*,*) "Reading INT_GAM3 from disk..."
+      open(unit=23,file="INT_GAM3.ufm",form="unformatted")
+      read(23) INT_GAM3
+      close(23)
+      write(*,*) "Done."
+      write(*,*)
+C )
+
 !--------------READ-INTEGRALS-NEEDED-FOR-NEO-HF------------------------)
 
 !-------------INITIAL-GUESSES------------------------------------------(

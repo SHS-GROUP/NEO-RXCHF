@@ -259,6 +259,34 @@ C      write(*,*) "dimXCHF2:",dimXCHF2
 C      write(*,*) "dimXCHF3:",dimXCHF3
 C      write(*,*) "dimXCHF4:",dimXCHF4
 
+C ARS(
+      write(*,*) "Writing INT_GAM2 to disk..."
+      open(unit=20,file="INT_GAM2.ufm",form="unformatted")
+      write(20) INT_GAM2
+      close(20)
+      write(*,*) "Done."
+      write(*,*)
+
+      write(*,*) "Writing XCHF_GAM2 to disk..."
+      open(unit=21,file="XCHF_GAM2.ufm",form="unformatted")
+      write(21) XCHF_GAM2
+      close(21)
+      write(*,*) "Done."
+
+      write(*,*) "Writing XCHF_GAM2s to disk..."
+      open(unit=22,file="XCHF_GAM2s.ufm",form="unformatted")
+      write(22) XCHF_GAM2s
+      close(22)
+      write(*,*) "Done."
+
+      write(*,*) "Writing INT_GAM3 to disk..."
+      open(unit=23,file="INT_GAM3.ufm",form="unformatted")
+      write(23) INT_GAM3
+      close(23)
+      write(*,*) "Done."
+      write(*,*)
+C )
+
 C Kick-off SCF
       wtime  = omp_get_wtime()
 
