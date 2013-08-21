@@ -8,6 +8,7 @@ C=======================================================================
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                            ng2chk,ng3chk,ng4chk,
      x                            read_CE,read_CP,
+     x                            read_GAM2,read_GAM3,read_GAM4,
      x                            LG2IC,LG3IC,LG4IC,
      x                            LG2DSCF,LG3DSCF,LG4DSCF,
      x                            LSOSCF,LOCBSE,LCMF)
@@ -53,6 +54,9 @@ C Input variables
       logical LOCBSE                   ! OCBSE2 procedure
       logical LCMF                     ! On-the-fly Fock matrix check and debugging
       logical read_CE,read_CP          ! Read in orbitals
+      logical read_GAM2                ! 
+      logical read_GAM3                ! Read in integrals
+      logical read_GAM4                ! 
       double precision pmass           ! Mass of nonelectron quantum particle 
       double precision zan(nat)        ! Classical nuclear charges
       double precision cat(3,nat)      ! Classical nuclear coordinates (au)
@@ -112,13 +116,6 @@ C     => XCHF_GAM2 only needed if nbe >= 2
      x                           AMPEB2C,AGEBFCC,AGNBFCC,ELCEX,
      x                           NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
-      write(*,*)
-      write(*,*) "---------------------------"
-      write(*,*) " Calculating:     INT_GAM2 "
-      write(*,*) "                 XCHF_GAM2 "
-      write(*,*) "---------------------------"
-      write(*,*)
-
       dimINT2=ng2
       dimXCHF2=ng2
       if(allocated(INT_GAM2)) deallocate(INT_GAM2)
@@ -128,12 +125,41 @@ C     => XCHF_GAM2 only needed if nbe >= 2
       if(allocated(XCHF_GAM2s)) deallocate(XCHF_GAM2s)
       allocate(XCHF_GAM2s(dimXCHF2))
 
-      call RXCHFmult_GAM2_IC1(ng2chk,nebf,npebf,npbf,
-     x                        ng2,ng2prm,nat,ngtg1,
-     x                        pmass,cat,zan,bcoef1,gamma1,
-     x                        KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                        XCHF_GAM2,INT_GAM2,XCHF_GAM2s)
+      if (read_GAM2) then
+
+       write(*,*)
+       write(*,*) "---------------------------"
+
+       write(*,*) " Reading:         INT_GAM2 "
+       call RXCHFmult_readint(ng2,"INT_GAM2.ufm",INT_GAM2)
+
+       if (nbe.gt.1) then
+        write(*,*) "                 XCHF_GAM2 "
+        write(*,*) "                 XCHF_GAM2s"
+        call RXCHFmult_readint(ng2,"XCHF_GAM2.ufm",XCHF_GAM2)
+        call RXCHFmult_readint(ng2,"XCHF_GAM2s.ufm",XCHF_GAM2s)
+       end if
+
+       write(*,*) "---------------------------"
+       write(*,*)
+
+      else
+
+       write(*,*)
+       write(*,*) "---------------------------"
+       write(*,*) " Calculating:     INT_GAM2 "
+       write(*,*) "                 XCHF_GAM2 "
+       write(*,*) "---------------------------"
+       write(*,*)
+
+       call RXCHFmult_GAM2_IC1(ng2chk,nebf,npebf,npbf,
+     x                         ng2,ng2prm,nat,ngtg1,
+     x                         pmass,cat,zan,bcoef1,gamma1,
+     x                         KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                         ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                         XCHF_GAM2,INT_GAM2,XCHF_GAM2s)
+
+      end if
 
       if (nbe.le.1) then
 
@@ -164,12 +190,6 @@ C  - calculate four-particle integrals and store in memory
 C     => INT_GAM3
 C     => XCHF_GAM3 only needed if nbe >= 3
 
-        write(*,*) "---------------------------"
-        write(*,*) " Calculating:     INT_GAM3 "
-        write(*,*) "                 XCHF_GAM3 "
-        write(*,*) "---------------------------"
-        write(*,*)
-
         dimINT3=ng3
         dimXCHF3=ng3
         if(allocated(INT_GAM3)) deallocate(INT_GAM3)
@@ -177,12 +197,39 @@ C     => XCHF_GAM3 only needed if nbe >= 3
         if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
         allocate(XCHF_GAM3(dimXCHF3))
 
-        call RXCHFmult_GAM3_IC1(ng3chk,nebf,npebf,npbf,
-     x                          ng3,ng3prm,nat,ngtg1,
-     x                          pmass,cat,zan,bcoef1,gamma1,
-     x                          KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                          ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                          XCHF_GAM3,INT_GAM3)
+        if (read_GAM3) then
+
+         write(*,*)
+         write(*,*) "---------------------------"
+
+         write(*,*) " Reading:         INT_GAM3 "
+         call RXCHFmult_readint(ng3,"INT_GAM3.ufm",INT_GAM3)
+
+         if (nbe.gt.2) then
+          write(*,*) "                 XCHF_GAM3 "
+          call RXCHFmult_readint(ng3,"XCHF_GAM3.ufm",XCHF_GAM3)
+         end if
+
+         write(*,*) "---------------------------"
+         write(*,*)
+
+        else
+
+         write(*,*)
+         write(*,*) "---------------------------"
+         write(*,*) " Calculating:     INT_GAM3 "
+         write(*,*) "                 XCHF_GAM3 "
+         write(*,*) "---------------------------"
+         write(*,*)
+
+         call RXCHFmult_GAM3_IC1(ng3chk,nebf,npebf,npbf,
+     x                           ng3,ng3prm,nat,ngtg1,
+     x                           pmass,cat,zan,bcoef1,gamma1,
+     x                           KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                           ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                           XCHF_GAM3,INT_GAM3)
+
+        end if
 
         if (nbe.le.2) then
 
@@ -206,18 +253,32 @@ C nbe >= 3
 C  - calculate interaction five-particle integrals and store in memory
 C     => INT_GAM4
 
-          write(*,*)
-          write(*,*) "---------------------------"
-          write(*,*) " Calculating:     INT_GAM4 "
-          write(*,*) "---------------------------"
-          write(*,*)
-
           dimINT4=ng4
           if(allocated(INT_GAM4)) deallocate(INT_GAM4)
           allocate(INT_GAM4(dimINT4))
 
-          call RXCHFmult_GAM4_ICR(ng4chk,nebf,npbf,ngee,ng2,ng4,
-     x                            XCHF_GAM2s,INT_GAM4)
+          if (read_GAM4) then
+
+           write(*,*)
+           write(*,*) "---------------------------"
+           write(*,*) " Reading:         INT_GAM4 "
+           write(*,*) "---------------------------"
+           write(*,*)
+
+           call RXCHFmult_readint(ng4,"INT_GAM4.ufm",INT_GAM4)
+
+          else
+
+           write(*,*)
+           write(*,*) "---------------------------"
+           write(*,*) " Calculating:     INT_GAM4 "
+           write(*,*) "---------------------------"
+           write(*,*)
+
+           call RXCHFmult_GAM4_ICR(ng4chk,nebf,npbf,ngee,ng2,ng4,
+     x                             XCHF_GAM2s,INT_GAM4)
+
+          end if
 
           if (nbe.le.3) then
 
@@ -231,18 +292,32 @@ C nbe >= 4
 C  - calculate XCHF five-particle integrals and store in memory
 C     => XCHF_GAM4
 
-            write(*,*)
-            write(*,*) "---------------------------"
-            write(*,*) " Calculating:    XCHF_GAM4 "
-            write(*,*) "---------------------------"
-            write(*,*)
-
             dimXCHF4=ng4
             if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
             allocate(XCHF_GAM4(dimXCHF4))
 
-            call GAM4_ICR(ng4chk,nebf,npbf,ngee,ng2,ng4,
-     x                    XCHF_GAM2s,XCHF_GAM4)
+            if (read_GAM4) then
+
+             write(*,*)
+             write(*,*) "---------------------------"
+             write(*,*) " Reading:        XCHF_GAM4 "
+             write(*,*) "---------------------------"
+             write(*,*)
+
+             call RXCHFmult_readint(ng4,"XCHF_GAM4.ufm",XCHF_GAM4)
+
+            else
+
+             write(*,*)
+             write(*,*) "---------------------------"
+             write(*,*) " Calculating:    XCHF_GAM4 "
+             write(*,*) "---------------------------"
+             write(*,*)
+
+             call GAM4_ICR(ng4chk,nebf,npbf,ngee,ng2,ng4,
+     x                     XCHF_GAM2s,XCHF_GAM4)
+
+            end if ! read GAM4
 
           end if ! nbe >= 4
 
@@ -283,21 +358,18 @@ C ARS(
       write(23) INT_GAM3
       close(23)
       write(*,*) "Done."
-      write(*,*)
 
       write(*,*) "Writing XCHF_GAM3 to disk..."
       open(unit=24,file="XCHF_GAM3.ufm",form="unformatted")
       write(24) XCHF_GAM3
       close(24)
       write(*,*) "Done."
-      write(*,*)
 
       write(*,*) "Writing INT_GAM4 to disk..."
       open(unit=25,file="INT_GAM4.ufm",form="unformatted")
       write(25) INT_GAM4
       close(25)
       write(*,*) "Done."
-      write(*,*)
 
       write(*,*) "Writing XCHF_GAM4 to disk..."
       open(unit=26,file="XCHF_GAM4.ufm",form="unformatted")
@@ -374,6 +446,34 @@ C Print timing summary
      x        8X,'  +--------------------------------------+',/,
      x        8X,'    TIME TO EVALUATE INTEGRALS:',1X,F12.4/
      x        8X,'                  TIME FOR SCF:',1X,F12.4/)
+
+      return
+      end
+
+
+C=======================================================================
+      subroutine RXCHFmult_readint(n,fname,arr)
+
+C Reads integrals from file "fname" into an n-dimensional array [arr]
+C Integrals must be written to an unformatted file as a one-array-write
+C=======================================================================
+      implicit none
+
+C Input variables
+      integer n
+      character*15 fname
+C Output variables
+      double precision arr(n)
+C Local variables
+      integer i
+
+C Initialize
+      arr=0.0d+00
+
+C Read in from file
+      open(unit=20,file=fname,form="unformatted")
+      read(20) arr
+      close(20)
 
       return
       end

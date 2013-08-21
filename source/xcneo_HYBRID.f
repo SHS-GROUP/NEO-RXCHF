@@ -554,6 +554,7 @@ C Call separate routine for RXCHF(nbe>1) integral calculations
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                            NG2CHK,NG3CHK,NG4CHK,
      x                            read_CE,read_CP,
+     x                            read_GAM2,read_GAM3,read_GAM4,
      x                            LG2IC1,LG3IC1,LG4IC,
      x                            LG2DSCF,LG3DSCF,LG4DSCF,
      x                            LSOSCF,LOCBSE,LCMF)
