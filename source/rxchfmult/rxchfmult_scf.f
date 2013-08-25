@@ -219,10 +219,12 @@
       integer ITSOA ! SOSCF iteration counter
       integer ITSOB ! SOSCF iteration counter
       integer L0,L1
+      integer L0b,L1b
       integer L0w,L1w
       integer NFT15
       integer NFT16
-      double precision FLT(NEBFLT) !FLT: Lower triangle focke
+      double precision FLT(NEBFLT) !FLT: Lower triangle FAE
+      double precision FLTB(NEBFBELT) !FLTB: Lower triangle FBE
       double precision HSTARTA(NPRA)
       double precision HSTARTB(NPRB)
       double precision GRADA(NPRA)
@@ -250,8 +252,9 @@
       double precision XA(NPRA)
       double precision XB(NPRB)
       double precision GA(nebf,nebf) !G(L0,L0)
-      double precision GB(nebf,nebf) !G(L0,L0)
+      double precision GB(nebfBE,nebfBE) !G(L0b,L0b)
       double precision WRK(nebf) !WRK(L0)
+      double precision WRKB(nebfBE) !WRK(L0b)
 !cc   double precision CCC(nebf,nebf) !WRK(L0)
 !cc   NPR=(L0-NA)*NA ! Line 2134 RHFCL ?NA is NUM ALPHA E?
 !--------SOSCF-RELATED-VARIABLES------------)
@@ -499,6 +502,8 @@ C )
          SMALL=1.0D-06
          L0=nebf
          L1=nebf
+         L0b=nebfBE
+         L1b=nebfBE
          LSOSCFA=.true.
          LSOSCFB=.true.
          if((nae.eq.1).or.LOCBSE) LSOSCFA=.FALSE.
@@ -713,7 +718,7 @@ C )
       end if
 C )
 
-         if (LOCBSE) then
+         if (LOCBSE) then  ! hardwired off in place of OCBSE2
 ! Do OCBSE procedure (restricted solutions for regular and special electrons)
 
            call RXCHFmult_OCBSE(nebf,nae,nbe,vecAE0,vecBE0,FAE,FBE,xxse,
@@ -1012,8 +1017,9 @@ C )
         end if
          IF(LSOSCFB .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
 !!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
-           call pack_LT(nebf,nebfLT,FBE,FLT)
-          call SOGRAD(GRADB,FLT,vecBE,WRK,NPRB,NB,L0,L1,NEBFLT,ORBGRDB)
+           call pack_LT(nebfBE,nebfBELT,FBE,FLTB)
+          call SOGRAD(GRADB,FLTB,vecBE,WRKB,NPRB,NB,
+     x                L0b,L1b,NEBFBELT,ORBGRDB)
 !!!!!!      IF(ORBGRD.LT.SMALL) THEN
 !!!!!!         DIFF = ZERO
 !!!!!!         CVGING=.TRUE.
@@ -1022,14 +1028,15 @@ C )
             IF(ORBGRDB.LT.SOGTOL  .OR.  ITSOB.GT.0) THEN
               IF(ITSOB.EQ.0) THEN   ! only on first SOSCF it. set up approx Hess
              WRITE(*,9800)
-                 call SOHESS(HSTARTB,BEE,NPRB,L0,NB,NB)
+                 call SOHESS(HSTARTB,BEE,NPRB,L0b,NB,NB)
               END IF
               ITSOB = ITSOB+1
            call SONEWT(HSTARTB,GRADB,PGRADB,DISPLIB,DGRADB,DISPLB,UPDTB,
      *                 DISPLNB,DGRADIB,UPDTIB,ORBGRDB,NPRB,ITSOB,NFT16)
-            call SOTRAN(DISPLIB,vecBE,GB,WRK,NPRB,L0,L1,NB,NB,ORBGRDB)
+            call SOTRAN(DISPLIB,vecBE,GB,WRKB,NPRB,
+     x                  L0b,L1b,NB,NB,ORBGRDB)
              CALL DCOPY(NPRB,GRADB,1,PGRADB,1)
-              call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
+              call RXCHFmult_construct_DE(NBE,nebfBE,vecBE,DBE)
               GO TO 850  ! Use the new C's to form new density (change)
             END IF
          END IF
@@ -1037,8 +1044,8 @@ C )
 
   800 CONTINUE
 !        call ROOTHAN(DBE,vecBE,BEE,xxse,FBE,nebf,nelec,1,NUCST)
-         call UROOTHAN(vecBE,BEE,xxse,FBE,nebf)
-         call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
+         call UROOTHAN(vecBE,BEE,xxseBE,FBE,nebfBE)
+         call RXCHFmult_construct_DE(NBE,nebfBE,vecBE,DBE)
 
   850 CONTINUE
 !        --> FIND LARGEST CHANGE IN Beta E DENSITY
@@ -1528,7 +1535,7 @@ C )
       end if
 
       call RXCHFmult_construct_DE(NAE,nebf,CAE,DAE)
-      call RXCHFmult_construct_DE(NBE,nebf,CBE,DBE)
+      call RXCHFmult_construct_DE(NBE,nebfBE,CBE,DBE)
 
       if(allocated(Cvirt)) deallocate(Cvirt)
 
@@ -2078,6 +2085,8 @@ C )
 ! ncanon : number of canonical vectors of dimension dimtot
 ! dimint : dimension of intersection
 ! basint : orthonormal basis of intersection flattened to dim ncanon
+!           - dimtot vectors are output
+!           - the first dimint vectors are relevant
 ! 
 !======================================================================
       implicit none
@@ -2088,7 +2097,7 @@ C )
       double precision vecA(dimtot,nvec)
 ! Variables Returned
       integer          dimint
-      double precision basint(ncanon,dimint)
+      double precision basint(ncanon,dimtot) ! adjust on exit to dimint
 ! Local variables
       logical debug
       integer i,j
@@ -2103,7 +2112,6 @@ C )
       double precision vt(nvec+ncanon,nvec+ncanon)
       double precision intersect(nvec+ncanon,nvec+ncanon)
       double precision, allocatable :: work(:)
-!      double precision, allocatable :: mat(:,:),aux(:,:)
       double precision, parameter   :: zero=0.0d+00, one=1.0d+00
       double precision, parameter   :: tol=1.0d-12
 
@@ -2114,11 +2122,6 @@ C )
       u=zero
       s=zero
       vt=zero
-
-!      if(allocated(mat)) deallocate(mat)
-!      allocate(mat(dimtot,nvec+ncanon))
-!      if(allocated(aux)) deallocate(aux)
-!      allocate(aux(dimtot,nvec+ncanon))
 
 ! Fill first nvec columns of mat with vecA
       do i=1,nvec
@@ -2197,8 +2200,6 @@ C )
 !!!!!!! vectors in null space aren't dimtot-dimensional !!!!!!!!
 
       if(allocated(work)) deallocate(work)
-!      if(allocated(aux)) deallocate(aux)
-!      if(allocated(mat)) deallocate(mat)
 
       return
       end

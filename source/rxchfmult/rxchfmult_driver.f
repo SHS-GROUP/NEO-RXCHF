@@ -518,27 +518,18 @@ C Kick-off SCF
       if(nae.gt.1) then
        npra=(nebf-(nae/2))*(nae/2) ! occ-vir pairs for regular elecs
       else
-         npra=nae*(nebf-nae)
+       npra=nae*(nebf-nae)
       end if
-      if(nbe.gt.1) then
-       if (LOCBSE) then ! account for nocca less virtual orbitals
-        if (nae.gt.1) then
-         nprb=((nebf-nae/2)-(nbe/2))*(nbe/2)
-        else
-         nprb=((nebf-nae)-(nbe/2))*(nbe/2)
-        end if
+      if (LOCBSE) then ! account for nocca less virtual orbitals
+       if (nae.gt.1) then
+        nprb=((nebfBE-nae/2)-(nbe/2))*(nbe/2)
        else
-        nprb=(nebf-(nbe/2))*(nbe/2) ! occ-vir pairs for special elecs
+        nprb=((nebfBE-nae)-(nbe/2))*(nbe/2)
        end if
       else
-       nprb=nbe*(nebf-nbe)
+       nprb=(nebfBE-(nbe/2))*(nbe/2) ! occ-vir pairs for special elecs
       end if
 
-C Fix these definitions before calling SCF driver(
-      ng2=dimXCHF2
-      ng3=dimXCHF3
-      ng4=dimXCHF4
-C )
       call RXCHFmult_scf(nelec,nae,nbe,npra,nprb,nucst,
      x                   npebf,nebf,nebf2,nebflt,
      x                   npebfBE,nebfBE,nebfBE2,nebfBElt,
