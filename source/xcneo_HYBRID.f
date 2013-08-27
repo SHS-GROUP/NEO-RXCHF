@@ -245,7 +245,7 @@ c     ng4prm=npebf*npebf*npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
        return
       end if
 
-      if ((EXCHLEV.gt.0).and.(LRXCHF)) then
+      if ((EXCHLEV.gt.0).and.(LRXCHF).and.(NBE.eq.1)) then
        write(*,*) "EXCHLEV > 0 should only be used with LRXCUHF"
        write(*,*) "Exiting..."
        return
@@ -284,9 +284,9 @@ c     ng4prm=npebf*npebf*npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
        return
       end if
 
-      if ((NBE.gt.1).and.(EXCHLEV.gt.0)) then
-       write(*,*) "Only RXCHF-ne currently supported for"
-       write(*,*) "more than one special electron."
+      if ((NBE.gt.1).and.(EXCHLEV.gt.1)) then
+       write(*,*) "Only RXCHF-ne and RXCHF-ae are currently"
+       write(*,*) "supported for more than one special electron."
        write(*,*) "Exiting..."
        return
       end if
@@ -556,7 +556,7 @@ C Call separate routine for RXCHF(nbe>1) integral calculations
      x                            read_CE,read_CP,
      x                            LG2IC1,LG3IC1,LG4IC,
      x                            LG2DSCF,LG3DSCF,LG4DSCF,
-     x                            LSOSCF,LOCBSE,LCMF)
+     x                            LSOSCF,LOCBSE,LCMF,EXCHLEV)
            else
             write(*,*) "RXCUHF with more than one special electron"
             write(*,*) "still needs to be coded."

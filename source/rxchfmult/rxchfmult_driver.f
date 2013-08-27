@@ -10,11 +10,12 @@ C=======================================================================
      x                            read_CE,read_CP,
      x                            LG2IC,LG3IC,LG4IC,
      x                            LG2DSCF,LG3DSCF,LG4DSCF,
-     x                            LSOSCF,LOCBSE,LCMF)
+     x                            LSOSCF,LOCBSE,LCMF,LADDEXCH)
 
 C Driver to calculate RXCHF integrals for nbe > 1
 C   XCHF_GAM* : integrals needed for XCHF contribution
 C    INT_GAM* : integrals needed for interaction contribution
+C  INT_GAM*ex : integrals needed for exchange contribution
 C
 C Maximum dimension of integral needed is nbe + 1
 C In this routine, both XCHF_GAM? and INT_GAM? are calculated up to
@@ -52,6 +53,7 @@ C Input variables
       logical LSOSCF                   ! SOSCF where applicable
       logical LOCBSE                   ! OCBSE2 procedure
       logical LCMF                     ! On-the-fly Fock matrix check and debugging
+      logical LADDEXCH                 ! Flag to activate approximate exchange
       logical read_CE,read_CP          ! Read in orbitals
       double precision pmass           ! Mass of nonelectron quantum particle 
       double precision zan(nat)        ! Classical nuclear charges
@@ -74,6 +76,8 @@ C Local variables
       integer dimINT2                   !
       integer dimINT3                   ! Dimensions of interaction integral arrays
       integer dimINT4                   !
+      integer dimINT2ex                 ! Dimensions of exchange integral arrays
+      integer dimINT3ex                 !
       double precision              :: wtime,wtime1,wtime2  ! Timing variables
       double precision, allocatable :: XCHF_GAM2(:)         ! 3-particle XCHF integrals
       double precision, allocatable :: XCHF_GAM2s(:)        ! 3-particle XCHF overlap integrals
@@ -82,23 +86,29 @@ C Local variables
       double precision, allocatable :: INT_GAM2(:)          ! 3-particle interaction integrals
       double precision, allocatable :: INT_GAM3(:)          ! 4-particle interaction integrals
       double precision, allocatable :: INT_GAM4(:)          ! 4-particle interaction integrals
+      double precision, allocatable :: INT_GAM2ex(:)        ! 3-particle exchange integrals
+      double precision, allocatable :: INT_GAM3ex1(:)       ! 4-particle exchange integrals
+      double precision, allocatable :: INT_GAM3ex2(:)       ! 4-particle exchange integrals
 
 C Calculate integrals
       wtime = omp_get_wtime()
 
 C Initialize dimensions
-      dimXCHF2 = 1
-      dimXCHF3 = 1
-      dimXCHF4 = 1
-      dimINT2  = 1
-      dimINT3  = 1
-      dimINT4  = 1
+      dimXCHF2  = 1
+      dimXCHF3  = 1
+      dimXCHF4  = 1
+      dimINT2   = 1
+      dimINT3   = 1
+      dimINT4   = 1
+      dimINT2ex = 1
+      dimINT3ex = 1
 
 C nbe >= 1
 C  - calculate two-particle XCHF integrals and write to disk
 C     => XCHF_GAM1
 C  - calculate three-particle integrals and store in memory
 C     => INT_GAM2
+C     => INT_GAM2ex only needed if RXCHF-ae
 C     => XCHF_GAM2 only needed if nbe >= 2
 
       write(*,*)
@@ -115,25 +125,41 @@ C     => XCHF_GAM2 only needed if nbe >= 2
       write(*,*)
       write(*,*) "---------------------------"
       write(*,*) " Calculating:     INT_GAM2 "
+      if (LADDEXCH) then
+       write(*,*) " Calculating:   INT_GAM2ex "
+      end if
       write(*,*) "                 XCHF_GAM2 "
       write(*,*) "---------------------------"
       write(*,*)
 
       dimINT2=ng2
       dimXCHF2=ng2
+      if (LADDEXCH) dimINT2ex=ng2
+
       if(allocated(INT_GAM2)) deallocate(INT_GAM2)
       allocate(INT_GAM2(dimINT2))
+      if(allocated(INT_GAM2ex)) deallocate(INT_GAM2ex)
+      allocate(INT_GAM2ex(dimINT2ex))
       if(allocated(XCHF_GAM2)) deallocate(XCHF_GAM2)
       allocate(XCHF_GAM2(dimXCHF2))
       if(allocated(XCHF_GAM2s)) deallocate(XCHF_GAM2s)
       allocate(XCHF_GAM2s(dimXCHF2))
 
-      call RXCHFmult_GAM2_IC1(ng2chk,nebf,npebf,npbf,
-     x                        ng2,ng2prm,nat,ngtg1,
-     x                        pmass,cat,zan,bcoef1,gamma1,
-     x                        KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                        XCHF_GAM2,INT_GAM2,XCHF_GAM2s)
+      if (LADDEXCH) then
+       call RXCHFmult_GAM2_IC1ex(ng2chk,nebf,npebf,npbf,
+     x                         ng2,ng2prm,nat,ngtg1,
+     x                         pmass,cat,zan,bcoef1,gamma1,
+     x                         KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                         ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                         XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s)
+      else
+       call RXCHFmult_GAM2_IC1(ng2chk,nebf,npebf,npbf,
+     x                         ng2,ng2prm,nat,ngtg1,
+     x                         pmass,cat,zan,bcoef1,gamma1,
+     x                         KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                         ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                         XCHF_GAM2,INT_GAM2,XCHF_GAM2s)
+      end if
 
       if (nbe.le.1) then
 
@@ -149,10 +175,14 @@ C     => XCHF_GAM2 only needed if nbe >= 2
         allocate(XCHF_GAM2s(dimXCHF2))
 
         if(allocated(INT_GAM3)) deallocate(INT_GAM3)
+        if(allocated(INT_GAM3ex1)) deallocate(INT_GAM3ex1)
+        if(allocated(INT_GAM3ex2)) deallocate(INT_GAM3ex2)
         if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
         if(allocated(INT_GAM4)) deallocate(INT_GAM4)
         if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
         allocate(INT_GAM3(dimINT3))
+        allocate(INT_GAM3ex1(dimINT3ex))
+        allocate(INT_GAM3ex2(dimINT3ex))
         allocate(XCHF_GAM3(dimXCHF3))
         allocate(INT_GAM4(dimINT4))
         allocate(XCHF_GAM4(dimXCHF4))
@@ -162,27 +192,48 @@ C     => XCHF_GAM2 only needed if nbe >= 2
 C nbe >= 2
 C  - calculate four-particle integrals and store in memory
 C     => INT_GAM3
+C     => INT_GAM3ex only needed if RXCHF-ae
 C     => XCHF_GAM3 only needed if nbe >= 3
 
         write(*,*) "---------------------------"
         write(*,*) " Calculating:     INT_GAM3 "
+        if (LADDEXCH) then
+         write(*,*) " Calculating:  INT_GAM3ex1 "
+         write(*,*) " Calculating:  INT_GAM3ex2 "
+        end if
         write(*,*) "                 XCHF_GAM3 "
         write(*,*) "---------------------------"
         write(*,*)
 
         dimINT3=ng3
         dimXCHF3=ng3
+        if (LADDEXCH) dimINT3ex=ng3
+
         if(allocated(INT_GAM3)) deallocate(INT_GAM3)
         allocate(INT_GAM3(dimINT3))
+        if(allocated(INT_GAM3ex1)) deallocate(INT_GAM3ex1)
+        allocate(INT_GAM3ex1(dimINT3ex))
+        if(allocated(INT_GAM3ex2)) deallocate(INT_GAM3ex2)
+        allocate(INT_GAM3ex2(dimINT3ex))
         if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
         allocate(XCHF_GAM3(dimXCHF3))
 
-        call RXCHFmult_GAM3_IC1(ng3chk,nebf,npebf,npbf,
-     x                          ng3,ng3prm,nat,ngtg1,
-     x                          pmass,cat,zan,bcoef1,gamma1,
-     x                          KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                          ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                          XCHF_GAM3,INT_GAM3)
+        if (LADDEXCH) then
+         call RXCHFmult_GAM3_IC1ex(ng3chk,nebf,npebf,npbf,
+     x                           ng3,ng3prm,nat,ngtg1,
+     x                           pmass,cat,zan,bcoef1,gamma1,
+     x                           KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                           ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                           XCHF_GAM3,INT_GAM3,
+     x                           INT_GAM3ex1,INT_GAM3ex2)
+        else
+         call RXCHFmult_GAM3_IC1(ng3chk,nebf,npebf,npbf,
+     x                           ng3,ng3prm,nat,ngtg1,
+     x                           pmass,cat,zan,bcoef1,gamma1,
+     x                           KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                           ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                           XCHF_GAM3,INT_GAM3)
+        end if
 
         if (nbe.le.2) then
 
@@ -290,28 +341,32 @@ C Kick-off SCF
      x                   NG2CHK,NG3CHK,NG4CHK,
      x                   read_CE,read_CP,
      x                   LG4DSCF,LG3DSCF,LG2DSCF,
-     x                   LSOSCF,LOCBSE,LCMF,
+     x                   LSOSCF,LOCBSE,LCMF,LADDEXCH,
      x                   ng2prm,ng3prm,nat,pmass,cat,zan,
      x                   bcoef1,gamma1,
      x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                   LG2IC,dimXCHF2,dimINT2,
-     x                   XCHF_GAM2,INT_GAM2,XCHF_GAM2s,
-     x                   LG3IC,dimXCHF3,dimINT3,
+     x                   LG2IC,dimXCHF2,dimINT2,dimINT2ex,
+     x                   XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
+     x                   LG3IC,dimXCHF3,dimINT3,dimINT3ex,
      x                   XCHF_GAM3,INT_GAM3,
+     x                   INT_GAM3ex1,INT_GAM3ex2,
      x                   LG4IC,dimXCHF4,dimINT4,
      x                   XCHF_GAM4,INT_GAM4)
 
       wtime2 = omp_get_wtime() - wtime
 
 C Cleanup
-      if(allocated(XCHF_GAM4))  deallocate(XCHF_GAM4)
-      if(allocated(INT_GAM4))   deallocate(INT_GAM4)
-      if(allocated(XCHF_GAM3))  deallocate(XCHF_GAM3)
-      if(allocated(INT_GAM3))   deallocate(INT_GAM3)
-      if(allocated(XCHF_GAM2s)) deallocate(XCHF_GAM2s)
-      if(allocated(XCHF_GAM2))  deallocate(XCHF_GAM2)
-      if(allocated(INT_GAM2))   deallocate(INT_GAM2)
+      if(allocated(XCHF_GAM4))   deallocate(XCHF_GAM4)
+      if(allocated(INT_GAM4))    deallocate(INT_GAM4)
+      if(allocated(XCHF_GAM3))   deallocate(XCHF_GAM3)
+      if(allocated(INT_GAM3ex2)) deallocate(INT_GAM3ex2)
+      if(allocated(INT_GAM3ex1)) deallocate(INT_GAM3ex1)
+      if(allocated(INT_GAM3))    deallocate(INT_GAM3)
+      if(allocated(XCHF_GAM2s))  deallocate(XCHF_GAM2s)
+      if(allocated(XCHF_GAM2))   deallocate(XCHF_GAM2)
+      if(allocated(INT_GAM2ex))  deallocate(INT_GAM2ex)
+      if(allocated(INT_GAM2))    deallocate(INT_GAM2)
 
 C Print timing summary
       write(*,*)
