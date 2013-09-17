@@ -39,6 +39,7 @@ Notes:       When localized orbitals are given as a starting guess
               - converges to the He(RHF) + LiPs(XCHF) solution (*)
              When normal guess is used
               - converges to the He(RHF) + LiPs(RXCHF-2e) solution (**)
+             RXCHF-ae is not tested since in its current formalism, the correct limits are not obtained when N_s > 2
 
 Localized-orbital guess
 

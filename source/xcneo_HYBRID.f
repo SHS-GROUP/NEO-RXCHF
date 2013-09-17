@@ -228,6 +228,16 @@
 c     ng4prm=npebf*npebf*npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
       ng4prm=1
 
+      if(LNEOHF.and.LRXCHF) then
+       LRXCHF=.false.
+       write(*,*) "Overriding LRXCHF since LNEOHF=.TRUE."
+      end if
+      if(LNEOHF.and.LRXCUHF) then
+       LRXCUHF=.false.
+       LXCUHF=.false.
+       write(*,*) "Overriding LRXCUHF since LNEOHF=.TRUE."
+      end if
+
       if (((LRXCHF).or.(LRXCUHF)).and.(nelec.ge.4).and.(exchlev.eq.2))
      x      then
        write(*,*) "Currently only nelec<4 is supported for RXCHF-fe"
@@ -262,16 +272,6 @@ c     ng4prm=npebf*npebf*npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
        write(*,*) "Overriding LRXCHF since LRXCUHF=.TRUE."
       end if
 
-      if(LNEOHF.and.LRXCHF) then
-       LRXCHF=.false.
-       write(*,*) "Overriding LRXCHF since LNEOHF=.TRUE."
-      end if
-      if(LNEOHF.and.LRXCUHF) then
-       LRXCUHF=.false.
-       LXCUHF=.false.
-       write(*,*) "Overriding LRXCUHF since LNEOHF=.TRUE."
-      end if
-
       if ((LRXCHF).and.(LXCUHF)) then
        write(*,*) "Cannot have LRXCHF and LXCUHF"
        write(*,*) "Exiting..."
@@ -289,6 +289,12 @@ c     ng4prm=npebf*npebf*npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
        write(*,*) "supported for more than one special electron."
        write(*,*) "Exiting..."
        return
+      end if
+
+      if ((NBE.gt.2).and.(EXCHLEV.eq.1)) then
+       write(*,*) "WARNING: A balanced version of RXCHF-ae has only"
+       write(*,*) "         been derived for up to two special"
+       write(*,*) "         electrons: use with caution for NBE>2!"
       end if
 
       if(LRXCUHF) then
