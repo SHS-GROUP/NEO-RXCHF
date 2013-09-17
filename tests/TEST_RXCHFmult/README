@@ -13,7 +13,8 @@ He (GAMESS) :      FINAL RHF ENERGY IS       -2.8356798736 AFTER   2 ITERATIONS
 PsH (XCHF)  :  FINAL NEOXCHF ENERGY IS       -0.7351388067 AFTER   9 ITERATIONS
 Total       :                                -3.5708186803
 
-RXCHF       : FINAL NEORXCHF ENERGY IS       -3.5708186802 AFTER   2 ITERATIONS
+RXCHF-ne    : FINAL NEORXCHF ENERGY IS       -3.5708186802 AFTER   5 ITERATIONS
+RXCHF-ae    : FINAL NEORXCHF ENERGY IS       -3.5708186802 AFTER   5 ITERATIONS
 
 
 6-311G
@@ -22,8 +23,8 @@ He (GAMESS) :      FINAL RHF ENERGY IS       -2.8598954246 AFTER   7 ITERATIONS
 PsH (XCHF)  :  FINAL NEOXCHF ENERGY IS       -0.7351388067 AFTER   9 ITERATIONS
 Total       :                                -3.5950342313
 
-RXCHF       : 
- FINAL NEORXCHF ENERGY IS       -3.5950342311 AFTER   2 ITERATIONS
+RXCHF-ne    : FINAL NEORXCHF ENERGY IS       -3.5950342311 AFTER   5 ITERATIONS
+RXCHF-ae    : FINAL NEORXCHF ENERGY IS       -3.5950342311 AFTER   5 ITERATIONS
 
 
 ======
@@ -38,6 +39,7 @@ Notes:       When localized orbitals are given as a starting guess
               - converges to the He(RHF) + LiPs(XCHF) solution (*)
              When normal guess is used
               - converges to the He(RHF) + LiPs(RXCHF-2e) solution (**)
+             RXCHF-ae is not tested since in its current formalism, the correct limits are not obtained when N_s > 2
 
 Localized-orbital guess
 
@@ -92,4 +94,16 @@ Notes:       Orbitals not exactly identical: perhaps due to convergence criteria
 
 RXCHF :  FINAL NEORXCHF ENERGY IS       -7.9467704905 AFTER   6 ITERATIONS
 XCHF  :   FINAL NEOXCHF ENERGY IS       -7.9467704908 AFTER  13 ITERATIONS
+
+
+======
+TEST06
+======
+
+System:      LiH (4 electrons) with trivial geminals
+Level:       NEO-RXCHF-ae / pc0/5s
+Compare to:  Corresponding NEO-HF calculation
+
+RXCHF  :  FINAL NEORXCHF ENERGY IS       -7.9270489806 AFTER   6 ITERATIONS
+NEO-HF :   FINAL NEOXCHF ENERGY IS       -7.9270489800 AFTER   9 ITERATIONS
 

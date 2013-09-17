@@ -54,5 +54,5 @@
 .false. =LCMF Activates on-the-fly Fock matrix checking
 .true.  =LSOSCF
 .true.  =LOCBSE
-0       =EXCHLEV
+1       =EXCHLEV
 

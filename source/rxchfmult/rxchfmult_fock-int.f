@@ -1,11 +1,13 @@
 C======================================================================
-      subroutine RXCHFmult_fock_int(LCMF,nelec,NAE,NBE,
+      subroutine RXCHFmult_fock_int(LCMF,LADDEXCH,nelec,NAE,NBE,
      x                              nebf,nebf2,npbf,npbf2,
      x                              ng1,ng2,ng3,ng4,
      x                              SZG2ICR,SZG3ICR,SZG4ICR,
+     x                              SZG2exICR,SZG3exICR,
      x                              NG2CHK,NG3CHK,NG4CHK,
      x                              DAE,DBE,DP,
      x                              GM2ICR,GM3ICR,GM4ICR,
+     x                              GM2exICR,GM3ex1ICR,GM3ex2ICR,
      x                              S_total,S_OMG2,XSBE,XSP,
      x                              FP,FAE,FBE, 
      x                              E_OMG2,E_OMG3,E_OMG4,
@@ -17,9 +19,11 @@ C======================================================================
 
 C Input variables
       logical           LCMF
+      logical           LADDEXCH
       integer           nebf,npbf,npbf2,nebf2
       integer           ng1,ng2,ng3,ng4
       integer           SZG2ICR,SZG3ICR,SZG4ICR
+      integer           SZG2exICR,SZG3exICR
       integer           nelec,NAE,NBE
       integer           NG2CHK,NG3CHK,NG4CHK
       double precision  DAE(nebf,nebf)
@@ -28,6 +32,9 @@ C Input variables
       double precision  GM2ICR(SZG2ICR)
       double precision  GM3ICR(SZG3ICR)
       double precision  GM4ICR(SZG4ICR)
+      double precision  GM2exICR(SZG2exICR)
+      double precision  GM3ex1ICR(SZG3exICR)
+      double precision  GM3ex2ICR(SZG3exICR)
       double precision  S_total           !  Read in overlap contributions
       double precision  S_OMG2            !  to Fock matrices obtained       
       double precision  XSBE(nebf,nebf)   !  from previous XCHF calculation
@@ -92,39 +99,45 @@ C Initialize
       E_BE_OMG4 = zero 
 
 C Construct Electronic Fock Matrix (regular electrons)
-      call RXCHFmult_IC_construct_FAE(nelec,NAE,NBE,
+      call RXCHFmult_IC_construct_FAE(LADDEXCH,nelec,NAE,NBE,
      x                                nebf,npbf,nebf2,
      x                                ng1,ng2,ng3,ng4,
      x                                SZG2ICR,SZG3ICR,SZG4ICR,
+     x                                SZG2exICR,SZG3exICR,
      x                                NG2CHK,NG3CHK,NG4CHK,
      x                                DAE,DBE,DP,
      x                                GM2ICR,GM3ICR,GM4ICR,
+     x                                GM2exICR,GM3ex1ICR,GM3ex2ICR,
      x                                XFAE,
      x                                E_AE_OMG2,
      x                                E_AE_OMG3,
      x                                E_AE_OMG4)
 
 C Construct QM Particle Fock Matrix
-      call RXCHFmult_IC_construct_FP(nelec,NAE,NBE,
+      call RXCHFmult_IC_construct_FP(LADDEXCH,nelec,NAE,NBE,
      x                               nebf,npbf,npbf2,
      x                               ng1,ng2,ng3,ng4,
      x                               SZG2ICR,SZG3ICR,SZG4ICR,
+     x                               SZG2exICR,SZG3exICR,
      x                               NG2CHK,NG3CHK,NG4CHK,
      x                               DAE,DBE,DP,
      x                               GM2ICR,GM3ICR,GM4ICR,
+     x                               GM2exICR,GM3ex1ICR,GM3ex2ICR,
      x                               XFP,
      x                               E_P_OMG2,
      x                               E_P_OMG3, 
      x                               E_P_OMG4)
 
 C Construct Electronic Fock Matrix (special electrons)
-      call RXCHFmult_IC_construct_FBE(nelec,NAE,NBE,
+      call RXCHFmult_IC_construct_FBE(LADDEXCH,nelec,NAE,NBE,
      x                                nebf,npbf,nebf2,
      x                                ng1,ng2,ng3,ng4,
      x                                SZG2ICR,SZG3ICR,SZG4ICR,
+     x                                SZG2exICR,SZG3exICR,
      x                                NG2CHK,NG3CHK,NG4CHK,
      x                                DAE,DBE,DP,
      x                                GM2ICR,GM3ICR,GM4ICR,
+     x                                GM2exICR,GM3ex1ICR,GM3ex2ICR,
      x                                XFBE,
      x                                E_BE_OMG2,
      x                                E_BE_OMG3, 
@@ -284,13 +297,16 @@ C Tests Fock matrices by summing up with density matrices
       return
       end
 C======================================================================
-      subroutine RXCHFmult_IC_construct_FAE(nelec,NAE,NBE,
+      subroutine RXCHFmult_IC_construct_FAE(LADDEXCH,nelec,NAE,NBE,
      x                                      nebf,npbf,nebf2,
      x                                      ng1,ng2,ng3,ng4,
      x                                      SZG2ICR,SZG3ICR,SZG4ICR,
+     x                                      SZG2exICR,SZG3exICR,
      x                                      NG2CHK,NG3CHK,NG4CHK,
      x                                      DAE,DBE,DP,
      x                                      GM2ICR,GM3ICR,GM4ICR,
+     x                                      GM2exICR,
+     x                                      GM3ex1ICR,GM3ex2ICR,
      x                                      FAE,
      x                                      E_AE_OMG2,
      x                                      E_AE_OMG3,
@@ -304,9 +320,11 @@ C======================================================================
       implicit none
 
 C Input variables
+      logical           LADDEXCH
       integer           nebf,npbf,nebf2
       integer           ng1,ng2,ng3,ng4
       integer           SZG2ICR,SZG3ICR,SZG4ICR
+      integer           SZG2exICR,SZG3exICR
       integer           nelec,NAE,NBE
       integer           NG2CHK,NG3CHK,NG4CHK
       double precision  DAE(nebf,nebf)
@@ -315,6 +333,9 @@ C Input variables
       double precision  GM2ICR(SZG2ICR)
       double precision  GM3ICR(SZG3ICR)
       double precision  GM4ICR(SZG4ICR)
+      double precision  GM2exICR(SZG2exICR)
+      double precision  GM3ex1ICR(SZG3exICR)
+      double precision  GM3ex2ICR(SZG3exICR)
 
 C Output variables
       double precision  FAE(nebf,nebf)
@@ -332,15 +353,29 @@ C Initialize
       E_AE_OMG3  = zero
       E_AE_OMG4  = zero
 
-      call RXCHFmult_FAE_OMG2(NG2CHK,nebf,npbf,ng2,
-     x                        DAE,DBE,DP,GM2ICR,
-     x                        FAE,E_AE_OMG2)
+      if (LADDEXCH) then
+       call RXCHFmult_FAE_OMG2ex(NG2CHK,nebf,npbf,ng2,
+     x                           DAE,DBE,DP,
+     x                           GM2ICR,GM2exICR,
+     x                           FAE,E_AE_OMG2)
+      else
+       call RXCHFmult_FAE_OMG2(NG2CHK,nebf,npbf,ng2,
+     x                         DAE,DBE,DP,GM2ICR,
+     x                         FAE,E_AE_OMG2)
+      end if
 
       if (NBE.gt.1) then
 
-         call RXCHFmult_FAE_OMG3(NG3CHK,nebf,npbf,ng3,
-     x                           DAE,DBE,DP,GM3ICR,
-     x                           FAE,E_AE_OMG3)
+         if (LADDEXCH) then
+          call RXCHFmult_FAE_OMG3ex(NG3CHK,nebf,npbf,ng3,
+     x                              DAE,DBE,DP,
+     x                              GM3ICR,GM3ex1ICR,GM3ex2ICR,
+     x                              FAE,E_AE_OMG3)
+         else
+          call RXCHFmult_FAE_OMG3(NG3CHK,nebf,npbf,ng3,
+     x                            DAE,DBE,DP,GM3ICR,
+     x                            FAE,E_AE_OMG3)
+         end if
 
          if (NBE.gt.2) then
 
@@ -355,13 +390,16 @@ C Initialize
       return
       end
 C======================================================================
-      subroutine RXCHFmult_IC_construct_FP(nelec,NAE,NBE,
+      subroutine RXCHFmult_IC_construct_FP(LADDEXCH,nelec,NAE,NBE,
      x                                     nebf,npbf,npbf2,
      x                                     ng1,ng2,ng3,ng4,
      x                                     SZG2ICR,SZG3ICR,SZG4ICR,
+     x                                     SZG2exICR,SZG3exICR,
      x                                     NG2CHK,NG3CHK,NG4CHK,
      x                                     DAE,DBE,DP,
      x                                     GM2ICR,GM3ICR,GM4ICR,
+     x                                     GM2exICR,
+     x                                     GM3ex1ICR,GM3ex2ICR,
      x                                     FP,
      x                                     E_P_OMG2,
      x                                     E_P_OMG3, 
@@ -375,9 +413,11 @@ C======================================================================
       implicit none
 
 C Input variables
+      logical           LADDEXCH
       integer           nebf,npbf,npbf2
       integer           ng1,ng2,ng3,ng4
       integer           SZG2ICR,SZG3ICR,SZG4ICR
+      integer           SZG2exICR,SZG3exICR
       integer           nelec,NAE,NBE
       integer           NG2CHK,NG3CHK,NG4CHK
       double precision  DAE(nebf,nebf)
@@ -386,6 +426,9 @@ C Input variables
       double precision  GM2ICR(SZG2ICR)
       double precision  GM3ICR(SZG3ICR)
       double precision  GM4ICR(SZG4ICR)
+      double precision  GM2exICR(SZG2exICR)
+      double precision  GM3ex1ICR(SZG3exICR)
+      double precision  GM3ex2ICR(SZG3exICR)
 
 C Output variables
       double precision  FP(npbf,npbf)
@@ -403,15 +446,29 @@ C Initialize
       E_P_OMG3  = zero 
       E_P_OMG4  = zero 
  
-      call RXCHFmult_FP_OMG2(NG2CHK,nebf,npbf,ng2,
-     x                       DAE,DBE,DP,GM2ICR,
-     x                       FP,E_P_OMG2)
+      if (LADDEXCH) then
+       call RXCHFmult_FP_OMG2ex(NG2CHK,nebf,npbf,ng2,
+     x                          DAE,DBE,DP,
+     x                          GM2ICR,GM2exICR,
+     x                          FP,E_P_OMG2)
+      else
+       call RXCHFmult_FP_OMG2(NG2CHK,nebf,npbf,ng2,
+     x                        DAE,DBE,DP,GM2ICR,
+     x                        FP,E_P_OMG2)
+      end if
 
       if (NBE.gt.1) then
 
-         call RXCHFmult_FP_OMG3(NG3CHK,nebf,npbf,ng3,
-     x                          DAE,DBE,DP,GM3ICR,
-     x                          FP,E_P_OMG3)
+         if (LADDEXCH) then
+          call RXCHFmult_FP_OMG3ex(NG3CHK,nebf,npbf,ng3,
+     x                             DAE,DBE,DP,
+     x                             GM3ICR,GM3ex1ICR,GM3ex2ICR,
+     x                             FP,E_P_OMG3)
+         else
+          call RXCHFmult_FP_OMG3(NG3CHK,nebf,npbf,ng3,
+     x                           DAE,DBE,DP,GM3ICR,
+     x                           FP,E_P_OMG3)
+         end if
 
          if (NBE.gt.2) then
 
@@ -426,13 +483,16 @@ C Initialize
       return
       end
 C======================================================================
-      subroutine RXCHFmult_IC_construct_FBE(nelec,NAE,NBE,
+      subroutine RXCHFmult_IC_construct_FBE(LADDEXCH,nelec,NAE,NBE,
      x                                      nebf,npbf,nebf2,
      x                                      ng1,ng2,ng3,ng4,
      x                                      SZG2ICR,SZG3ICR,SZG4ICR,
+     x                                      SZG2exICR,SZG3exICR,
      x                                      NG2CHK,NG3CHK,NG4CHK,
      x                                      DAE,DBE,DP,
      x                                      GM2ICR,GM3ICR,GM4ICR,
+     x                                      GM2exICR,
+     x                                      GM3ex1ICR,GM3ex2ICR,
      x                                      FBE,
      x                                      E_BE_OMG2,
      x                                      E_BE_OMG3, 
@@ -446,9 +506,11 @@ C======================================================================
       implicit none
 
 C Input variables
+      logical           LADDEXCH
       integer           nebf,npbf,nebf2
       integer           ng1,ng2,ng3,ng4
       integer           SZG2ICR,SZG3ICR,SZG4ICR
+      integer           SZG2exICR,SZG3exICR
       integer           nelec,NAE,NBE
       integer           NG2CHK,NG3CHK,NG4CHK
       double precision  DAE(nebf,nebf)
@@ -457,6 +519,9 @@ C Input variables
       double precision  GM2ICR(SZG2ICR)
       double precision  GM3ICR(SZG3ICR)
       double precision  GM4ICR(SZG4ICR)
+      double precision  GM2exICR(SZG2exICR)
+      double precision  GM3ex1ICR(SZG3exICR)
+      double precision  GM3ex2ICR(SZG3exICR)
 
 C Output variables
       double precision  FBE(nebf,nebf)
@@ -474,15 +539,29 @@ C Initialize
       E_BE_OMG3  = zero 
       E_BE_OMG4  = zero 
  
-      call RXCHFmult_FBE_OMG2(NG2CHK,nebf,npbf,ng2,
-     x                        DAE,DBE,DP,GM2ICR,
-     x                        FBE,E_BE_OMG2)
+      if (LADDEXCH) then
+       call RXCHFmult_FBE_OMG2ex(NG2CHK,nebf,npbf,ng2,
+     x                           DAE,DBE,DP,
+     x                           GM2ICR,GM2exICR,
+     x                           FBE,E_BE_OMG2)
+      else
+       call RXCHFmult_FBE_OMG2(NG2CHK,nebf,npbf,ng2,
+     x                         DAE,DBE,DP,GM2ICR,
+     x                         FBE,E_BE_OMG2)
+      end if
 
       if (NBE.gt.1) then
 
-         call RXCHFmult_FBE_OMG3(NG3CHK,nebf,npbf,ng3,
-     x                           DAE,DBE,DP,GM3ICR,
-     x                           FBE,E_BE_OMG3)
+         if (LADDEXCH) then
+          call RXCHFmult_FBE_OMG3ex(NG3CHK,nebf,npbf,ng3,
+     x                              DAE,DBE,DP,
+     x                              GM3ICR,GM3ex1ICR,GM3ex2ICR,
+     x                              FBE,E_BE_OMG3)
+         else
+          call RXCHFmult_FBE_OMG3(NG3CHK,nebf,npbf,ng3,
+     x                            DAE,DBE,DP,GM3ICR,
+     x                            FBE,E_BE_OMG3)
+         end if
 
          if (NBE.gt.2) then
 
