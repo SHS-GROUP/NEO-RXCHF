@@ -494,22 +494,38 @@ c     write(*,*)'ng4prm=',ng4prm
 
          call check_nuc_ovlap(npbf)
 
+         write(*,*)
+         write(*,*)'**************************************'
+         write(*,*)' CALCULATING ELEC+NUC CORE INTEGRALS  '
+         write(*,*)'**************************************'
+         write(*,*)
          call calc_GAM_epcore(nebf,npebf,npbf,nebf*nebf,npbf*npbf,
      x                        nat,pmass,zan,cat,
      x                        AMPEB2C,AGEBFCC,AGNBFCC,
      x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
-
          write(*,*)'all done in calc_GAM_epcore'
 
+         write(*,*)
+         write(*,*)'**************************************'
+         write(*,*)'    Computing GAM_ep Integrals    '
+         write(*,*)'**************************************'
+         write(*,*)
          call calc_GAM_ep(nebf,npebf,npbf,ng1,
      x                    AMPEB2C,AGEBFCC,AGNBFCC,
      x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
-
          write(*,*)'all done in calc_GAM_ep'
 
+         write(*,*)
+         write(*,*)'**************************************'
+         write(*,*)'    Computing GAM_ee Integrals    '
+         write(*,*)
+         write(*,*)'nebf =',nebf
+         write(*,*)'npebf=',npebf
+         write(*,*)'ngee =',ngee
+         write(*,*)'**************************************'
+         write(*,*)
          call calc_GAM_ee(nebf,npebf,ngee,
      x                    AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
-
          write(*,*)'all done in calc_GAM_ee'
 !----CALCULATE-INEXPENSIVE-INTEGRALS-ON-MASTER-NODE--------------------)
 

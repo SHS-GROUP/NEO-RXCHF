@@ -43,13 +43,6 @@ C--------------------------------)
       double precision zero
       parameter(zero=0.0d+00)
 
-      write(*,*)
-      write(*,*)'**************************************'
-      write(*,*)' CALCULATING ELEC+NUC CORE INTEGRALS  '
-      write(*,*)'**************************************'
-      write(*,*)
-c     call flshbf(6)
-
 C  zero out the 1-D array to hold the contracted integrals
       do ia=1,nebf2
          GAM_ecore(ia)=zero

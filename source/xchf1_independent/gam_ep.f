@@ -42,12 +42,6 @@ C--------------------------------)
       double precision zero
       parameter(zero=0.0d+00)
 
-      write(*,*)
-      write(*,*)'**************************************'
-      write(*,*)'    Computing GAM_ep Integrals    '
-      write(*,*)'**************************************'
-      write(*,*)
-
 C  zero out the 1-D arrays to hold the contracted integrals
       do ia=1,ng1
          GAM_ep(ia)=zero
@@ -136,7 +130,6 @@ c    x                                  efct(ie1)*efct(je1)
          end do
       end do
 
-      write(*,*)'got here'
 C Write electron-proton integrals to file
       open(811,file='GAM_ep.ufm',form='unformatted',
      x status='unknown',access='direct',RECL=8)

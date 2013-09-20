@@ -43,16 +43,6 @@ C Local variables
       double precision B2,Bmat2(3) 
 
 
-      write(*,*)
-      write(*,*)'**************************************'
-      write(*,*)'    Computing GAM_ee Integrals    '
-      write(*,*)
-      write(*,*)'nebf =',nebf
-      write(*,*)'npebf=',npebf
-      write(*,*)'ngee =',ngee
-      write(*,*)'**************************************'
-      write(*,*)
-
 C  zero out the 1-D array to hold the contracted integrals
       do ia=1,ngee
          GAM_ee(ia)=zero
