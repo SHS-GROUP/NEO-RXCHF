@@ -100,15 +100,18 @@
 
       integer junk
 
-      integer nproc,rank,namelen
+      integer*4 nproc4,rank4,namelen,ierr
+      integer nproc,rank
       character(len=25) :: procname
 
       double precision wtime,wtime1,wtime2
 
-      call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
-      call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
+      call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc4,ierr)
+      call MPI_COMM_RANK(MPI_COMM_WORLD,rank4,ierr)
       call MPI_GET_PROCESSOR_NAME(procname,namelen,ierr)
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+      rank=int(rank4,kind=8)
+      nproc=int(nproc4,kind=8)
       write(*,7000) "Process with rank",rank,
      x              "running on host",trim(procname)
 
@@ -216,12 +219,48 @@
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
-! Broadcast array dimensions to slave processes
-      call MPI_BCAST(ngtg1,1,MPI_INT,0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(nebf,1,MPI_INT,0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(npebf,1,MPI_INT,0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(npbf,1,MPI_INT,0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(nat,1,MPI_INT,0,MPI_COMM_WORLD,ierr)
+! Broadcast static variables including array dimensions to slave processes
+      call MPI_BCAST(ngtg1,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(nebf,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(npebf,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(npbf,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(nat,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+
+! INTEGER8 and LOGICAL8 must be declared specificially since MPI_INTEGER
+! and MPI_LOGICAL do not seem to get specified as long with compiler flags 
+      call MPI_BCAST(pmass,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(nelec,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(NAE,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(NBE,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(NUCST,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LNEOHF,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LXCUHF,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LXCROHF,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LRXCHF,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LRXCUHF,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(read_CE,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(read_CP,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(read_GAM2,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(read_GAM3,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(read_GAM4,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(NG4CHK,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LGAM4,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LG4DSCF,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LG4IC,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(NG3CHK,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LG3DSCF,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LG3IC1,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LG3IC2,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(NG2CHK,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LG2DSCF,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LG2IC1,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LCMF,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LSOSCF,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LOCBSE,1,MPI_LOGICAL8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(EXCHLEV,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 ! Allocate arrays on slave processes
       if (rank.gt.0) then
@@ -257,6 +296,8 @@
        allocate( KPEEND(nebf),stat=istat )
       end if
 
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
 ! Broadcast array data
       call MPI_BCAST(bcoef1,ngtg1,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
@@ -266,38 +307,40 @@
      x               0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(cat,3*nat,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(AMPEB2C,npebf,MPI_INT,
+      call MPI_BCAST(AMPEB2C,npebf,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(ELCEX,npebf,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(AGEBFCC,npebf,DOUBLE_PRECISION,
+      call MPI_BCAST(AGEBFCC,npebf,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(ELCAM,3*npebf,MPI_INT,
+      call MPI_BCAST(ELCAM,3*npebf,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(ELCBFC,3*npebf,DOUBLE_PRECISION,
+      call MPI_BCAST(ELCBFC,3*npebf,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(NUCEX,npbf,DOUBLE_PRECISION,
+      call MPI_BCAST(NUCEX,npbf,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(AGNBFCC,npbf,DOUBLE_PRECISION,
+      call MPI_BCAST(AGNBFCC,npbf,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(NUCAM,3*npbf,MPI_INT,
+      call MPI_BCAST(NUCAM,3*npbf,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(NUCBFC,3*npbf,DOUBLE_PRECISION,
+      call MPI_BCAST(NUCBFC,3*npbf,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(KPESTR,nebf,MPI_INT,
+      call MPI_BCAST(KPESTR,nebf,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(KPEEND,nebf,MPI_INT,
+      call MPI_BCAST(KPEEND,nebf,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
       if(LNEOHF.or.LXCUHF.or.LRXCUHF) then
        if (rank.eq.0) 
-          write(*,*) "MPI code only supports RXCHF-ne/ae with NBE>1"
+     x    write(*,*) "MPI code only supports RXCHF-ne/ae with NBE>1"
        return
       end if
 
       if(.not.(LRXCHF.and.(NBE.ge.2).and.(EXCHLEV.lt.2))) then
        if (rank.eq.0) 
-          write(*,*) "MPI code only supports RXCHF-ne/ae with NBE>1"
+     x    write(*,*) "MPI code only supports RXCHF-ne/ae with NBE>1"
        return
       end if
 
@@ -449,44 +492,44 @@
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
-! Calculate inexpensive integrals and store on disk
-!  - each process writes its own file
-!  - change for global scratch
-      call class_nuc_rep(nat,zan,cat)
-
-      call elec_ovlap(npebf,nebf,nebf*nebf,
-     x                   AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
-
-      call nuc_ovlap(npbf,npbf*npbf,AGNBFCC,NUCEX,NUCAM,NUCBFC)
-
-
+! Calculate inexpensive integrals and store on disk using only master process
+!   - requires use of global scratch directories
       if (rank.eq.0) then
-       call check_elec_ovlap(nebf)
-       call check_nuc_ovlap(npbf)
-       write(*,*)
-       write(*,*)'**************************************'
-       write(*,*)' CALCULATING ELEC+NUC CORE INTEGRALS  '
-      end if
 
-      call calc_GAM_epcore(nebf,npebf,npbf,nebf*nebf,npbf*npbf,
-     x                     nat,pmass,zan,cat,
-     x                     AMPEB2C,AGEBFCC,AGNBFCC,
-     x                     ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+       call class_nuc_rep(nat,zan,cat)
 
-      if (rank.eq.0) write(*,*)'    Computing GAM_ep Integrals    '
-
-      call calc_GAM_ep(nebf,npebf,npbf,ng1,
-     x                 AMPEB2C,AGEBFCC,AGNBFCC,
-     x                 ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
-
-      if (rank.eq.0) write(*,*)'    Computing GAM_ee Integrals    '
-
-      call calc_GAM_ee(nebf,npebf,ngee,
+       call elec_ovlap(npebf,nebf,nebf*nebf,
      x                 AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
 
-      if (rank.eq.0)
+       call check_elec_ovlap(nebf)
+
+       call nuc_ovlap(npbf,npbf*npbf,AGNBFCC,NUCEX,NUCAM,NUCBFC)
+
+       call check_nuc_ovlap(npbf)
+
+       write(*,*)
+       write(*,*)'**************************************'
+       write(*,*)'    Computing GAM_epcore Integrals    '
+
+       call calc_GAM_epcore(nebf,npebf,npbf,nebf*nebf,npbf*npbf,
+     x                      nat,pmass,zan,cat,
+     x                      AMPEB2C,AGEBFCC,AGNBFCC,
+     x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+
+       write(*,*)'    Computing GAM_ep     Integrals    '
+
+       call calc_GAM_ep(nebf,npebf,npbf,ng1,
+     x                  AMPEB2C,AGEBFCC,AGNBFCC,
+     x                  ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+
+       write(*,*)'    Computing GAM_ee     Integrals    '
+
+       call calc_GAM_ee(nebf,npebf,ngee,
+     x                  AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
+
        write(*,*)'**************************************'
        write(*,*)
+
       end if
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -505,6 +548,8 @@
      x                      LG2IC1,LG3IC1,LG4IC,
      x                      LG2DSCF,LG3DSCF,LG4DSCF,
      x                      LSOSCF,LOCBSE,LCMF,EXCHLEV)
+
+      write(*,*) "Process is finished:",rank
 
  7000 format(1X,A,1X,I4,1X,A,1X,A)
  8000 format(1X,I3,I6,I5)

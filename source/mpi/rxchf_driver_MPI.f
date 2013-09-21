@@ -29,6 +29,7 @@ C=======================================================================
       include 'mpif.h'
 
 C Input variables
+      integer nproc,rank               ! MPI variables
       integer nelec                    ! Total number of electrons
       integer nae                      ! Number of regular electrons
       integer nbe                      ! Number of special electrons
@@ -73,6 +74,7 @@ C Input variables
       double precision AGNBFCC(npbf)   ! Nuclear contraction coeff
 
 C Local variables
+      integer ierr
       integer nebf2,npbf2,nebflt        ! Convenient quantities
       integer npra,nprb                 ! Number of distinct electron pairs
       integer dimXCHF2                  !
@@ -116,16 +118,21 @@ C     => INT_GAM2
 C     => INT_GAM2ex only needed if RXCHF-ae
 C     => XCHF_GAM2 only needed if nbe >= 2
 
-      write(*,*)
-      write(*,*) "---------------------------"
-      write(*,*) " Calculating:   XCHF_GAM1  "
-      write(*,*) "---------------------------"
-      write(*,*)
+! Calculate two-particle integrals and write to disk with master process
+      if (rank.eq.0) then
+       write(*,*)
+       write(*,*) "---------------------------"
+       write(*,*) " Calculating:   XCHF_GAM1  "
+       write(*,*) "---------------------------"
+       write(*,*)
 
-      call RXCHFmult_GAM1_OMP_MD(nebf,npebf,npbf,ng1,ng1prm,nat,
-     x                           ngtg1,pmass,cat,zan,bcoef1,gamma1,
-     x                           AMPEB2C,AGEBFCC,AGNBFCC,ELCEX,
-     x                           NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+       call RXCHFmult_GAM1_OMP_MD(nebf,npebf,npbf,ng1,ng1prm,nat,
+     x                            ngtg1,pmass,cat,zan,bcoef1,gamma1,
+     x                            AMPEB2C,AGEBFCC,AGNBFCC,ELCEX,
+     x                            NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+      end if
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
       dimINT2=ng2
       dimXCHF2=ng2
@@ -142,75 +149,101 @@ C     => XCHF_GAM2 only needed if nbe >= 2
 
       if (read_GAM2) then
 
-       write(*,*)
-       write(*,*) "---------------------------"
+! Read with master process
+       if (rank.eq.0) then
+        write(*,*)
+        write(*,*) "---------------------------"
+ 
+        write(*,*) " Reading:         INT_GAM2 "
+        call RXCHFmult_readint(ng2,"INT_GAM2.ufm",INT_GAM2)
 
-       write(*,*) " Reading:         INT_GAM2 "
-       call RXCHFmult_readint(ng2,"INT_GAM2.ufm",INT_GAM2)
+        if (LADDEXCH) then
+         write(*,*) "                INT_GAM2ex "
+         call RXCHFmult_readint(ng2,"INT_GAM2ex.ufm",INT_GAM2ex)
+        end if
 
+        if (nbe.gt.1) then
+         write(*,*) "                 XCHF_GAM2 "
+         write(*,*) "                XCHF_GAM2s "
+         call RXCHFmult_readint(ng2,"XCHF_GAM2.ufm",XCHF_GAM2)
+         call RXCHFmult_readint(ng2,"XCHF_GAM2s.ufm",XCHF_GAM2s)
+        end if
+
+        write(*,*) "---------------------------"
+        write(*,*)
+       end if
+
+! Broadcast to all processes
+       call MPI_BCAST(INT_GAM2,dimINT2,MPI_DOUBLE_PRECISION,
+     x                0,MPI_COMM_WORLD,ierr)
        if (LADDEXCH) then
-        write(*,*) "                INT_GAM2ex "
-        call RXCHFmult_readint(ng2,"INT_GAM2ex.ufm",INT_GAM2ex)
+        call MPI_BCAST(INT_GAM2ex,dimINT2ex,MPI_DOUBLE_PRECISION,
+     x                 0,MPI_COMM_WORLD,ierr)
        end if
-
        if (nbe.gt.1) then
-        write(*,*) "                 XCHF_GAM2 "
-        write(*,*) "                XCHF_GAM2s "
-        call RXCHFmult_readint(ng2,"XCHF_GAM2.ufm",XCHF_GAM2)
-        call RXCHFmult_readint(ng2,"XCHF_GAM2s.ufm",XCHF_GAM2s)
+        call MPI_BCAST(XCHF_GAM2,dimXCHF2,MPI_DOUBLE_PRECISION,
+     x                 0,MPI_COMM_WORLD,ierr)
+        call MPI_BCAST(XCHF_GAM2s,dimXCHF2,MPI_DOUBLE_PRECISION,
+     x                 0,MPI_COMM_WORLD,ierr)
        end if
-
-       write(*,*) "---------------------------"
-       write(*,*)
 
       else
 
-       write(*,*)
-       write(*,*) "---------------------------"
-       write(*,*) " Calculating:     INT_GAM2 "
-       if (LADDEXCH) then
-        write(*,*) "                INT_GAM2ex "
+       if (rank.eq.0) then
+        write(*,*)
+        write(*,*) "---------------------------"
+        write(*,*) " Calculating:     INT_GAM2 "
+        if (LADDEXCH) then
+         write(*,*) "                INT_GAM2ex "
+        end if
+        write(*,*) "                 XCHF_GAM2 "
+        write(*,*) "                XCHF_GAM2s "
+        write(*,*) "---------------------------"
+        write(*,*)
        end if
-       write(*,*) "                 XCHF_GAM2 "
-       write(*,*) "                XCHF_GAM2s "
-       write(*,*) "---------------------------"
-       write(*,*)
 
        if (LADDEXCH) then
-        call RXCHFmult_GAM2_IC1ex(ng2chk,nebf,npebf,npbf,
-     x                         ng2,ng2prm,nat,ngtg1,
-     x                         pmass,cat,zan,bcoef1,gamma1,
-     x                         KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                         ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                         XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s)
+        call RXCHF_GAM2ex_MPI(nproc,rank,
+     x                        ng2chk,nebf,npebf,npbf,
+     x                        ng2,ng2prm,nat,ngtg1,
+     x                        pmass,cat,zan,bcoef1,gamma1,
+     x                        KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                        XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s)
        else
-        call RXCHFmult_GAM2_IC1(ng2chk,nebf,npebf,npbf,
-     x                          ng2,ng2prm,nat,ngtg1,
-     x                          pmass,cat,zan,bcoef1,gamma1,
-     x                          KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                          ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                          XCHF_GAM2,INT_GAM2,XCHF_GAM2s)
+        call RXCHF_GAM2_MPI(nproc,rank,
+     x                      ng2chk,nebf,npebf,npbf,
+     x                      ng2,ng2prm,nat,ngtg1,
+     x                      pmass,cat,zan,bcoef1,gamma1,
+     x                      KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                      XCHF_GAM2,INT_GAM2,XCHF_GAM2s)
        end if
 
-       open(unit=20,file="INT_GAM2.ufm",form="unformatted")
-       write(20) INT_GAM2
-       close(20)
-       write(*,*) "INT_GAM2 written to disk"
-       if (LADDEXCH) then
-        open(unit=21,file="INT_GAM2ex.ufm",form="unformatted")
-        write(21) INT_GAM2ex
-        close(21)
-        write(*,*) "INT_GAM2ex written to disk"
+! Write integrals to disk with master process
+       if (rank.eq.0) then
+        open(unit=20,file="INT_GAM2.ufm",form="unformatted")
+        write(20) INT_GAM2
+        close(20)
+        write(*,*) "INT_GAM2 written to disk"
+        if (LADDEXCH) then
+         open(unit=21,file="INT_GAM2ex.ufm",form="unformatted")
+         write(21) INT_GAM2ex
+         close(21)
+         write(*,*) "INT_GAM2ex written to disk"
+        end if
        end if
 
       end if
 
       if (nbe.le.1) then
 
-        write(*,*)
-        write(*,*) "NBE = ",NBE," <= 1"
-        write(*,*) "so deallocating XCHF_GAM2"
-        write(*,*)
+        if (rank.eq.0) then
+         write(*,*)
+         write(*,*) "NBE = ",NBE," <= 1"
+         write(*,*) "so deallocating XCHF_GAM2"
+         write(*,*)
+        end if
 
         dimXCHF2=1
         if(allocated(XCHF_GAM2s)) deallocate(XCHF_GAM2s)
@@ -233,16 +266,27 @@ C     => XCHF_GAM2 only needed if nbe >= 2
 
       else
 
-        if (.not.(read_GAM2)) then
-         open(unit=22,file="XCHF_GAM2.ufm",form="unformatted")
-         write(22) XCHF_GAM2
-         close(22)
-         write(*,*) "XCHF_GAM2 written to disk"
-         open(unit=23,file="XCHF_GAM2s.ufm",form="unformatted")
-         write(23) XCHF_GAM2s
-         close(23)
-         write(*,*) "XCHF_GAM2s written to disk"
+! Write integrals to disk with master process
+        if (rank.eq.0) then
+         if (.not.(read_GAM2)) then
+          open(unit=22,file="XCHF_GAM2.ufm",form="unformatted")
+          write(22) XCHF_GAM2
+          close(22)
+          write(*,*) "XCHF_GAM2 written to disk"
+          open(unit=23,file="XCHF_GAM2s.ufm",form="unformatted")
+          write(23) XCHF_GAM2s
+          close(23)
+          write(*,*) "XCHF_GAM2s written to disk"
+         end if
         end if
+
+!!!!!!! debug
+      if(allocated(XCHF_GAM2s))  deallocate(XCHF_GAM2s)
+      if(allocated(XCHF_GAM2))   deallocate(XCHF_GAM2)
+      if(allocated(INT_GAM2ex))  deallocate(INT_GAM2ex)
+      if(allocated(INT_GAM2))    deallocate(INT_GAM2)
+      return
+!!!!!!!
 
 C nbe >= 2
 C  - calculate four-particle integrals and store in memory
@@ -265,39 +309,58 @@ C     => XCHF_GAM3 only needed if nbe >= 3
 
         if (read_GAM3) then
 
-         write(*,*)
-         write(*,*) "---------------------------"
+! Read with master process
+         if (rank.eq.0) then
+          write(*,*)
+          write(*,*) "---------------------------"
 
-         write(*,*) " Reading:         INT_GAM3 "
-         call RXCHFmult_readint(ng3,"INT_GAM3.ufm",INT_GAM3)
+          write(*,*) " Reading:         INT_GAM3 "
+          call RXCHFmult_readint(ng3,"INT_GAM3.ufm",INT_GAM3)
 
+          if (LADDEXCH) then
+           write(*,*) "               INT_GAM3ex1 "
+           write(*,*) "               INT_GAM3ex2 "
+           call RXCHFmult_readint(ng3,"INT_GAM3ex1.ufm",INT_GAM3ex1)
+           call RXCHFmult_readint(ng3,"INT_GAM3ex2.ufm",INT_GAM3ex2)
+          end if
+
+          if (nbe.gt.2) then
+           write(*,*) "                 XCHF_GAM3 "
+           call RXCHFmult_readint(ng3,"XCHF_GAM3.ufm",XCHF_GAM3)
+          end if
+
+          write(*,*) "---------------------------"
+          write(*,*)
+         end if
+
+! Broadcast to all processes
+         call MPI_BCAST(INT_GAM3,dimINT3,MPI_DOUBLE_PRECISION,
+     x                  0,MPI_COMM_WORLD,ierr)
          if (LADDEXCH) then
-          write(*,*) "               INT_GAM3ex1 "
-          write(*,*) "               INT_GAM3ex2 "
-          call RXCHFmult_readint(ng3,"INT_GAM3ex1.ufm",INT_GAM3ex1)
-          call RXCHFmult_readint(ng3,"INT_GAM3ex2.ufm",INT_GAM3ex2)
+          call MPI_BCAST(INT_GAM3ex1,dimINT3ex,MPI_DOUBLE_PRECISION,
+     x                   0,MPI_COMM_WORLD,ierr)
+          call MPI_BCAST(INT_GAM3ex2,dimINT3ex,MPI_DOUBLE_PRECISION,
+     x                   0,MPI_COMM_WORLD,ierr)
          end if
-
          if (nbe.gt.2) then
-          write(*,*) "                 XCHF_GAM3 "
-          call RXCHFmult_readint(ng3,"XCHF_GAM3.ufm",XCHF_GAM3)
+          call MPI_BCAST(XCHF_GAM3,dimXCHF3,MPI_DOUBLE_PRECISION,
+     x                   0,MPI_COMM_WORLD,ierr)
          end if
-
-         write(*,*) "---------------------------"
-         write(*,*)
 
         else
 
-         write(*,*)
-         write(*,*) "---------------------------"
-         write(*,*) " Calculating:     INT_GAM3 "
-         if (LADDEXCH) then
-          write(*,*) "               INT_GAM3ex1 "
-          write(*,*) "               INT_GAM3ex2 "
+         if (rank.eq.0) then
+          write(*,*)
+          write(*,*) "---------------------------"
+          write(*,*) " Calculating:     INT_GAM3 "
+          if (LADDEXCH) then
+           write(*,*) "               INT_GAM3ex1 "
+           write(*,*) "               INT_GAM3ex2 "
+          end if
+          write(*,*) "                 XCHF_GAM3 "
+          write(*,*) "---------------------------"
+          write(*,*)
          end if
-         write(*,*) "                 XCHF_GAM3 "
-         write(*,*) "---------------------------"
-         write(*,*)
 
          if (LADDEXCH) then
           call RXCHFmult_GAM3_IC1ex(ng3chk,nebf,npebf,npbf,
@@ -316,29 +379,34 @@ C     => XCHF_GAM3 only needed if nbe >= 3
      x                            XCHF_GAM3,INT_GAM3)
          end if
 
-         open(unit=24,file="INT_GAM3.ufm",form="unformatted")
-         write(24) INT_GAM3
-         close(24)
-         write(*,*) "INT_GAM3 written to disk"
-         if (LADDEXCH) then
-          open(unit=25,file="INT_GAM3ex1.ufm",form="unformatted")
-          write(25) INT_GAM3ex1
-          close(25)
-          write(*,*) "INT_GAM3ex1 written to disk"
-          open(unit=26,file="INT_GAM3ex2.ufm",form="unformatted")
-          write(26) INT_GAM3ex2
-          close(26)
-          write(*,*) "INT_GAM3ex2 written to disk"
+! Write integrals to disk with master process
+         if (rank.eq.0) then
+          open(unit=24,file="INT_GAM3.ufm",form="unformatted")
+          write(24) INT_GAM3
+          close(24)
+          write(*,*) "INT_GAM3 written to disk"
+          if (LADDEXCH) then
+           open(unit=25,file="INT_GAM3ex1.ufm",form="unformatted")
+           write(25) INT_GAM3ex1
+           close(25)
+           write(*,*) "INT_GAM3ex1 written to disk"
+           open(unit=26,file="INT_GAM3ex2.ufm",form="unformatted")
+           write(26) INT_GAM3ex2
+           close(26)
+           write(*,*) "INT_GAM3ex2 written to disk"
+          end if
          end if
 
         end if
 
         if (nbe.le.2) then
 
-          write(*,*)
-          write(*,*) "NBE = ",NBE," <= 2"
-          write(*,*) "so deallocating XCHF_GAM3"
-          write(*,*)
+          if (rank.eq.0) then
+           write(*,*)
+           write(*,*) "NBE = ",NBE," <= 2"
+           write(*,*) "so deallocating XCHF_GAM3"
+           write(*,*)
+          end if
 
           dimXCHF3=1
           if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
@@ -351,11 +419,14 @@ C     => XCHF_GAM3 only needed if nbe >= 3
 
         else
 
-          if (.not.(read_GAM3)) then
-           open(unit=27,file="XCHF_GAM3.ufm",form="unformatted")
-           write(27) XCHF_GAM3
-           close(27)
-           write(*,*) "XCHF_GAM3 written to disk"
+! Write integrals to disk with master process
+          if (rank.eq.0) then
+           if (.not.(read_GAM3)) then
+            open(unit=27,file="XCHF_GAM3.ufm",form="unformatted")
+            write(27) XCHF_GAM3
+            close(27)
+            write(*,*) "XCHF_GAM3 written to disk"
+           end if
           end if
 
 C nbe >= 3
@@ -368,29 +439,41 @@ C     => INT_GAM4
 
           if (read_GAM4) then
 
-           write(*,*)
-           write(*,*) "---------------------------"
-           write(*,*) " Reading:         INT_GAM4 "
-           write(*,*) "---------------------------"
-           write(*,*)
+! Read with master process
+           if (rank.eq.0) then
+            write(*,*)
+            write(*,*) "---------------------------"
+            write(*,*) " Reading:         INT_GAM4 "
+            write(*,*) "---------------------------"
+            write(*,*)
 
-           call RXCHFmult_readint(ng4,"INT_GAM4.ufm",INT_GAM4)
+            call RXCHFmult_readint(ng4,"INT_GAM4.ufm",INT_GAM4)
+           end if
+
+! Broadcast to all processes
+           call MPI_BCAST(INT_GAM4,dimINT4,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
 
           else
 
-           write(*,*)
-           write(*,*) "---------------------------"
-           write(*,*) " Calculating:     INT_GAM4 "
-           write(*,*) "---------------------------"
-           write(*,*)
+           if (rank.eq.0) then
+            write(*,*)
+            write(*,*) "---------------------------"
+            write(*,*) " Calculating:     INT_GAM4 "
+            write(*,*) "---------------------------"
+            write(*,*)
+           end if
 
            call RXCHFmult_GAM4_ICR(ng4chk,nebf,npbf,ngee,ng2,ng4,
      x                             XCHF_GAM2s,INT_GAM4)
 
-           open(unit=28,file="INT_GAM4.ufm",form="unformatted")
-           write(28) INT_GAM4
-           close(28)
-           write(*,*) "INT_GAM4 written to disk"
+! Write integrals to disk with master process
+           if (rank.eq.0) then
+            open(unit=28,file="INT_GAM4.ufm",form="unformatted")
+            write(28) INT_GAM4
+            close(28)
+            write(*,*) "INT_GAM4 written to disk"
+           end if
 
           end if
 
@@ -412,29 +495,41 @@ C     => XCHF_GAM4
 
             if (read_GAM4) then
 
-             write(*,*)
-             write(*,*) "---------------------------"
-             write(*,*) " Reading:        XCHF_GAM4 "
-             write(*,*) "---------------------------"
-             write(*,*)
+! Read with master process
+             if (rank.eq.0) then
+              write(*,*)
+              write(*,*) "---------------------------"
+              write(*,*) " Reading:        XCHF_GAM4 "
+              write(*,*) "---------------------------"
+              write(*,*)
 
-             call RXCHFmult_readint(ng4,"XCHF_GAM4.ufm",XCHF_GAM4)
+              call RXCHFmult_readint(ng4,"XCHF_GAM4.ufm",XCHF_GAM4)
+             end if
+
+! Broadcast to all processes
+             call MPI_BCAST(XCHF_GAM4,dimXCHF4,MPI_DOUBLE_PRECISION,
+     x                      0,MPI_COMM_WORLD,ierr)
 
             else
 
-             write(*,*)
-             write(*,*) "---------------------------"
-             write(*,*) " Calculating:    XCHF_GAM4 "
-             write(*,*) "---------------------------"
-             write(*,*)
+             if (rank.eq.0) then
+              write(*,*)
+              write(*,*) "---------------------------"
+              write(*,*) " Calculating:    XCHF_GAM4 "
+              write(*,*) "---------------------------"
+              write(*,*)
+             end if
 
              call GAM4_ICR(ng4chk,nebf,npbf,ngee,ng2,ng4,
      x                     XCHF_GAM2s,XCHF_GAM4)
 
-             open(unit=29,file="XCHF_GAM4.ufm",form="unformatted")
-             write(29) XCHF_GAM4
-             close(29)
-             write(*,*) "XCHF_GAM4 written to disk"
+! Write integrals to disk with master process
+             if (rank.eq.0) then
+              open(unit=29,file="XCHF_GAM4.ufm",form="unformatted")
+              write(29) XCHF_GAM4
+              close(29)
+              write(*,*) "XCHF_GAM4 written to disk"
+             end if
 
             end if ! read GAM4
 
@@ -505,11 +600,13 @@ C Cleanup
       if(allocated(INT_GAM2))    deallocate(INT_GAM2)
 
 C Print timing summary
-      write(*,*)
-      write(*,*) "FINISHED RXCHFMULT CALCULATION"
-      write(*,*)
-      write(*,3000) wtime1,wtime2
-      write(*,*)
+      if (rank.eq.0) then
+       write(*,*)
+       write(*,*) "FINISHED RXCHFMULT CALCULATION"
+       write(*,*)
+       write(*,3000) wtime1,wtime2
+       write(*,*)
+      end if
 
 
  3000 FORMAT(/8X,'  +--------------------------------------+',/,
