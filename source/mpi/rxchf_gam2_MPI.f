@@ -54,15 +54,10 @@
       double precision GM2_2MPI(ng2/nproc)  ! INT  OMG2   integrals (unsymm)
       double precision GM2sMPI(ng2/nproc)   ! XCHF OMG2s  integrals (symm)
 
-      double precision,allocatable :: RESID1(:)
-      double precision,allocatable :: RESID2(:)
-      double precision,allocatable :: RESID2s(:) 
-
       integer nproc,rank
       integer*4 ierr
       integer mpistart,mpiend,arrstart
 
-!     integer ia
       integer ia_12
       integer ia_21
 
@@ -78,7 +73,8 @@
       double precision wtime2
 
 ! Have each process calculate ng2/nproc integrals according to rank then allgather
-! Have master calculate residual integrals and broadcast those after
+! Have each process calculate ng2%nproc remaining integrals
+!  - saves waiting for master and eliminates one broadcast
 
       call get_mpi_range(ng2,nproc,rank,mpistart,mpiend)
 
@@ -208,108 +204,71 @@
 ! At this stage, ng2%nproc last elements are missing from arrays
       if (mod(ng2,nproc).ne.0) then
 
-! Allocate residual arrays
-       if(allocated(RESID1)) deallocate(RESID1)
-       allocate(RESID1(mod(ng2,nproc)))
-       if(allocated(RESID2)) deallocate(RESID2)
-       allocate(RESID2(mod(ng2,nproc)))
-       if(allocated(RESID2s)) deallocate(RESID2s)
-       allocate(RESID2s(mod(ng2,nproc)))
-
-! Calculate residual integrals with master process
-       if (rank.eq.0) then
-
-            wtime = MPI_WTIME()
+         wtime = MPI_WTIME()
 
 ! Have threads chop calculation of ng2%nproc integrals
-            call loop_size(nproc*(ng2/nproc)+1,ng2,1,0,
-     x                     istart,iend)
-            ng2_seg=1+iend-istart
+         call loop_size(nproc*(ng2/nproc)+1,ng2,1,0,
+     x                  istart,iend)
+         ng2_seg=1+iend-istart
 
-            if(allocated(loop_map)) deallocate(loop_map)
-            allocate( loop_map(ng2_seg,6),stat=istat )
+         if(allocated(loop_map)) deallocate(loop_map)
+         allocate( loop_map(ng2_seg,6),stat=istat )
 
 ! Nested loop compression for this chunk:
-            Loopi=0
-            imas=0
-            do ip=1,npbf
-            do jp=1,npbf
-               do iec1=1,nebf
-               do jec1=1,nebf
-                  do iec2=1,nebf
-                  do jec2=1,nebf
+         Loopi=0
+         imas=0
+         do ip=1,npbf
+         do jp=1,npbf
+            do iec1=1,nebf
+            do jec1=1,nebf
+               do iec2=1,nebf
+               do jec2=1,nebf
 
-                      imas=imas+1 ! imas is master_index
-                      if(imas.ge.istart.and.imas.le.iend) then
-                         Loopi=Loopi+1
-                         loop_map(Loopi,1)=jec2
-                         loop_map(Loopi,2)=iec2
-                         loop_map(Loopi,3)=jec1
-                         loop_map(Loopi,4)=iec1
-                         loop_map(Loopi,5)=jp
-                         loop_map(Loopi,6)=ip
+                   imas=imas+1 ! imas is master_index
+                   if(imas.ge.istart.and.imas.le.iend) then
+                      Loopi=Loopi+1
+                      loop_map(Loopi,1)=jec2
+                      loop_map(Loopi,2)=iec2
+                      loop_map(Loopi,3)=jec1
+                      loop_map(Loopi,4)=iec1
+                      loop_map(Loopi,5)=jp
+                      loop_map(Loopi,6)=ip
 
 ! Save coordinates of first value for array transfer later
-                         if (Loopi.eq.1) then
-                            call index_GAM_2PK(nebf,npbf,
-     x                               ip,jp,iec1,jec1,iec2,jec2,arrstart)
-                         end if
-
+                      if (Loopi.eq.1) then
+                         call index_GAM_2PK(nebf,npbf,
+     x                            ip,jp,iec1,jec1,iec2,jec2,arrstart)
                       end if
 
-                  end do
-                  end do
-               end do
-               end do
-            end do
-            end do
+                   end if
 
-            call RXCHFmult_thread_gam2_IC1(istart,iend,ng2_seg,ng2,
-     x                           nebf,npebf,npbf,nat,ngtg1,
-     x                           pmass,cat,zan,bcoef1,gamma1,
-     x                           loop_map,XG2_1ICR,XG2_2ICR,XG2sICR,
-     x                           KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                           ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+               end do
+               end do
+            end do
+            end do
+         end do
+         end do
+
+         call RXCHFmult_thread_gam2_IC1(istart,iend,ng2_seg,ng2,
+     x                        nebf,npebf,npbf,nat,ngtg1,
+     x                        pmass,cat,zan,bcoef1,gamma1,
+     x                        loop_map,XG2_1ICR,XG2_2ICR,XG2sICR,
+     x                        KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
 !-----CLEAN-UP-MEMORY-------------------------------------------------(
-      if(allocated(loop_map)) deallocate(loop_map)
+         if(allocated(loop_map)) deallocate(loop_map)
 !-----CLEAN-UP-MEMORY-------------------------------------------------)
 
-            wtime2 = MPI_WTIME() - wtime
-            write(*,3000) wtime2
+         wtime2 = MPI_WTIME() - wtime
+         if (rank.eq.0) write(*,3000) wtime2
 
-! Here, a contiguous block of ng2%nproc integrals are stored in X* arrs
-! Pass this to a ng2%nproc-dimensional array to prepare for broadcast
-! May be possible/faster to just broadcast part of X* arrays...
-            call copy_arr(mod(ng2,nproc),XG2_1ICR(arrstart),RESID1)
-            call copy_arr(mod(ng2,nproc),XG2_2ICR(arrstart),RESID2)
-            call copy_arr(mod(ng2,nproc),XG2sICR(arrstart),RESID2s)
-
-       end if ! rank 0 proc
-
-       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-! Broadcast residual arrays and address
-       call MPI_BCAST(arrstart,1,MPI_INTEGER8,
-     x                0,MPI_COMM_WORLD,ierr)
-       call MPI_BCAST(RESID1,mod(ng2,nproc),MPI_DOUBLE_PRECISION,
-     x                0,MPI_COMM_WORLD,ierr)
-       call MPI_BCAST(RESID2,mod(ng2,nproc),MPI_DOUBLE_PRECISION,
-     x                0,MPI_COMM_WORLD,ierr)
-       call MPI_BCAST(RESID2s,mod(ng2,nproc),MPI_DOUBLE_PRECISION,
-     x                0,MPI_COMM_WORLD,ierr)
-
-! Fill in empty part of whole arrays
-       call copy_arr(mod(ng2,nproc),RESID1,XG2_1ICR(arrstart))
-       call copy_arr(mod(ng2,nproc),RESID2,XG2_2ICR(arrstart))
-       call copy_arr(mod(ng2,nproc),RESID2s,XG2sICR(arrstart))
-
-!       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-!       write(*,*) "ng2+resid:",ng2
-!       do istart=1,ng2
-!       write(*,9001) XG2_1ICR(istart),XG2_2ICR(istart),
-!     x               XG2sICR(istart)
-!       end do
-
+!         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!         write(*,*) "ng2+resid:",ng2
+!         do istart=1,ng2
+!         write(*,9001) XG2_1ICR(istart),XG2_2ICR(istart),
+!     x                 XG2sICR(istart)
+!         end do
 
       end if ! resid exists
 
@@ -364,10 +323,6 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
 
          wtime2 = MPI_WTIME() - wtime
 
-         if(allocated(RESID2s)) deallocate(RESID2s)
-         if(allocated(RESID2)) deallocate(RESID2)
-         if(allocated(RESID1)) deallocate(RESID1)
-
          if(allocated(XG2sICR)) deallocate(XG2sICR)
          if(allocated(XG2_2ICR)) deallocate(XG2_2ICR)
          if(allocated(XG2_1ICR)) deallocate(XG2_1ICR)
@@ -396,7 +351,7 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
 
  4000 FORMAT(8X,'      TIME TO SYMMETRIZE INTEGRALS:',1X,F12.4/)
 
- 9001 FORMAT(1X,4(F20.10))
+ 9001 FORMAT(1X,3(F20.10))
 
       return
       end
@@ -459,16 +414,10 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
       double precision GM2_3MPI(ng2/nproc)  ! INT  OMG2ex integrals (symm)
       double precision GM2sMPI(ng2/nproc)   ! XCHF OMG2s  integrals (symm)
 
-      double precision,allocatable :: RESID1(:)
-      double precision,allocatable :: RESID2(:)
-      double precision,allocatable :: RESID3(:)
-      double precision,allocatable :: RESID2s(:) 
-
       integer nproc,rank
       integer*4 ierr
       integer mpistart,mpiend,arrstart
 
-!     integer ia
       integer ia_12
       integer ia_21
 
@@ -484,7 +433,8 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
       double precision wtime2
 
 ! Have each process calculate ng2/nproc integrals according to rank then allgather
-! Have master calculate residual integrals and broadcast those after
+! Have each process calculate ng2%nproc remaining integrals
+!  - saves waiting for master and eliminates one broadcast
 
       call get_mpi_range(ng2,nproc,rank,mpistart,mpiend)
 
@@ -624,115 +574,72 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
 ! At this stage, ng2%nproc last elements are missing from arrays
       if (mod(ng2,nproc).ne.0) then
 
-! Allocate residual arrays
-       if(allocated(RESID1)) deallocate(RESID1)
-       allocate(RESID1(mod(ng2,nproc)))
-       if(allocated(RESID2)) deallocate(RESID2)
-       allocate(RESID2(mod(ng2,nproc)))
-       if(allocated(RESID3)) deallocate(RESID3)
-       allocate(RESID3(mod(ng2,nproc)))
-       if(allocated(RESID2s)) deallocate(RESID2s)
-       allocate(RESID2s(mod(ng2,nproc)))
-
-! Calculate residual integrals with master process
-       if (rank.eq.0) then
-
-            wtime = MPI_WTIME()
+         wtime = MPI_WTIME()
 
 ! Have threads chop calculation of ng2%nproc integrals
-            call loop_size(nproc*(ng2/nproc)+1,ng2,1,0,
-     x                     istart,iend)
-            ng2_seg=1+iend-istart
+         call loop_size(nproc*(ng2/nproc)+1,ng2,1,0,
+     x                  istart,iend)
+         ng2_seg=1+iend-istart
 
-            if(allocated(loop_map)) deallocate(loop_map)
-            allocate( loop_map(ng2_seg,6),stat=istat )
+         if(allocated(loop_map)) deallocate(loop_map)
+         allocate( loop_map(ng2_seg,6),stat=istat )
 
 ! Nested loop compression for this chunk:
-            Loopi=0
-            imas=0
-            do ip=1,npbf
-            do jp=1,npbf
-               do iec1=1,nebf
-               do jec1=1,nebf
-                  do iec2=1,nebf
-                  do jec2=1,nebf
+         Loopi=0
+         imas=0
+         do ip=1,npbf
+         do jp=1,npbf
+            do iec1=1,nebf
+            do jec1=1,nebf
+               do iec2=1,nebf
+               do jec2=1,nebf
 
-                      imas=imas+1 ! imas is master_index
-                      if(imas.ge.istart.and.imas.le.iend) then
-                         Loopi=Loopi+1
-                         loop_map(Loopi,1)=jec2
-                         loop_map(Loopi,2)=iec2
-                         loop_map(Loopi,3)=jec1
-                         loop_map(Loopi,4)=iec1
-                         loop_map(Loopi,5)=jp
-                         loop_map(Loopi,6)=ip
+                   imas=imas+1 ! imas is master_index
+                   if(imas.ge.istart.and.imas.le.iend) then
+                      Loopi=Loopi+1
+                      loop_map(Loopi,1)=jec2
+                      loop_map(Loopi,2)=iec2
+                      loop_map(Loopi,3)=jec1
+                      loop_map(Loopi,4)=iec1
+                      loop_map(Loopi,5)=jp
+                      loop_map(Loopi,6)=ip
 
 ! Save coordinates of first value for array transfer later
-                         if (Loopi.eq.1) then
-                            call index_GAM_2PK(nebf,npbf,
-     x                               ip,jp,iec1,jec1,iec2,jec2,arrstart)
-                         end if
-
+                      if (Loopi.eq.1) then
+                         call index_GAM_2PK(nebf,npbf,
+     x                            ip,jp,iec1,jec1,iec2,jec2,arrstart)
                       end if
 
-                  end do
-                  end do
-               end do
-               end do
-            end do
-            end do
+                   end if
 
-            call RXCHFmult_thread_gam2_IC1ex(istart,iend,ng2_seg,ng2,
-     x                           nebf,npebf,npbf,nat,ngtg1,
-     x                           pmass,cat,zan,bcoef1,gamma1,
-     x                           loop_map,XG2_1ICR,XG2_2ICR,
-     x                           XG2_3ICR,XG2sICR,
-     x                           KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                           ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+               end do
+               end do
+            end do
+            end do
+         end do
+         end do
+
+         call RXCHFmult_thread_gam2_IC1ex(istart,iend,ng2_seg,ng2,
+     x                        nebf,npebf,npbf,nat,ngtg1,
+     x                        pmass,cat,zan,bcoef1,gamma1,
+     x                        loop_map,XG2_1ICR,XG2_2ICR,
+     x                        XG2_3ICR,XG2sICR,
+     x                        KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
 !-----CLEAN-UP-MEMORY-------------------------------------------------(
-      if(allocated(loop_map)) deallocate(loop_map)
+         if(allocated(loop_map)) deallocate(loop_map)
 !-----CLEAN-UP-MEMORY-------------------------------------------------)
 
-            wtime2 = MPI_WTIME() - wtime
-            write(*,3000) wtime2
+         wtime2 = MPI_WTIME() - wtime
+         if (rank.eq.0) write(*,3000) wtime2
 
-! Here, a contiguous block of ng2%nproc integrals are stored in X* arrs
-! Pass this to a ng2%nproc-dimensional array to prepare for broadcast
-! May be possible/faster to just broadcast part of X* arrays...
-            call copy_arr(mod(ng2,nproc),XG2_1ICR(arrstart),RESID1)
-            call copy_arr(mod(ng2,nproc),XG2_2ICR(arrstart),RESID2)
-            call copy_arr(mod(ng2,nproc),XG2_3ICR(arrstart),RESID3)
-            call copy_arr(mod(ng2,nproc),XG2sICR(arrstart),RESID2s)
-
-       end if ! rank 0 proc
-
-       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-! Broadcast residual arrays and address
-       call MPI_BCAST(arrstart,1,MPI_INTEGER8,
-     x                0,MPI_COMM_WORLD,ierr)
-       call MPI_BCAST(RESID1,mod(ng2,nproc),MPI_DOUBLE_PRECISION,
-     x                0,MPI_COMM_WORLD,ierr)
-       call MPI_BCAST(RESID2,mod(ng2,nproc),MPI_DOUBLE_PRECISION,
-     x                0,MPI_COMM_WORLD,ierr)
-       call MPI_BCAST(RESID3,mod(ng2,nproc),MPI_DOUBLE_PRECISION,
-     x                0,MPI_COMM_WORLD,ierr)
-       call MPI_BCAST(RESID2s,mod(ng2,nproc),MPI_DOUBLE_PRECISION,
-     x                0,MPI_COMM_WORLD,ierr)
-
-! Fill in empty part of whole arrays
-       call copy_arr(mod(ng2,nproc),RESID1,XG2_1ICR(arrstart))
-       call copy_arr(mod(ng2,nproc),RESID2,XG2_2ICR(arrstart))
-       call copy_arr(mod(ng2,nproc),RESID3,XG2_3ICR(arrstart))
-       call copy_arr(mod(ng2,nproc),RESID2s,XG2sICR(arrstart))
-
-       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-!       write(*,*) "ng2+resid:",ng2
-!       do istart=1,ng2
-!       write(*,9001) XG2_1ICR(istart),XG2_2ICR(istart),
-!     x               XG2_3ICR(istart),XG2sICR(istart)
-!       end do
-
+!         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!         write(*,*) "ng2+resid:",ng2
+!         do istart=1,ng2
+!         write(*,9001) XG2_1ICR(istart),XG2_2ICR(istart),
+!     x                 XG2_3ICR(istart),XG2sICR(istart)
+!         end do
 
       end if ! resid exists
 
@@ -791,11 +698,6 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
          end do
 
          wtime2 = MPI_WTIME() - wtime
-
-         if(allocated(RESID2s)) deallocate(RESID2s)
-         if(allocated(RESID3)) deallocate(RESID3)
-         if(allocated(RESID2)) deallocate(RESID2)
-         if(allocated(RESID1)) deallocate(RESID1)
 
          if(allocated(XG2sICR)) deallocate(XG2sICR)
          if(allocated(XG2_3ICR)) deallocate(XG2_3ICR)

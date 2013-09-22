@@ -236,6 +236,60 @@ C     => XCHF_GAM2 only needed if nbe >= 2
 
       end if
 
+! test
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+       if (rank.eq.1) then
+        open(unit=20,file="INT_GAM2-1.ufm",form="unformatted")
+        write(20) INT_GAM2
+        close(20)
+        if (LADDEXCH) then
+         open(unit=21,file="INT_GAM2ex-1.ufm",form="unformatted")
+         write(21) INT_GAM2ex
+         close(21)
+        end if
+        open(unit=20,file="XCHF_GAM2-1.ufm",form="unformatted")
+        write(20) XCHF_GAM2
+        close(20)
+        open(unit=20,file="XCHF_GAM2s-1.ufm",form="unformatted")
+        write(20) XCHF_GAM2s
+        close(20)
+       end if
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+       if (rank.eq.2) then
+        open(unit=20,file="INT_GAM2-2.ufm",form="unformatted")
+        write(20) INT_GAM2
+        close(20)
+        if (LADDEXCH) then
+         open(unit=21,file="INT_GAM2ex-2.ufm",form="unformatted")
+         write(21) INT_GAM2ex
+         close(21)
+        end if
+        open(unit=20,file="XCHF_GAM2-2.ufm",form="unformatted")
+        write(20) XCHF_GAM2
+        close(20)
+        open(unit=20,file="XCHF_GAM2s-2.ufm",form="unformatted")
+        write(20) XCHF_GAM2s
+        close(20)
+       end if
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+       if (rank.eq.4) then
+        open(unit=20,file="INT_GAM2-4.ufm",form="unformatted")
+        write(20) INT_GAM2
+        close(20)
+        if (LADDEXCH) then
+         open(unit=21,file="INT_GAM2ex-4.ufm",form="unformatted")
+         write(21) INT_GAM2ex
+         close(21)
+        end if
+        open(unit=20,file="XCHF_GAM2-4.ufm",form="unformatted")
+        write(20) XCHF_GAM2
+        close(20)
+        open(unit=20,file="XCHF_GAM2s-4.ufm",form="unformatted")
+        write(20) XCHF_GAM2s
+        close(20)
+       end if
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
       if (nbe.le.1) then
 
         if (rank.eq.0) then
@@ -279,14 +333,6 @@ C     => XCHF_GAM2 only needed if nbe >= 2
           write(*,*) "XCHF_GAM2s written to disk"
          end if
         end if
-
-!!!!!!! debug
-      if(allocated(XCHF_GAM2s))  deallocate(XCHF_GAM2s)
-      if(allocated(XCHF_GAM2))   deallocate(XCHF_GAM2)
-      if(allocated(INT_GAM2ex))  deallocate(INT_GAM2ex)
-      if(allocated(INT_GAM2))    deallocate(INT_GAM2)
-      return
-!!!!!!!
 
 C nbe >= 2
 C  - calculate four-particle integrals and store in memory
@@ -363,20 +409,22 @@ C     => XCHF_GAM3 only needed if nbe >= 3
          end if
 
          if (LADDEXCH) then
-          call RXCHFmult_GAM3_IC1ex(ng3chk,nebf,npebf,npbf,
-     x                            ng3,ng3prm,nat,ngtg1,
-     x                            pmass,cat,zan,bcoef1,gamma1,
-     x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                            XCHF_GAM3,INT_GAM3,
-     x                            INT_GAM3ex1,INT_GAM3ex2)
+          call RXCHF_GAM3ex_MPI(nproc,rank,
+     x                          ng3chk,nebf,npebf,npbf,
+     x                          ng3,ng3prm,nat,ngtg1,
+     x                          pmass,cat,zan,bcoef1,gamma1,
+     x                          KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                          ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                          XCHF_GAM3,INT_GAM3,
+     x                          INT_GAM3ex1,INT_GAM3ex2)
          else
-          call RXCHFmult_GAM3_IC1(ng3chk,nebf,npebf,npbf,
-     x                            ng3,ng3prm,nat,ngtg1,
-     x                            pmass,cat,zan,bcoef1,gamma1,
-     x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                            XCHF_GAM3,INT_GAM3)
+          call RXCHF_GAM3_MPI(nproc,rank,
+     x                        ng3chk,nebf,npebf,npbf,
+     x                        ng3,ng3prm,nat,ngtg1,
+     x                        pmass,cat,zan,bcoef1,gamma1,
+     x                        KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                        XCHF_GAM3,INT_GAM3)
          end if
 
 ! Write integrals to disk with master process
@@ -398,6 +446,72 @@ C     => XCHF_GAM3 only needed if nbe >= 3
          end if
 
         end if
+
+! test
+        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+         if (rank.eq.1) then
+          open(unit=20,file="INT_GAM3-1.ufm",form="unformatted")
+          write(20) INT_GAM3
+          close(20)
+          if (LADDEXCH) then
+           open(unit=21,file="INT_GAM3ex1-1.ufm",form="unformatted")
+           write(21) INT_GAM3ex1
+           close(21)
+           open(unit=22,file="INT_GAM3ex2-1.ufm",form="unformatted")
+           write(22) INT_GAM3ex2
+           close(22)
+          end if
+          open(unit=20,file="XCHF_GAM3-1.ufm",form="unformatted")
+          write(20) XCHF_GAM3
+          close(20)
+         end if
+        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+         if (rank.eq.2) then
+          open(unit=20,file="INT_GAM3-2.ufm",form="unformatted")
+          write(20) INT_GAM3
+          close(20)
+          if (LADDEXCH) then
+           open(unit=21,file="INT_GAM3ex1-2.ufm",form="unformatted")
+           write(21) INT_GAM3ex1
+           close(21)
+           open(unit=22,file="INT_GAM3ex2-2.ufm",form="unformatted")
+           write(22) INT_GAM3ex2
+           close(22)
+          end if
+          open(unit=20,file="XCHF_GAM3-2.ufm",form="unformatted")
+          write(20) XCHF_GAM3
+          close(20)
+         end if
+        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+         if (rank.eq.4) then
+          open(unit=20,file="INT_GAM3-4.ufm",form="unformatted")
+          write(20) INT_GAM3
+          close(20)
+          if (LADDEXCH) then
+           open(unit=21,file="INT_GAM3ex1-4.ufm",form="unformatted")
+           write(21) INT_GAM3ex1
+           close(21)
+           open(unit=22,file="INT_GAM3ex2-4.ufm",form="unformatted")
+           write(22) INT_GAM3ex2
+           close(22)
+          end if
+          open(unit=20,file="XCHF_GAM3-4.ufm",form="unformatted")
+          write(20) XCHF_GAM3
+          close(20)
+         end if
+        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+!!!!!!! debug
+        if(allocated(XCHF_GAM3))   deallocate(XCHF_GAM3)
+        if(allocated(INT_GAM3ex2))  deallocate(INT_GAM3ex2)
+        if(allocated(INT_GAM3ex1))  deallocate(INT_GAM3ex1)
+        if(allocated(INT_GAM3))    deallocate(INT_GAM3)
+        if(allocated(XCHF_GAM2s))  deallocate(XCHF_GAM2s)
+        if(allocated(XCHF_GAM2))   deallocate(XCHF_GAM2)
+        if(allocated(INT_GAM2ex))  deallocate(INT_GAM2ex)
+        if(allocated(INT_GAM2))    deallocate(INT_GAM2)
+        return
+!!!!!!!
 
         if (nbe.le.2) then
 
