@@ -202,6 +202,8 @@ C     => XCHF_GAM2 only needed if nbe >= 2
         write(*,*)
        end if
 
+       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
        if (LADDEXCH) then
         call RXCHF_GAM2ex_MPI(nproc,rank,
      x                        ng2chk,nebf,npebf,npbf,
@@ -354,6 +356,8 @@ C     => XCHF_GAM3 only needed if nbe >= 3
           write(*,*)
          end if
 
+         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
          if (LADDEXCH) then
           call RXCHF_GAM3ex_MPI(nproc,rank,
      x                          ng3chk,nebf,npebf,npbf,
@@ -458,6 +462,8 @@ C     => INT_GAM4
             write(*,*)
            end if
 
+           call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
            call RXCHF_GAM4_MPI(nproc,rank,
      x                         ng4chk,nebf,npbf,ngee,ng2,ng4,
      x                         XCHF_GAM2s,INT_GAM4)
@@ -514,6 +520,8 @@ C     => XCHF_GAM4
               write(*,*) "---------------------------"
               write(*,*)
              end if
+
+             call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
              call XCHF_GAM4_MPI(nproc,rank,
      s                          ng4chk,nebf,npbf,ngee,ng2,ng4,
@@ -680,25 +688,27 @@ C Kick-off SCF
       end if
       nebflt=nebf*(nebf+1)/2
 
-      call RXCHF_scf_MPI(nproc,rank,
-     x                   nelec,nae,nbe,npra,nprb,nebflt,nucst,
-     x                   npebf,nebf,nebf2,npbf,npbf2,ngee,
-     x                   ngtg1,ng1,ng2,ng3,ng4,
-     x                   NG2CHK,NG3CHK,NG4CHK,
-     x                   read_CE,read_CP,
-     x                   LG4DSCF,LG3DSCF,LG2DSCF,
-     x                   LSOSCF,LOCBSE,LCMF,LADDEXCH,
-     x                   ng2prm,ng3prm,nat,pmass,cat,zan,
-     x                   bcoef1,gamma1,
-     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                   LG2IC,dimXCHF2,dimINT2,dimINT2ex,
-     x                   XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
-     x                   LG3IC,dimXCHF3,dimINT3,dimINT3ex,
-     x                   XCHF_GAM3,INT_GAM3,
-     x                   INT_GAM3ex1,INT_GAM3ex2,
-     x                   LG4IC,dimXCHF4,dimINT4,
-     x                   XCHF_GAM4,INT_GAM4)
+      if (rank.eq.0) then
+       write(*,*) "Doing SCF only with master process"
+       call RXCHFmult_scf(nelec,nae,nbe,npra,nprb,nebflt,nucst,
+     x                    npebf,nebf,nebf2,npbf,npbf2,ngee,
+     x                    ngtg1,ng1,ng2,ng3,ng4,
+     x                    NG2CHK,NG3CHK,NG4CHK,
+     x                    read_CE,read_CP,
+     x                    LG4DSCF,LG3DSCF,LG2DSCF,
+     x                    LSOSCF,LOCBSE,LCMF,LADDEXCH,
+     x                    ng2prm,ng3prm,nat,pmass,cat,zan,
+     x                    bcoef1,gamma1,
+     x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                    LG2IC,dimXCHF2,dimINT2,dimINT2ex,
+     x                    XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
+     x                    LG3IC,dimXCHF3,dimINT3,dimINT3ex,
+     x                    XCHF_GAM3,INT_GAM3,
+     x                    INT_GAM3ex1,INT_GAM3ex2,
+     x                    LG4IC,dimXCHF4,dimINT4,
+     x                    XCHF_GAM4,INT_GAM4)
+      end if
 
       wtime2 = MPI_WTIME() - wtime
 

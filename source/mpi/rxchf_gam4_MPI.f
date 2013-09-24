@@ -56,7 +56,7 @@
 
       do ichunk=1,Nchunks
 
-! Have threads chop calculation of mpiend-mpistart+1=ng3/nproc integrals
+! Have threads chop calculation of mpiend-mpistart+1=ng4/nproc integrals
          call loop_size(mpistart,mpiend,Nchunks,ichunk-1,istart,iend)
          ng4_seg=1+iend-istart
 
@@ -301,7 +301,7 @@
 
       do ichunk=1,Nchunks
 
-! Have threads chop calculation of mpiend-mpistart+1=ng3/nproc integrals
+! Have threads chop calculation of mpiend-mpistart+1=ng4/nproc integrals
          call loop_size(mpistart,mpiend,Nchunks,ichunk-1,istart,iend)
          ng4_seg=1+iend-istart
 

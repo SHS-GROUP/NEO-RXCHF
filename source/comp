@@ -2,11 +2,16 @@
 
 FIL=$@
 
-F77=ifort
+# OpenMP compilation
+#F77=ifort
 #OPT='-openmp -parallel -fpp -traceback -check all -integer-size 64 -c'                            # Chet's options
-OPT='-O2 -openmp -integer-size 64 -fp-model strict -no-ftz -ipo -c'                                # UIUC cluster options
+#OPT='-O2 -openmp -integer-size 64 -fp-model strict -no-ftz -ipo -c'                                # UIUC cluster options
 #OPT='-O2 -openmp -openmp-link static -integer-size 64 -fp-model strict -no-ftz -xHOST -ipo -c'    # LionXF/PSU cluster options
 #OPT='-O2 -openmp -traceback -check all -integer-size 64 -fp-model strict -no-ftz -ipo -c'         # Debug options
+
+# Hybrid MPI/OpenMP compilation
+F77=mpif90
+OPT='-O2 -openmp -integer-size 64 -fp-model strict -no-ftz -xHOST -ipo -c'    # LionXF/PSU cluster options
 
 set echo
 
