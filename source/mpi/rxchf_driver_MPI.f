@@ -134,10 +134,19 @@ C     => XCHF_GAM2 only needed if nbe >= 2
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
-      dimINT2=ng2
-      dimXCHF2=ng2
-      if (LADDEXCH) dimINT2ex=ng2
+! Have each process calculate and store its ng2/proc integrals
+! Assign residual integrals to last process
+      if (rank.eq.(nproc-1)) then
+       dimINT2=ng2/nproc+mod(ng2,nproc)
+       dimXCHF2=ng2/nproc+mod(ng2,nproc)
+       if (LADDEXCH) dimINT2ex=ng2/nproc+mod(ng2,nproc)
+      else
+       dimINT2=ng2/nproc
+       dimXCHF2=ng2/nproc
+       if (LADDEXCH) dimINT2ex=ng2/nproc
+      end if
 
+! These arrays now local to each process and correspond to only its chunk of integrals
       if(allocated(INT_GAM2)) deallocate(INT_GAM2)
       allocate(INT_GAM2(dimINT2))
       if(allocated(INT_GAM2ex)) deallocate(INT_GAM2ex)
@@ -207,7 +216,7 @@ C     => XCHF_GAM2 only needed if nbe >= 2
        if (LADDEXCH) then
         call RXCHF_GAM2ex_MPI(nproc,rank,
      x                        ng2chk,nebf,npebf,npbf,
-     x                        ng2,ng2prm,nat,ngtg1,
+     x                        ng2,dimINT2,ng2prm,nat,ngtg1,
      x                        pmass,cat,zan,bcoef1,gamma1,
      x                        KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
@@ -215,7 +224,7 @@ C     => XCHF_GAM2 only needed if nbe >= 2
        else
         call RXCHF_GAM2_MPI(nproc,rank,
      x                      ng2chk,nebf,npebf,npbf,
-     x                      ng2,ng2prm,nat,ngtg1,
+     x                      ng2,dimINT2,ng2prm,nat,ngtg1,
      x                      pmass,cat,zan,bcoef1,gamma1,
      x                      KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
@@ -223,18 +232,18 @@ C     => XCHF_GAM2 only needed if nbe >= 2
        end if
 
 ! Write integrals to disk with master process
-       if (rank.eq.0) then
-        open(unit=20,file="INT_GAM2.ufm",form="unformatted")
-        write(20) INT_GAM2
-        close(20)
-        write(*,*) "INT_GAM2 written to disk"
-        if (LADDEXCH) then
-         open(unit=21,file="INT_GAM2ex.ufm",form="unformatted")
-         write(21) INT_GAM2ex
-         close(21)
-         write(*,*) "INT_GAM2ex written to disk"
-        end if
-       end if
+!       if (rank.eq.0) then
+!        open(unit=20,file="INT_GAM2.ufm",form="unformatted")
+!        write(20) INT_GAM2
+!        close(20)
+!        write(*,*) "INT_GAM2 written to disk"
+!        if (LADDEXCH) then
+!         open(unit=21,file="INT_GAM2ex.ufm",form="unformatted")
+!         write(21) INT_GAM2ex
+!         close(21)
+!         write(*,*) "INT_GAM2ex written to disk"
+!        end if
+!       end if
 
       end if
 
@@ -269,18 +278,18 @@ C     => XCHF_GAM2 only needed if nbe >= 2
       else
 
 ! Write integrals to disk with master process
-        if (rank.eq.0) then
-         if (.not.(read_GAM2)) then
-          open(unit=22,file="XCHF_GAM2.ufm",form="unformatted")
-          write(22) XCHF_GAM2
-          close(22)
-          write(*,*) "XCHF_GAM2 written to disk"
-          open(unit=23,file="XCHF_GAM2s.ufm",form="unformatted")
-          write(23) XCHF_GAM2s
-          close(23)
-          write(*,*) "XCHF_GAM2s written to disk"
-         end if
-        end if
+!        if (rank.eq.0) then
+!         if (.not.(read_GAM2)) then
+!          open(unit=22,file="XCHF_GAM2.ufm",form="unformatted")
+!          write(22) XCHF_GAM2
+!          close(22)
+!          write(*,*) "XCHF_GAM2 written to disk"
+!          open(unit=23,file="XCHF_GAM2s.ufm",form="unformatted")
+!          write(23) XCHF_GAM2s
+!          close(23)
+!          write(*,*) "XCHF_GAM2s written to disk"
+!         end if
+!        end if
 
 C nbe >= 2
 C  - calculate four-particle integrals and store in memory
@@ -288,10 +297,21 @@ C     => INT_GAM3
 C     => INT_GAM3ex only needed if RXCHF-ae
 C     => XCHF_GAM3 only needed if nbe >= 3
 
-        dimINT3=ng3
-        dimXCHF3=ng3
-        if (LADDEXCH) dimINT3ex=ng3
+        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
+! Have each process calculate and store its ng3/proc integrals
+! Assign residual integrals to last process
+        if (rank.eq.(nproc-1)) then
+         dimINT3=ng3/nproc+mod(ng3,nproc)
+         dimXCHF3=ng3/nproc+mod(ng3,nproc)
+         if (LADDEXCH) dimINT3ex=ng3/nproc+mod(ng3,nproc)
+        else
+         dimINT3=ng3/nproc
+         dimXCHF3=ng3/nproc
+         if (LADDEXCH) dimINT3ex=ng3/nproc
+        end if
+
+! These arrays now local to each process and correspond to only its chunk of integrals
         if(allocated(INT_GAM3)) deallocate(INT_GAM3)
         allocate(INT_GAM3(dimINT3))
         if(allocated(INT_GAM3ex1)) deallocate(INT_GAM3ex1)
@@ -361,7 +381,7 @@ C     => XCHF_GAM3 only needed if nbe >= 3
          if (LADDEXCH) then
           call RXCHF_GAM3ex_MPI(nproc,rank,
      x                          ng3chk,nebf,npebf,npbf,
-     x                          ng3,ng3prm,nat,ngtg1,
+     x                          ng3,dimINT3,ng3prm,nat,ngtg1,
      x                          pmass,cat,zan,bcoef1,gamma1,
      x                          KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                          ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
@@ -370,12 +390,25 @@ C     => XCHF_GAM3 only needed if nbe >= 3
          else
           call RXCHF_GAM3_MPI(nproc,rank,
      x                        ng3chk,nebf,npebf,npbf,
-     x                        ng3,ng3prm,nat,ngtg1,
+     x                        ng3,dimINT3,ng3prm,nat,ngtg1,
      x                        pmass,cat,zan,bcoef1,gamma1,
      x                        KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                        XCHF_GAM3,INT_GAM3)
          end if
+
+         if(allocated(XCHF_GAM4))   deallocate(XCHF_GAM4)
+         if(allocated(INT_GAM4))    deallocate(INT_GAM4)
+         if(allocated(XCHF_GAM3))   deallocate(XCHF_GAM3)
+         if(allocated(INT_GAM3ex2)) deallocate(INT_GAM3ex2)
+         if(allocated(INT_GAM3ex1)) deallocate(INT_GAM3ex1)
+         if(allocated(INT_GAM3))    deallocate(INT_GAM3)
+         if(allocated(XCHF_GAM2s))  deallocate(XCHF_GAM2s)
+         if(allocated(XCHF_GAM2))   deallocate(XCHF_GAM2)
+         if(allocated(INT_GAM2ex))  deallocate(INT_GAM2ex)
+         if(allocated(INT_GAM2))    deallocate(INT_GAM2)
+
+         return
 
 ! Write integrals to disk with master process
          if (rank.eq.0) then

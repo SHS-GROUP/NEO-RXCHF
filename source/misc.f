@@ -108,12 +108,26 @@
       end
 
       subroutine get_mpi_range(n,nproc,rank,istart,iend)
+! Get starting (istart) and ending (iend) indices for the rank^th
+! process obtained from splitting n indices over nproc processes 
       implicit none
       integer n,nproc,rank
       integer istart,iend
 
       istart=rank*(n/nproc)+1
       iend=(rank+1)*(n/nproc)
+
+      return
+      end
+
+      subroutine get_mpi_proc(n,nproc,i,rank)
+! Get the rank of the MPI process responsible for calculating the
+! i^th index where n total indices were split over nproc processes 
+      implicit none
+      integer n,nproc,i
+      integer rank
+
+      rank=min((i-1)/(n/nproc),nproc-1)
 
       return
       end
@@ -127,6 +141,20 @@
 
       do i=1,n
         arr(i)=arr1(i)
+      end do
+      
+      return
+      end
+
+      subroutine add_to_arr(n,arr1,arr)
+! Adds n entries of arr1 into n-dimensional arr
+      implicit none
+      integer n
+      double precision arr1(n), arr(n)
+      integer i
+
+      do i=1,n
+        arr(i)=arr(i)+arr1(i)
       end do
       
       return
