@@ -576,122 +576,6 @@ C     => XCHF_GAM4
 
       end if ! nbe >= 2
 
-! Debugging
-!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-!      if (rank.eq.1) then
-!       open(unit=20,file="INT_GAM2-1.ufm",form="unformatted")
-!       write(20) INT_GAM2
-!       close(20)
-!       if (LADDEXCH) then
-!        open(unit=21,file="INT_GAM2ex-1.ufm",form="unformatted")
-!        write(21) INT_GAM2ex
-!        close(21)
-!       end if
-!       open(unit=22,file="XCHF_GAM2-1.ufm",form="unformatted")
-!       write(22) XCHF_GAM2
-!       close(22)
-!       open(unit=23,file="XCHF_GAM2s-1.ufm",form="unformatted")
-!       write(23) XCHF_GAM2s
-!       close(23)
-!       open(unit=24,file="INT_GAM3-1.ufm",form="unformatted")
-!       write(24) INT_GAM3
-!       close(24)
-!       if (LADDEXCH) then
-!        open(unit=25,file="INT_GAM3ex1-1.ufm",form="unformatted")
-!        write(25) INT_GAM3ex1
-!        close(25)
-!        open(unit=26,file="INT_GAM3ex2-1.ufm",form="unformatted")
-!        write(26) INT_GAM3ex2
-!        close(26)
-!       end if
-!       open(unit=27,file="XCHF_GAM3-1.ufm",form="unformatted")
-!       write(27) XCHF_GAM3
-!       close(27)
-!       open(unit=28,file="INT_GAM4-1.ufm",form="unformatted")
-!       write(28) INT_GAM4
-!       close(28)
-!       open(unit=29,file="XCHF_GAM4-1.ufm",form="unformatted")
-!       write(29) XCHF_GAM4
-!       close(29)
-!      end if
-! 
-!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-!      if (rank.eq.2) then
-!       open(unit=20,file="INT_GAM2-2.ufm",form="unformatted")
-!       write(20) INT_GAM2
-!       close(20)
-!       if (LADDEXCH) then
-!        open(unit=21,file="INT_GAM2ex-2.ufm",form="unformatted")
-!        write(21) INT_GAM2ex
-!        close(21)
-!       end if
-!       open(unit=22,file="XCHF_GAM2-2.ufm",form="unformatted")
-!       write(22) XCHF_GAM2
-!       close(22)
-!       open(unit=23,file="XCHF_GAM2s-2.ufm",form="unformatted")
-!       write(23) XCHF_GAM2s
-!       close(23)
-!       open(unit=24,file="INT_GAM3-2.ufm",form="unformatted")
-!       write(24) INT_GAM3
-!       close(24)
-!       if (LADDEXCH) then
-!        open(unit=25,file="INT_GAM3ex1-2.ufm",form="unformatted")
-!        write(25) INT_GAM3ex1
-!        close(25)
-!        open(unit=26,file="INT_GAM3ex2-2.ufm",form="unformatted")
-!        write(26) INT_GAM3ex2
-!        close(26)
-!       end if
-!       open(unit=27,file="XCHF_GAM3-2.ufm",form="unformatted")
-!       write(27) XCHF_GAM3
-!       close(27)
-!       open(unit=28,file="INT_GAM4-2.ufm",form="unformatted")
-!       write(28) INT_GAM4
-!       close(28)
-!       open(unit=29,file="XCHF_GAM4-2.ufm",form="unformatted")
-!       write(29) XCHF_GAM4
-!       close(29)
-!      end if
-! 
-!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-! 
-!      if (rank.eq.4) then
-!       open(unit=20,file="INT_GAM2-4.ufm",form="unformatted")
-!       write(20) INT_GAM2
-!       close(20)
-!       if (LADDEXCH) then
-!        open(unit=21,file="INT_GAM2ex-4.ufm",form="unformatted")
-!        write(21) INT_GAM2ex
-!        close(21)
-!       end if
-!       open(unit=22,file="XCHF_GAM2-4.ufm",form="unformatted")
-!       write(22) XCHF_GAM2
-!       close(22)
-!       open(unit=23,file="XCHF_GAM2s-4.ufm",form="unformatted")
-!       write(23) XCHF_GAM2s
-!       close(23)
-!       open(unit=24,file="INT_GAM3-4.ufm",form="unformatted")
-!       write(24) INT_GAM3
-!       close(24)
-!       if (LADDEXCH) then
-!        open(unit=25,file="INT_GAM3ex1-4.ufm",form="unformatted")
-!        write(25) INT_GAM3ex1
-!        close(25)
-!        open(unit=26,file="INT_GAM3ex2-4.ufm",form="unformatted")
-!        write(26) INT_GAM3ex2
-!        close(26)
-!       end if
-!       open(unit=27,file="XCHF_GAM3-4.ufm",form="unformatted")
-!       write(27) XCHF_GAM3
-!       close(27)
-!       open(unit=28,file="INT_GAM4-4.ufm",form="unformatted")
-!       write(28) INT_GAM4
-!       close(28)
-!       open(unit=29,file="XCHF_GAM4-4.ufm",form="unformatted")
-!       write(29) XCHF_GAM4
-!       close(29)
-!      end if
-
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
       wtime1 = MPI_WTIME() - wtime
@@ -721,27 +605,26 @@ C Kick-off SCF
       end if
       nebflt=nebf*(nebf+1)/2
 
-      if (rank.eq.0) then
-       write(*,*) "Doing SCF only with master process"
-       call RXCHFmult_scf(nelec,nae,nbe,npra,nprb,nebflt,nucst,
-     x                    npebf,nebf,nebf2,npbf,npbf2,ngee,
-     x                    ngtg1,ng1,ng2,ng3,ng4,
-     x                    NG2CHK,NG3CHK,NG4CHK,
-     x                    read_CE,read_CP,
-     x                    LG4DSCF,LG3DSCF,LG2DSCF,
-     x                    LSOSCF,LOCBSE,LCMF,LADDEXCH,
-     x                    ng2prm,ng3prm,nat,pmass,cat,zan,
-     x                    bcoef1,gamma1,
-     x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                    LG2IC,dimXCHF2,dimINT2,dimINT2ex,
-     x                    XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
-     x                    LG3IC,dimXCHF3,dimINT3,dimINT3ex,
-     x                    XCHF_GAM3,INT_GAM3,
-     x                    INT_GAM3ex1,INT_GAM3ex2,
-     x                    LG4IC,dimXCHF4,dimINT4,
-     x                    XCHF_GAM4,INT_GAM4)
-      end if
+      call RXCHF_scf_MPI(nproc,rank,
+     x                   nelec,nae,nbe,npra,nprb,nebflt,nucst,
+     x                   npebf,nebf,nebf2,npbf,npbf2,ngee,
+     x                   ngtg1,ng1,ng2,ng3,ng4,
+     x                   ng2loc,ng3loc,
+     x                   NG2CHK,NG3CHK,NG4CHK,
+     x                   read_CE,read_CP,
+     x                   LG4DSCF,LG3DSCF,LG2DSCF,
+     x                   LSOSCF,LOCBSE,LCMF,LADDEXCH,
+     x                   ng2prm,ng3prm,nat,pmass,cat,zan,
+     x                   bcoef1,gamma1,
+     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                   LG2IC,dimXCHF2,dimINT2,dimINT2ex,
+     x                   XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
+     x                   LG3IC,dimXCHF3,dimINT3,dimINT3ex,
+     x                   XCHF_GAM3,INT_GAM3,
+     x                   INT_GAM3ex1,INT_GAM3ex2,
+     x                   LG4IC,dimXCHF4,dimINT4,
+     x                   XCHF_GAM4,INT_GAM4)
 
       wtime2 = MPI_WTIME() - wtime
 

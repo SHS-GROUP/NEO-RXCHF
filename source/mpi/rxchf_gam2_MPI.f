@@ -62,10 +62,12 @@
       double precision, allocatable :: XGM2_1(:)
       double precision, allocatable :: XGM2s(:)
 
-      double precision :: TGM2_1(ng2) ! Testing arrays
-      double precision :: TGM2_2(ng2)
-      double precision :: TGM2s(ng2)
-      integer*4 :: Treqs(2*nproc)
+      double precision, allocatable :: TGM2_1(:) ! Testing arrays
+      double precision, allocatable :: TGM2_2(:)
+      double precision, allocatable :: TGM2s(:)
+
+      integer*4 ng2loc4,rank4,displ
+      integer*4 ng2locarr(nproc),displarr(nproc)
 
       integer ia_12
       integer ia_21
@@ -295,63 +297,61 @@ C )
 
 ! Construct global array on master process for testing
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      Treqs=MPI_REQUEST_NULL
-      call MPI_ISEND(GM2_1(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x               0,rank,MPI_COMM_WORLD,Treqs(rank+1),ierr)
+      if(allocated(TGM2_1)) deallocate(TGM2_1)
+      if(allocated(TGM2_2)) deallocate(TGM2_2)
+      if(allocated(TGM2s)) deallocate(TGM2s)
       if (rank.eq.0) then
-       call MPI_IRECV(TGM2_1(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                0,0,MPI_COMM_WORLD,Treqs(nproc+1),ierr)
-       do i=1,nproc-2
-        call MPI_IRECV(TGM2_1(i*ng2loc+1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 i,i,MPI_COMM_WORLD,Treqs(i+nproc+1),ierr)
-       end do
-       if (nproc.gt.1) then
-        call MPI_IRECV(TGM2_1((nproc-1)*ng2loc+1),ng2loc+mod(ng2,nproc),
-     x                 MPI_DOUBLE_PRECISION,nproc-1,nproc-1,
-     x                 MPI_COMM_WORLD,Treqs(nproc-1+nproc+1),ierr)
-       end if
+       allocate(TGM2_1(ng2))
+       allocate(TGM2_2(ng2))
+       allocate(TGM2s(ng2))
+      else
+       allocate(TGM2_1(1))
+       allocate(TGM2_2(1))
+       allocate(TGM2s(1))
       end if
-      call MPI_WAITALL(2*nproc,Treqs,MPI_STATUSES_IGNORE,ierr)
+      TGM2_1=zero
+      TGM2_2=zero
+      TGM2s=zero
+
+      ng2loc4=int(ng2loc,kind=4)
+      rank4=int(rank,kind=4)
+
+! Get number of elements calculated by each proc
+      call MPI_GATHER(ng2loc4,1,MPI_INTEGER,
+     x                ng2locarr(1),1,MPI_INTEGER,
+     x                0,MPI_COMM_WORLD,ierr)
+
+! Get displacements for array storage
+      if (rank.eq.0) then
+        displarr(1)=0
+        do i=2,nproc
+          displarr(i)=displarr(i-1)+ng2locarr(i-1)
+        end do
+      end if
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      Treqs=MPI_REQUEST_NULL
-      call MPI_ISEND(GM2_2(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x               0,rank,MPI_COMM_WORLD,Treqs(rank+1),ierr)
-      if (rank.eq.0) then
-       call MPI_IRECV(TGM2_2(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                0,0,MPI_COMM_WORLD,Treqs(nproc+1),ierr)
-       do i=1,nproc-2
-        call MPI_IRECV(TGM2_2(i*ng2loc+1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 i,i,MPI_COMM_WORLD,Treqs(i+nproc+1),ierr)
-       end do
-       if (nproc.gt.1) then
-        call MPI_IRECV(TGM2_2((nproc-1)*ng2loc+1),ng2loc+mod(ng2,nproc),
-     x                 MPI_DOUBLE_PRECISION,nproc-1,nproc-1,
-     x                 MPI_COMM_WORLD,Treqs(nproc-1+nproc+1),ierr)
-       end if
-      end if
-      call MPI_WAITALL(2*nproc,Treqs,MPI_STATUSES_IGNORE,ierr)
+
+! Form global GM2_1 on root
+      call MPI_GATHERV(GM2_1(1),ng2loc,MPI_DOUBLE_PRECISION,
+     x                 TGM2_1(1),ng2locarr,displarr,
+     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      Treqs=MPI_REQUEST_NULL
-      call MPI_ISEND(GM2s(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x               0,rank,MPI_COMM_WORLD,Treqs(rank+1),ierr)
-      if (rank.eq.0) then
-       call MPI_IRECV(TGM2s(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                0,0,MPI_COMM_WORLD,Treqs(nproc+1),ierr)
-       do i=1,nproc-2
-        call MPI_IRECV(TGM2s(i*ng2loc+1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 i,i,MPI_COMM_WORLD,Treqs(i+nproc+1),ierr)
-       end do
-       if (nproc.gt.1) then
-        call MPI_IRECV(TGM2s((nproc-1)*ng2loc+1),ng2loc+mod(ng2,nproc),
-     x                 MPI_DOUBLE_PRECISION,nproc-1,nproc-1,
-     x                 MPI_COMM_WORLD,Treqs(nproc-1+nproc+1),ierr)
-       end if
-      end if
-      call MPI_WAITALL(2*nproc,Treqs,MPI_STATUSES_IGNORE,ierr)
 
-!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+! Form global GM2_2 on root
+      call MPI_GATHERV(GM2_2(1),ng2loc,MPI_DOUBLE_PRECISION,
+     x                 TGM2_2(1),ng2locarr,displarr,
+     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+! Form global GM2s on root
+      call MPI_GATHERV(GM2s(1),ng2loc,MPI_DOUBLE_PRECISION,
+     x                 TGM2s(1),ng2locarr,displarr,
+     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
 !      if (rank.eq.0) then
 !       write(*,*) "concatenated ng2"
 !       do i=1,ng2
@@ -376,6 +376,10 @@ C )
        write(*,*) "XCHF_GAM2s written to disk"
       end if
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+      if(allocated(TGM2s)) deallocate(TGM2s)
+      if(allocated(TGM2_2)) deallocate(TGM2_2)
+      if(allocated(TGM2_1)) deallocate(TGM2_1)
 
  1000 FORMAT(/6X,'+---------------------------------------------+',/,
      x        6X,'|     CALCULATING 3-PARTICLE INTEGRALS        |',/,
@@ -468,11 +472,13 @@ C )
       double precision, allocatable :: XGM2_3(:)
       double precision, allocatable :: XGM2s(:)
 
-      double precision :: TGM2_1(ng2) ! Testing arrays
-      double precision :: TGM2_2(ng2)
-      double precision :: TGM2_3(ng2)
-      double precision :: TGM2s(ng2)
-      integer*4 :: Treqs(2*nproc)
+      double precision, allocatable :: TGM2_1(:) ! Testing arrays
+      double precision, allocatable :: TGM2_2(:)
+      double precision, allocatable :: TGM2_3(:)
+      double precision, allocatable :: TGM2s(:)
+
+      integer*4 ng2loc4,rank4,displ
+      integer*4 ng2locarr(nproc),displarr(nproc)
 
       integer ia_12
       integer ia_21
@@ -725,82 +731,72 @@ C )
 
 ! Construct global array on master process for testing
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      Treqs=MPI_REQUEST_NULL
-      call MPI_ISEND(GM2_1(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x               0,rank,MPI_COMM_WORLD,Treqs(rank+1),ierr)
+      if(allocated(TGM2_1)) deallocate(TGM2_1)
+      if(allocated(TGM2_2)) deallocate(TGM2_2)
+      if(allocated(TGM2_3)) deallocate(TGM2_3)
+      if(allocated(TGM2s)) deallocate(TGM2s)
       if (rank.eq.0) then
-       call MPI_IRECV(TGM2_1(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                0,0,MPI_COMM_WORLD,Treqs(nproc+1),ierr)
-       do i=1,nproc-2
-        call MPI_IRECV(TGM2_1(i*ng2loc+1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 i,i,MPI_COMM_WORLD,Treqs(i+nproc+1),ierr)
-       end do
-       if (nproc.gt.1) then
-        call MPI_IRECV(TGM2_1((nproc-1)*ng2loc+1),ng2loc+mod(ng2,nproc),
-     x                 MPI_DOUBLE_PRECISION,nproc-1,nproc-1,
-     x                 MPI_COMM_WORLD,Treqs(nproc-1+nproc+1),ierr)
-       end if
+       allocate(TGM2_1(ng2))
+       allocate(TGM2_2(ng2))
+       allocate(TGM2_3(ng2))
+       allocate(TGM2s(ng2))
+      else
+       allocate(TGM2_1(1))
+       allocate(TGM2_2(1))
+       allocate(TGM2_3(1))
+       allocate(TGM2s(1))
       end if
-      call MPI_WAITALL(2*nproc,Treqs,MPI_STATUSES_IGNORE,ierr)
+      TGM2_1=zero
+      TGM2_2=zero
+      TGM2_3=zero
+      TGM2s=zero
+
+      ng2loc4=int(ng2loc,kind=4)
+      rank4=int(rank,kind=4)
+
+! Get number of elements calculated by each proc
+      call MPI_GATHER(ng2loc4,1,MPI_INTEGER,
+     x                ng2locarr(1),1,MPI_INTEGER,
+     x                0,MPI_COMM_WORLD,ierr)
+
+! Get displacements for array storage
+      if (rank.eq.0) then
+        displarr(1)=0
+        do i=2,nproc
+          displarr(i)=displarr(i-1)+ng2locarr(i-1)
+        end do
+      end if
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      Treqs=MPI_REQUEST_NULL
-      call MPI_ISEND(GM2_2(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x               0,rank,MPI_COMM_WORLD,Treqs(rank+1),ierr)
-      if (rank.eq.0) then
-       call MPI_IRECV(TGM2_2(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                0,0,MPI_COMM_WORLD,Treqs(nproc+1),ierr)
-       do i=1,nproc-2
-        call MPI_IRECV(TGM2_2(i*ng2loc+1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 i,i,MPI_COMM_WORLD,Treqs(i+nproc+1),ierr)
-       end do
-       if (nproc.gt.1) then
-        call MPI_IRECV(TGM2_2((nproc-1)*ng2loc+1),ng2loc+mod(ng2,nproc),
-     x                 MPI_DOUBLE_PRECISION,nproc-1,nproc-1,
-     x                 MPI_COMM_WORLD,Treqs(nproc-1+nproc+1),ierr)
-       end if
-      end if
-      call MPI_WAITALL(2*nproc,Treqs,MPI_STATUSES_IGNORE,ierr)
+
+! Form global GM2_1 on root
+      call MPI_GATHERV(GM2_1(1),ng2loc,MPI_DOUBLE_PRECISION,
+     x                 TGM2_1(1),ng2locarr,displarr,
+     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      Treqs=MPI_REQUEST_NULL
-      call MPI_ISEND(GM2_3(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x               0,rank,MPI_COMM_WORLD,Treqs(rank+1),ierr)
-      if (rank.eq.0) then
-       call MPI_IRECV(TGM2_3(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                0,0,MPI_COMM_WORLD,Treqs(nproc+1),ierr)
-       do i=1,nproc-2
-        call MPI_IRECV(TGM2_3(i*ng2loc+1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 i,i,MPI_COMM_WORLD,Treqs(i+nproc+1),ierr)
-       end do
-       if (nproc.gt.1) then
-        call MPI_IRECV(TGM2_3((nproc-1)*ng2loc+1),ng2loc+mod(ng2,nproc),
-     x                 MPI_DOUBLE_PRECISION,nproc-1,nproc-1,
-     x                 MPI_COMM_WORLD,Treqs(nproc-1+nproc+1),ierr)
-       end if
-      end if
-      call MPI_WAITALL(2*nproc,Treqs,MPI_STATUSES_IGNORE,ierr)
+
+! Form global GM2_2 on root
+      call MPI_GATHERV(GM2_2(1),ng2loc,MPI_DOUBLE_PRECISION,
+     x                 TGM2_2(1),ng2locarr,displarr,
+     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      Treqs=MPI_REQUEST_NULL
-      call MPI_ISEND(GM2s(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x               0,rank,MPI_COMM_WORLD,Treqs(rank+1),ierr)
-      if (rank.eq.0) then
-       call MPI_IRECV(TGM2s(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                0,0,MPI_COMM_WORLD,Treqs(nproc+1),ierr)
-       do i=1,nproc-2
-        call MPI_IRECV(TGM2s(i*ng2loc+1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 i,i,MPI_COMM_WORLD,Treqs(i+nproc+1),ierr)
-       end do
-       if (nproc.gt.1) then
-        call MPI_IRECV(TGM2s((nproc-1)*ng2loc+1),ng2loc+mod(ng2,nproc),
-     x                 MPI_DOUBLE_PRECISION,nproc-1,nproc-1,
-     x                 MPI_COMM_WORLD,Treqs(nproc-1+nproc+1),ierr)
-       end if
-      end if
-      call MPI_WAITALL(2*nproc,Treqs,MPI_STATUSES_IGNORE,ierr)
 
-!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+! Form global GM2_3 on root
+      call MPI_GATHERV(GM2_3(1),ng2loc,MPI_DOUBLE_PRECISION,
+     x                 TGM2_3(1),ng2locarr,displarr,
+     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+! Form global GM2s on root
+      call MPI_GATHERV(GM2s(1),ng2loc,MPI_DOUBLE_PRECISION,
+     x                 TGM2s(1),ng2locarr,displarr,
+     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
 !      if (rank.eq.0) then
 !       write(*,*) "concatenated ng2"
 !       do i=1,ng2
@@ -829,6 +825,11 @@ C )
        write(*,*) "XCHF_GAM2s written to disk"
       end if
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+      if(allocated(TGM2s)) deallocate(TGM2s)
+      if(allocated(TGM2_3)) deallocate(TGM2_3)
+      if(allocated(TGM2_2)) deallocate(TGM2_2)
+      if(allocated(TGM2_1)) deallocate(TGM2_1)
 
  1000 FORMAT(/6X,'+---------------------------------------------+',/,
      x        6X,'|     CALCULATING 3-PARTICLE INTEGRALS        |',/,
