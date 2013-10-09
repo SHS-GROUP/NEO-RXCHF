@@ -346,6 +346,7 @@ C )
 C      LOCBSE2=.true. 
 
       if(LOCBSE2) then
+
        LOCBSE=.false.
        if(rank.eq.0) write(*,*) "Using LOCBSE2"
 
@@ -368,20 +369,23 @@ C       noccvirtb=nebf-nocca
        L0w=nwbf
        L1w=nwbf
 
-       if(allocated(WB)) deallocate(WB)
-       allocate(WB(nebf,nwbf))
-       if(allocated(wFBEw)) deallocate(wFBEw)
-       allocate(wFBEw(nwbf,nwbf))
-       if(allocated(wvecBEw)) deallocate(wvecBEw)
-       allocate(wvecBEw(nwbf,nwbf))
-       if(allocated(wBEenw)) deallocate(wBEenw)
-       allocate(wBEenw(nwbf))
-       if(allocated(wFLTw)) deallocate(wFLTw)
-       allocate(wFLTw(nwbflt))
-       if(allocated(wGBw)) deallocate(wGBw)
-       allocate(wGBw(nwbf,nwbf))
-       if(allocated(wWRKw)) deallocate(wWRKw)
-       allocate(wWRKw(nwbf))
+       if (rank.eq.0) then
+        if(allocated(WB)) deallocate(WB)
+        allocate(WB(nebf,nwbf))
+        if(allocated(wFBEw)) deallocate(wFBEw)
+        allocate(wFBEw(nwbf,nwbf))
+        if(allocated(wvecBEw)) deallocate(wvecBEw)
+        allocate(wvecBEw(nwbf,nwbf))
+        if(allocated(wBEenw)) deallocate(wBEenw)
+        allocate(wBEenw(nwbf))
+        if(allocated(wFLTw)) deallocate(wFLTw)
+        allocate(wFLTw(nwbflt))
+        if(allocated(wGBw)) deallocate(wGBw)
+        allocate(wGBw(nwbf,nwbf))
+        if(allocated(wWRKw)) deallocate(wWRKw)
+        allocate(wWRKw(nwbf))
+       end if
+
       end if
 
       if((LOCBSE).and.(rank.eq.0)) write(*,*) "Using LOCBSE"
@@ -397,6 +401,8 @@ C      LNOINT=.true.
        write(*,*)
       end if
 C )
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !----------CALCULATE-CLASSICAL-NUCLEAR-REPULSION-ENERGY----------------(
 !      call class_nuc_rep(nat,zan,cat,E_nuc)
@@ -441,6 +447,8 @@ C )
       call MPI_BCAST(GAM_ee,ngee,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
 
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
 ! Testing
       write(*,*) "xxsp:"
       call prt_lower_triangle(npbf,(npbf+npbf*npbf)/2,xxsp)
@@ -468,15 +476,7 @@ C )
        call MPI_BCAST(VECBE0,nebf2,MPI_DOUBLE_PRECISION,
      x                0,MPI_COMM_WORLD,ierr)
 
-! Testing
-       write(*,*) "DAE:"
-       call prt_lower_triangle(nebf,(nebf+nebf*nebf)/2,DAE)
-       write(*,*) "VECAE0:"
-       call prt_lower_triangle(nebf,(nebf+nebf*nebf)/2,VECAE0)
-       write(*,*) "DBE:"
-       call prt_lower_triangle(nebf,(nebf+nebf*nebf)/2,DBE)
-       write(*,*) "VECBE0:"
-       call prt_lower_triangle(nebf,(nebf+nebf*nebf)/2,VECBE0)
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
       else
 !       STANDARD GUESS:  HCORE FOR NUC AND ELEC DENSITIES:
@@ -492,6 +492,17 @@ C )
           if(rank.eq.0) write(*,*)'BACK FROM guess_elec'
         end if
       end if
+
+! Testing
+       write(*,*) "DAE:"
+       call prt_lower_triangle(nebf,(nebf+nebf*nebf)/2,DAE)
+       write(*,*) "VECAE0:"
+       call prt_lower_triangle(nebf,(nebf+nebf*nebf)/2,VECAE0)
+       write(*,*) "DBE:"
+       call prt_lower_triangle(nebf,(nebf+nebf*nebf)/2,DBE)
+       write(*,*) "VECBE0:"
+       call prt_lower_triangle(nebf,(nebf+nebf*nebf)/2,VECBE0)
+
       if(read_CP) then
 !        READ IN GUESS FOR N:
 
@@ -502,9 +513,7 @@ C )
        call MPI_BCAST(DP,npbf2,MPI_DOUBLE_PRECISION,
      x                0,MPI_COMM_WORLD,ierr)
 
-! Testing
-       write(*,*) "DP:"
-       call prt_lower_triangle(npbf,(npbf+npbf*npbf)/2,DP)
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
       else
 !        STANDARD GUESS:  HCORE FOR NUC AND ELEC DENSITIES:
@@ -514,7 +523,14 @@ C )
          if(rank.eq.0) write(*,*)'BACK FROM guess_prot'
       end if
 
+! Testing
+       write(*,*) "DP:"
+       call prt_lower_triangle(npbf,(npbf+npbf*npbf)/2,DP)
+
+
 C ARS( debug: print out initial guess MOs here
+      AEe=0.0d+00
+      BEe=0.0d+00
       if ((LCMF).and.(rank.eq.0)) then
        write(*,*)
        write(*,*) "------------------"
@@ -532,6 +548,8 @@ C       call PREVNU(vecp,EP,npbf,npbf,npbf)
       end if
 C )
 !-------------INITIAL-GUESSES------------------------------------------)
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !-------------SETUP-FOR-POSSIBLE-SOSCF---------------------------------(
       if (LSOSCF) then
@@ -590,21 +608,19 @@ C Call HF Fock build for NAE regular electrons
      x                          FAE,E_HF,E_HF_ecore,E_HF_ee)
 
 C Call XCHF Fock build for NBE special electrons and one QM particle
-         call RXCHFmult_fock_xchf(LGAM4,LG4DSCF,LG4IC,
-     x                   LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
-     x                   NG4CHK,NG3CHK,NG2CHK,
-     x                   dimXCHF4,dimXCHF3,dimXCHF2,
-     x                   npebf,nebf,nebf2,npbf,npbf2,NBE,
-     x                   ngee,ng1,ng2,ng3,ng4,DBE,DP,
-     x                   XCHF_GAM4,XCHF_GAM3,XCHF_GAM2,XCHF_GAM2s,
-     x                   ng2prm,ngtg1,ng3prm,
-     x                   nat,pmass,cat,zan,bcoef1,gamma1,
-     x                   KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                   ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                   FBE,FP,SBE_XCHF,SP_XCHF,
-     x                   E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
-     x                   E_XCHF_gam3,E_XCHF_gam4,
-     x                   S_total,S_gam1,S_gam2)
+         call RXCHF_fock_xchf_MPI(nproc,rank,
+     x                            LCMF,NBE,
+     x                            nebf,nebf2,npbf,npbf2,
+     x                            ngee,ng1,ng2,ng3,ng4,
+     x                            dimXCHF2,dimXCHF3,dimXCHF4,
+     x                            NG2CHK,NG3CHK,NG4CHK,
+     x                            DBE,DP,
+     x                            XCHF_GAM2,XCHF_GAM2s,
+     x                            XCHF_GAM3,XCHF_GAM4,
+     x                            FBE,FP,SBE_XCHF,SP_XCHF,
+     x                            E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
+     x                            E_XCHF_gam3,E_XCHF_gam4,
+     x                            S_total,S_gam1,S_gam2)
 
 C Call interaction Fock build for all particles
          call RXCHF_fock_int_MPI(nproc,rank,
@@ -621,6 +637,8 @@ C Call interaction Fock build for all particles
      x                           FPint,FAEint,FBEint, 
      x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
      x                           E_int)
+
+         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 C ARS( no interaction
       if(LNOINT) then
@@ -661,7 +679,12 @@ C )
          end if
 
 !        Fockp diag
-         call UROOTHAN(vecP,EP,xxsp,FP,npbf)
+         if(rank.eq.0) call UROOTHAN(vecP,EP,xxsp,FP,npbf)
+         call MPI_BCAST(VECP,npbf2,MPI_DOUBLE_PRECISION,
+     x                  0,MPI_COMM_WORLD,ierr)
+         call MPI_BCAST(EP,npbf,MPI_DOUBLE_PRECISION,
+     x                  0,MPI_COMM_WORLD,ierr)
+         
          call construct_DP(nucst,npbf,vecP,DP)
 
 C ARS( reform elec Fock matrices
@@ -701,36 +724,37 @@ C Call HF Fock build for NAE regular electrons
      x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
 
 C Call XCHF Fock build for NBE special electrons and one QM particle
-           call RXCHFmult_fock_xchf(LGAM4,LG4DSCF,LG4IC,
-     x                     LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
-     x                     NG4CHK,NG3CHK,NG2CHK,
-     x                     dimXCHF4,dimXCHF3,dimXCHF2,
-     x                     npebf,nebf,nebf2,npbf,npbf2,NBE,
-     x                     ngee,ng1,ng2,ng3,ng4,DBE,DP,
-     x                     XCHF_GAM4,XCHF_GAM3,XCHF_GAM2,XCHF_GAM2s,
-     x                     ng2prm,ngtg1,ng3prm,
-     x                     nat,pmass,cat,zan,bcoef1,gamma1,
-     x                     KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                     ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                     FBE,FP,SBE_XCHF,SP_XCHF,
-     x                     E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
-     x                     E_XCHF_gam3,E_XCHF_gam4,
-     x                     S_total,S_gam1,S_gam2)
+         call RXCHF_fock_xchf_MPI(nproc,rank,
+     x                            LCMF,NBE,
+     x                            nebf,nebf2,npbf,npbf2,
+     x                            ngee,ng1,ng2,ng3,ng4,
+     x                            dimXCHF2,dimXCHF3,dimXCHF4,
+     x                            NG2CHK,NG3CHK,NG4CHK,
+     x                            DBE,DP,
+     x                            XCHF_GAM2,XCHF_GAM2s,
+     x                            XCHF_GAM3,XCHF_GAM4,
+     x                            FBE,FP,SBE_XCHF,SP_XCHF,
+     x                            E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
+     x                            E_XCHF_gam3,E_XCHF_gam4,
+     x                            S_total,S_gam1,S_gam2)
 
 C Call interaction Fock build for all particles
-           call RXCHFmult_fock_int(LCMF,LADDEXCH,nelec,NAE,NBE,
-     x                             nebf,nebf2,npbf,npbf2,
-     x                             ng1,ng2,ng3,ng4,
-     x                             dimINT2,dimINT3,dimINT4,
-     x                             dimINT2ex,dimINT3ex,
-     x                             NG2CHK,NG3CHK,NG4CHK,
-     x                             DAE,DBE,DP,
-     x                             INT_GAM2,INT_GAM3,INT_GAM4,
-     x                             INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
-     x                             S_total,S_gam2,SBE_XCHF,SP_XCHF,
-     x                             FPint,FAEint,FBEint, 
-     x                             E_int_OMG2,E_int_OMG3,E_int_OMG4,
-     x                             E_int)
+         call RXCHF_fock_int_MPI(nproc,rank,
+     x                           LCMF,LADDEXCH,nelec,NAE,NBE,
+     x                           nebf,nebf2,npbf,npbf2,
+     x                           ng1,ng2,ng3,ng4,
+     x                           dimINT2,dimINT3,dimINT4,
+     x                           dimINT2ex,dimINT3ex,
+     x                           NG2CHK,NG3CHK,NG4CHK,
+     x                           DAE,DBE,DP,
+     x                           INT_GAM2,INT_GAM3,INT_GAM4,
+     x                           INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
+     x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
+     x                           FPint,FAEint,FBEint, 
+     x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
+     x                           E_int)
+
+           call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 C ARS( no interaction
       if(LNOINT) then
@@ -754,6 +778,15 @@ C )
            call RXCHFmult_OCBSE(nebf,nae,nbe,vecAE0,vecBE0,FAE,FBE,xxse,
      x                          vecAE,vecBE,AEe,BEe)
 
+           call MPI_BCAST(VECAE,nebf2,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(VECBE,nebf2,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(AEe,nebf,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(BEe,nebf,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+
 ! Form regular electronic density matrix and store stuff for next it
            call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
            CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
@@ -774,36 +807,37 @@ C Call HF Fock build for NAE regular electrons
      x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
 
 C Call XCHF Fock build for NBE special electrons and one QM particle
-           call RXCHFmult_fock_xchf(LGAM4,LG4DSCF,LG4IC,
-     x                     LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
-     x                     NG4CHK,NG3CHK,NG2CHK,
-     x                     dimXCHF4,dimXCHF3,dimXCHF2,
-     x                     npebf,nebf,nebf2,npbf,npbf2,NBE,
-     x                     ngee,ng1,ng2,ng3,ng4,DBE,DP,
-     x                     XCHF_GAM4,XCHF_GAM3,XCHF_GAM2,XCHF_GAM2s,
-     x                     ng2prm,ngtg1,ng3prm,
-     x                     nat,pmass,cat,zan,bcoef1,gamma1,
-     x                     KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                     ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                     FBE,FP,SBE_XCHF,SP_XCHF,
-     x                     E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
-     x                     E_XCHF_gam3,E_XCHF_gam4,
-     x                     S_total,S_gam1,S_gam2)
+         call RXCHF_fock_xchf_MPI(nproc,rank,
+     x                            LCMF,NBE,
+     x                            nebf,nebf2,npbf,npbf2,
+     x                            ngee,ng1,ng2,ng3,ng4,
+     x                            dimXCHF2,dimXCHF3,dimXCHF4,
+     x                            NG2CHK,NG3CHK,NG4CHK,
+     x                            DBE,DP,
+     x                            XCHF_GAM2,XCHF_GAM2s,
+     x                            XCHF_GAM3,XCHF_GAM4,
+     x                            FBE,FP,SBE_XCHF,SP_XCHF,
+     x                            E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
+     x                            E_XCHF_gam3,E_XCHF_gam4,
+     x                            S_total,S_gam1,S_gam2)
 
 C Call interaction Fock build for all particles
-           call RXCHFmult_fock_int(LCMF,LADDEXCH,nelec,NAE,NBE,
-     x                             nebf,nebf2,npbf,npbf2,
-     x                             ng1,ng2,ng3,ng4,
-     x                             dimINT2,dimINT3,dimINT4,
-     x                             dimINT2ex,dimINT3ex,
-     x                             NG2CHK,NG3CHK,NG4CHK,
-     x                             DAE,DBE,DP,
-     x                             INT_GAM2,INT_GAM3,INT_GAM4,
-     x                             INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
-     x                             S_total,S_gam2,SBE_XCHF,SP_XCHF,
-     x                             FPint,FAEint,FBEint, 
-     x                             E_int_OMG2,E_int_OMG3,E_int_OMG4,
-     x                             E_int)
+         call RXCHF_fock_int_MPI(nproc,rank,
+     x                           LCMF,LADDEXCH,nelec,NAE,NBE,
+     x                           nebf,nebf2,npbf,npbf2,
+     x                           ng1,ng2,ng3,ng4,
+     x                           dimINT2,dimINT3,dimINT4,
+     x                           dimINT2ex,dimINT3ex,
+     x                           NG2CHK,NG3CHK,NG4CHK,
+     x                           DAE,DBE,DP,
+     x                           INT_GAM2,INT_GAM3,INT_GAM4,
+     x                           INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
+     x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
+     x                           FPint,FAEint,FBEint, 
+     x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
+     x                           E_int)
+
+           call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 C ARS( no interaction
       if(LNOINT) then
@@ -837,6 +871,7 @@ C )
 
 ! Regular electrons
 !-----------------------POSSIBLE-SOSCF-ALPHA---------------------------(
+      if (rank.eq.0) then
          if(LSOSCFA) THEN
           ITER=IELEC
           EIGAVL = ITER.GT.1
@@ -872,12 +907,24 @@ C )
          call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
          call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
 
+      end if ! rank 0
+
   950 CONTINUE
+
+           call MPI_BCAST(VECAE,nebf2,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(AEe,nebf,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(DAE,nebf2,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+
 !        --> FIND LARGEST CHANGE IN Alpha E DENSITY
          CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
          CALL COPYDEN(DAE0,DAE,NEBF)
 
 C ARS( OCBSE/SOSCF
+
+      if (rank.eq.0) then
 
 ! Transform FBE (calculated at end of previous iteration) to new W basis
 !  - W updated with new vecA from this iteration
@@ -926,7 +973,16 @@ C ARS( OCBSE/SOSCF
      x                             wvecBEw,wBEenw,vecBE,BEe)
          call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
 
+      end if ! rank 0
+
   450 CONTINUE
+
+           call MPI_BCAST(VECBE,nebf2,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(BEe,nebf,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(DBE,nebf2,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
 
          CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
          CALL COPYDEN(DBE0,DBE,NEBF)
@@ -941,36 +997,37 @@ C Call HF Fock build for NAE regular electrons
      x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
 
 C Call XCHF Fock build for NBE special electrons and one QM particle
-           call RXCHFmult_fock_xchf(LGAM4,LG4DSCF,LG4IC,
-     x                     LG3DSCF,LG3IC1,LG2DSCF,LG2IC1,LCMF,
-     x                     NG4CHK,NG3CHK,NG2CHK,
-     x                     dimXCHF4,dimXCHF3,dimXCHF2,
-     x                     npebf,nebf,nebf2,npbf,npbf2,NBE,
-     x                     ngee,ng1,ng2,ng3,ng4,DBE,DP,
-     x                     XCHF_GAM4,XCHF_GAM3,XCHF_GAM2,XCHF_GAM2s,
-     x                     ng2prm,ngtg1,ng3prm,
-     x                     nat,pmass,cat,zan,bcoef1,gamma1,
-     x                     KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                     ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                     FBE,FP,SBE_XCHF,SP_XCHF,
-     x                     E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
-     x                     E_XCHF_gam3,E_XCHF_gam4,
-     x                     S_total,S_gam1,S_gam2)
+         call RXCHF_fock_xchf_MPI(nproc,rank,
+     x                            LCMF,NBE,
+     x                            nebf,nebf2,npbf,npbf2,
+     x                            ngee,ng1,ng2,ng3,ng4,
+     x                            dimXCHF2,dimXCHF3,dimXCHF4,
+     x                            NG2CHK,NG3CHK,NG4CHK,
+     x                            DBE,DP,
+     x                            XCHF_GAM2,XCHF_GAM2s,
+     x                            XCHF_GAM3,XCHF_GAM4,
+     x                            FBE,FP,SBE_XCHF,SP_XCHF,
+     x                            E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
+     x                            E_XCHF_gam3,E_XCHF_gam4,
+     x                            S_total,S_gam1,S_gam2)
 
 C Call interaction Fock build for all particles
-           call RXCHFmult_fock_int(LCMF,LADDEXCH,nelec,NAE,NBE,
-     x                             nebf,nebf2,npbf,npbf2,
-     x                             ng1,ng2,ng3,ng4,
-     x                             dimINT2,dimINT3,dimINT4,
-     x                             dimINT2ex,dimINT3ex,
-     x                             NG2CHK,NG3CHK,NG4CHK,
-     x                             DAE,DBE,DP,
-     x                             INT_GAM2,INT_GAM3,INT_GAM4,
-     x                             INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
-     x                             S_total,S_gam2,SBE_XCHF,SP_XCHF,
-     x                             FPint,FAEint,FBEint, 
-     x                             E_int_OMG2,E_int_OMG3,E_int_OMG4,
-     x                             E_int)
+         call RXCHF_fock_int_MPI(nproc,rank,
+     x                           LCMF,LADDEXCH,nelec,NAE,NBE,
+     x                           nebf,nebf2,npbf,npbf2,
+     x                           ng1,ng2,ng3,ng4,
+     x                           dimINT2,dimINT3,dimINT4,
+     x                           dimINT2ex,dimINT3ex,
+     x                           NG2CHK,NG3CHK,NG4CHK,
+     x                           DAE,DBE,DP,
+     x                           INT_GAM2,INT_GAM3,INT_GAM4,
+     x                           INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
+     x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
+     x                           FPint,FAEint,FBEint, 
+     x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
+     x                           E_int)
+
+           call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 C ARS( no interaction
       if(LNOINT) then
@@ -1002,6 +1059,7 @@ C )
          else
 
 !-----------------------POSSIBLE-SOSCF-ALPHA---------------------------(
+      if (rank.eq.0) then
          if(LSOSCFA) THEN
           ITER=IELEC
           EIGAVL = ITER.GT.1
@@ -1037,12 +1095,23 @@ C )
          call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
          call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
 
+      end if ! rank 0
+
   750 CONTINUE
+
+           call MPI_BCAST(VECAE,nebf2,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(AEe,nebf,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(DAE,nebf2,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+
 !        --> FIND LARGEST CHANGE IN Alpha E DENSITY
          CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
          CALL COPYDEN(DAE0,DAE,NEBF)
 
 !-----------------------POSSIBLE-SOSCF-BETA----------------------------(
+      if (rank.eq.0) then
         if(LSOSCFB) THEN
          ITER=IELEC
          EIGAVL = ITER.GT.1
@@ -1073,11 +1142,22 @@ C )
 !-----------------------POSSIBLE-SOSCF-BETA----------------------------)
 
   800 CONTINUE
+!        Diagonalize Electronic Fock Matrices
 !        call ROOTHAN(DBE,vecBE,BEE,xxse,FBE,nebf,nelec,1,NUCST)
          call UROOTHAN(vecBE,BEE,xxse,FBE,nebf)
          call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
 
+      end if ! rank 0
+
   850 CONTINUE
+
+           call MPI_BCAST(VECBE,nebf2,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(BEe,nebf,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(DBE,nebf2,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+
 !        --> FIND LARGEST CHANGE IN Beta E DENSITY
          CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
          CALL COPYDEN(DBE0,DBE,NEBF)
@@ -1123,7 +1203,7 @@ C )
           call write_MOs(860,nebf,VECAE)
           call write_MOs(861,nebf,VECBE)
           call write_MOs(853,npbf,VECP)
-         end if
+         end if ! rank 0
 
          LDIFFE=( (DIFFAE.LT.TOLE).and.(DIFFBE.LT.TOLE) )
          IF(LDIFFE) GOTO 200
@@ -1191,7 +1271,7 @@ C )
 
       end if
 
-      if(LOCBSE2) then
+      if((LOCBSE2).and.(rank.eq.0)) then
        if(allocated(wWRKw))   deallocate(wWRKw)
        if(allocated(wGBw))    deallocate(wGBw)
        if(allocated(wFLTw))   deallocate(wFLTw)

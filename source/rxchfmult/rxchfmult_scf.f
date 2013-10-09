@@ -462,6 +462,8 @@ C )
       end if
 
 C ARS( debug: print out initial guess MOs here
+      AEe=0.0d+00
+      BEe=0.0d+00
       if (LCMF) then
        write(*,*)
        write(*,*) "------------------"
