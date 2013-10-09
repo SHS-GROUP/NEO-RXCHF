@@ -66,7 +66,7 @@
       double precision, allocatable :: TGM2_2(:)
       double precision, allocatable :: TGM2s(:)
 
-      integer*4 ng2loc4,rank4,displ
+      integer*4 ng2loc4
       integer*4 ng2locarr(nproc),displarr(nproc)
 
       integer ia_12
@@ -83,9 +83,9 @@
 ! Have each process calculate ng2/nproc integrals according to rank
 ! Have last process calculate ng2%nproc remaining integrals
       call get_mpi_range(ng2,nproc,rank,mpistart,mpiend)
+      if(rank.eq.(nproc-1)) mpiend=ng2
       write(*,*) "rank,mpistart,mpiend,ng2loc:",
      x           rank,mpistart,mpiend,ng2loc
-      if(rank.eq.(nproc-1)) mpiend=ng2
 
       if (rank.eq.0) then
        write(*,1000) ng2,nchunks
@@ -143,7 +143,7 @@
             end do
             end do
 
-         call RXCHF_GAM2_MPI_thread(istart,iend,ng2_seg,ng2loc,
+         call RXCHF_GAM2_thread_MPI(istart,iend,ng2_seg,ng2loc,
      x                         nebf,npebf,npbf,nat,ngtg1,
      x                         pmass,cat,zan,bcoef1,gamma1,
      x                         loop_map,arrstart,
@@ -314,7 +314,6 @@ C )
       TGM2s=zero
 
       ng2loc4=int(ng2loc,kind=4)
-      rank4=int(rank,kind=4)
 
 ! Get number of elements calculated by each proc
       call MPI_GATHER(ng2loc4,1,MPI_INTEGER,
@@ -477,7 +476,7 @@ C )
       double precision, allocatable :: TGM2_3(:)
       double precision, allocatable :: TGM2s(:)
 
-      integer*4 ng2loc4,rank4,displ
+      integer*4 ng2loc4
       integer*4 ng2locarr(nproc),displarr(nproc)
 
       integer ia_12
@@ -494,9 +493,9 @@ C )
 ! Have each process calculate ng2/nproc integrals according to rank
 ! Have last process calculate ng2%nproc remaining integrals
       call get_mpi_range(ng2,nproc,rank,mpistart,mpiend)
+      if(rank.eq.(nproc-1)) mpiend=ng2
       write(*,*) "rank,mpistart,mpiend,ng2loc:",
      x           rank,mpistart,mpiend,ng2loc
-      if(rank.eq.(nproc-1)) mpiend=ng2
 
       if (rank.eq.0) then
        write(*,1000) ng2,nchunks
@@ -555,7 +554,7 @@ C )
             end do
             end do
 
-         call RXCHF_GAM2ex_MPI_thread(istart,iend,ng2_seg,ng2loc,
+         call RXCHF_GAM2ex_thread_MPI(istart,iend,ng2_seg,ng2loc,
      x                           nebf,npebf,npbf,nat,ngtg1,
      x                           pmass,cat,zan,bcoef1,gamma1,
      x                           loop_map,arrstart,
@@ -752,7 +751,6 @@ C )
       TGM2s=zero
 
       ng2loc4=int(ng2loc,kind=4)
-      rank4=int(rank,kind=4)
 
 ! Get number of elements calculated by each proc
       call MPI_GATHER(ng2loc4,1,MPI_INTEGER,
@@ -856,7 +854,7 @@ C )
       return
       end
 !=======================================================================
-      subroutine RXCHF_GAM2_MPI_thread(istart,iend,ng2_seg,ng2,
+      subroutine RXCHF_GAM2_thread_MPI(istart,iend,ng2_seg,ng2,
      x                          nebf,npebf,npbf,nat,ngtg1,
      x                          pmass,cat,zan,bcoef1,gamma1,
      x                          loop_map,arrstart,
@@ -976,7 +974,7 @@ C )
       return
       end
 !=======================================================================
-      subroutine RXCHF_GAM2ex_MPI_thread(istart,iend,ng2_seg,ng2,
+      subroutine RXCHF_GAM2ex_thread_MPI(istart,iend,ng2_seg,ng2,
      x                            nebf,npebf,npbf,nat,ngtg1,
      x                            pmass,cat,zan,bcoef1,gamma1,
      x                            loop_map,arrstart,

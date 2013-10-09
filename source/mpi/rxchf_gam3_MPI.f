@@ -62,7 +62,7 @@
       double precision, allocatable :: TGM3_1(:) ! Testing arrays
       double precision, allocatable :: TGM3_2(:)
 
-      integer*4 ng3loc4,rank4,displ
+      integer*4 ng3loc4
       integer*4 ng3locarr(nproc),displarr(nproc)
 
       integer ia
@@ -88,9 +88,9 @@
 ! Have each process calculate ng3/nproc integrals according to rank
 ! Have last process calculate ng3%nproc remaining integrals
       call get_mpi_range(ng3,nproc,rank,mpistart,mpiend)
+      if(rank.eq.(nproc-1)) mpiend=ng3
       write(*,*) "rank,mpistart,mpiend,ng3loc:",
      x           rank,mpistart,mpiend,ng3loc
-      if(rank.eq.(nproc-1)) mpiend=ng3
 
       if (rank.eq.0) then
        write(*,1000) ng3,nchunks
@@ -153,7 +153,7 @@
          end do
          end do
 
-         call RXCHF_GAM3_MPI_thread(istart,iend,ng3_seg,ng3loc,
+         call RXCHF_GAM3_thread_MPI(istart,iend,ng3_seg,ng3loc,
      x                         nebf,npebf,npbf,nat,ngtg1,
      x                         pmass,cat,zan,bcoef1,gamma1,
      x                         loop_map,arrstart,GM3_1,GM3_2,
@@ -310,7 +310,6 @@ C  - completed simultaneously
       TGM3_2=zero
 
       ng3loc4=int(ng3loc,kind=4)
-      rank4=int(rank,kind=4)
 
 ! Get number of elements calculated by each proc
       call MPI_GATHER(ng3loc4,1,MPI_INTEGER,
@@ -460,7 +459,7 @@ C  - completed simultaneously
       double precision, allocatable :: TGM3_3(:)
       double precision, allocatable :: TGM3_4(:)
 
-      integer*4 ng3loc4,rank4,displ
+      integer*4 ng3loc4
       integer*4 ng3locarr(nproc),displarr(nproc)
 
       integer ia
@@ -486,9 +485,9 @@ C  - completed simultaneously
 ! Have each process calculate ng3/nproc integrals according to rank
 ! Have last process calculate ng3%nproc remaining integrals
       call get_mpi_range(ng3,nproc,rank,mpistart,mpiend)
+      if(rank.eq.(nproc-1)) mpiend=ng3
       write(*,*) "rank,mpistart,mpiend,ng3loc:",
      x           rank,mpistart,mpiend,ng3loc
-      if(rank.eq.(nproc-1)) mpiend=ng3
 
       if (rank.eq.0) then
        write(*,1000) ng3,nchunks
@@ -553,7 +552,7 @@ C  - completed simultaneously
          end do
          end do
 
-         call RXCHF_GAM3ex_MPI_thread(istart,iend,ng3_seg,ng3loc,
+         call RXCHF_GAM3ex_thread_MPI(istart,iend,ng3_seg,ng3loc,
      x                           nebf,npebf,npbf,nat,ngtg1,
      x                           pmass,cat,zan,bcoef1,gamma1,
      x                           loop_map,arrstart,
@@ -799,7 +798,6 @@ C  - completed simultaneously
       TGM3_4=zero
 
       ng3loc4=int(ng3loc,kind=4)
-      rank4=int(rank,kind=4)
 
 ! Get number of elements calculated by each proc
       call MPI_GATHER(ng3loc4,1,MPI_INTEGER,
@@ -902,7 +900,7 @@ C  - completed simultaneously
       return
       end
 C=======================================================================
-      subroutine RXCHF_GAM3_MPI_thread(istart,iend,ng3_seg,ng3,
+      subroutine RXCHF_GAM3_thread_MPI(istart,iend,ng3_seg,ng3,
      x                          nebf,npebf,npbf,nat,ngtg1,
      x                          pmass,cat,zan,bcoef1,gamma1,
      x                          loop_map,arrstart,GM3_1,GM3_2,
@@ -1015,7 +1013,7 @@ C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------)
       return
       end
 C=======================================================================
-      subroutine RXCHF_GAM3ex_MPI_thread(istart,iend,ng3_seg,ng3,
+      subroutine RXCHF_GAM3ex_thread_MPI(istart,iend,ng3_seg,ng3,
      x                            nebf,npebf,npbf,nat,ngtg1,
      x                            pmass,cat,zan,bcoef1,gamma1,
      x                            loop_map,arrstart,
