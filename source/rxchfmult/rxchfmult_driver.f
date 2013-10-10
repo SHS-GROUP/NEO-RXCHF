@@ -145,18 +145,18 @@ C     => XCHF_GAM2 only needed if nbe >= 2
        write(*,*) "---------------------------"
 
        write(*,*) " Reading:         INT_GAM2 "
-       call RXCHFmult_readint(ng2,"INT_GAM2.ufm",INT_GAM2)
+       call RXCHFmult_readint(ng2,12,"INT_GAM2.ufm",INT_GAM2)
 
        if (LADDEXCH) then
         write(*,*) "                INT_GAM2ex "
-        call RXCHFmult_readint(ng2,"INT_GAM2ex.ufm",INT_GAM2ex)
+        call RXCHFmult_readint(ng2,14,"INT_GAM2ex.ufm",INT_GAM2ex)
        end if
 
        if (nbe.gt.1) then
         write(*,*) "                 XCHF_GAM2 "
         write(*,*) "                XCHF_GAM2s "
-        call RXCHFmult_readint(ng2,"XCHF_GAM2.ufm",XCHF_GAM2)
-        call RXCHFmult_readint(ng2,"XCHF_GAM2s.ufm",XCHF_GAM2s)
+        call RXCHFmult_readint(ng2,13,"XCHF_GAM2.ufm",XCHF_GAM2)
+        call RXCHFmult_readint(ng2,14,"XCHF_GAM2s.ufm",XCHF_GAM2s)
        end if
 
        write(*,*) "---------------------------"
@@ -268,18 +268,18 @@ C     => XCHF_GAM3 only needed if nbe >= 3
          write(*,*) "---------------------------"
 
          write(*,*) " Reading:         INT_GAM3 "
-         call RXCHFmult_readint(ng3,"INT_GAM3.ufm",INT_GAM3)
+         call RXCHFmult_readint(ng3,12,"INT_GAM3.ufm",INT_GAM3)
 
          if (LADDEXCH) then
           write(*,*) "               INT_GAM3ex1 "
           write(*,*) "               INT_GAM3ex2 "
-          call RXCHFmult_readint(ng3,"INT_GAM3ex1.ufm",INT_GAM3ex1)
-          call RXCHFmult_readint(ng3,"INT_GAM3ex2.ufm",INT_GAM3ex2)
+          call RXCHFmult_readint(ng3,15,"INT_GAM3ex1.ufm",INT_GAM3ex1)
+          call RXCHFmult_readint(ng3,15,"INT_GAM3ex2.ufm",INT_GAM3ex2)
          end if
 
          if (nbe.gt.2) then
           write(*,*) "                 XCHF_GAM3 "
-          call RXCHFmult_readint(ng3,"XCHF_GAM3.ufm",XCHF_GAM3)
+          call RXCHFmult_readint(ng3,13,"XCHF_GAM3.ufm",XCHF_GAM3)
          end if
 
          write(*,*) "---------------------------"
@@ -373,7 +373,7 @@ C     => INT_GAM4
            write(*,*) "---------------------------"
            write(*,*)
 
-           call RXCHFmult_readint(ng4,"INT_GAM4.ufm",INT_GAM4)
+           call RXCHFmult_readint(ng4,12,"INT_GAM4.ufm",INT_GAM4)
 
           else
 
@@ -417,7 +417,7 @@ C     => XCHF_GAM4
              write(*,*) "---------------------------"
              write(*,*)
 
-             call RXCHFmult_readint(ng4,"XCHF_GAM4.ufm",XCHF_GAM4)
+             call RXCHFmult_readint(ng4,13,"XCHF_GAM4.ufm",XCHF_GAM4)
 
             else
 
@@ -522,7 +522,7 @@ C Print timing summary
 
 
 C=======================================================================
-      subroutine RXCHFmult_readint(n,fname,arr)
+      subroutine RXCHFmult_readint(n,namelen,fname,arr)
 
 C Reads integrals from file "fname" into an n-dimensional array [arr]
 C Integrals must be written to an unformatted file as a one-array-write
@@ -530,8 +530,8 @@ C=======================================================================
       implicit none
 
 C Input variables
-      integer n
-      character*20 fname
+      integer namelen,n
+      character(len=namelen) fname
 C Output variables
       double precision arr(n)
 C Local variables
@@ -541,7 +541,7 @@ C Initialize
       arr=0.0d+00
 
 C Read in from file
-      open(unit=20,file=trim(fname),form="unformatted")
+      open(unit=20,file=fname,form="unformatted")
       read(20) arr
       close(20)
 
