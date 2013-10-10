@@ -43,8 +43,6 @@
 ! Have last process calculate ng4%nproc remaining integrals
       call get_mpi_range(ng4,nproc,rank,mpistart,mpiend)
       if(rank.eq.(nproc-1)) mpiend=ng4
-      write(*,*) "rank,mpistart,mpiend,ng4loc:",
-     x           rank,mpistart,mpiend,ng4loc
 
       if (rank.eq.0) then
        write(*,1000) ng4,nchunks
@@ -160,7 +158,11 @@
 !-----CLEAN-UP-AND-RETURN---------------------------------------------)
 
       wtime2 = MPI_WTIME() - wtime
-      write(*,2000)rank,wtime2
+      if(rank.eq.0) write(*,2000) 
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+      write(*,2001) rank,wtime2
 
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !      write(*,*) "start,end,ng4loc:",mpistart,mpiend,ng4loc
@@ -168,61 +170,59 @@
 !       write(*,9001) GM4(i)
 !      end do
 
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
       if(allocated(TGM2s)) deallocate(TGM2s)
       if(allocated(GAM_ee)) deallocate(GAM_ee)
 
 ! Construct global array on master process for testing
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      if(allocated(TGM4)) deallocate(TGM4)
-      if (rank.eq.0) then
-       allocate(TGM4(ng4))
-      else
-       allocate(TGM4(1))
-      end if
-      TGM4=zero
-
-      ng4loc4=int(ng4loc,kind=4)
-
-! Get number of elements calculated by each proc
-      call MPI_GATHER(ng4loc4,1,MPI_INTEGER,
-     x                ng4locarr(1),1,MPI_INTEGER,
-     x                0,MPI_COMM_WORLD,ierr)
-
-! Get displacements for array storage
-      if (rank.eq.0) then
-        displarr(1)=0
-        do i=2,nproc
-          displarr(i)=displarr(i-1)+ng4locarr(i-1)
-        end do
-      end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM4 on root
-      call MPI_GATHERV(GM4(1),ng4loc,MPI_DOUBLE_PRECISION,
-     x                 TGM4(1),ng4locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!      if(allocated(TGM4)) deallocate(TGM4)
+!      if (rank.eq.0) then
+!       allocate(TGM4(ng4))
+!      else
+!       allocate(TGM4(1))
+!      end if
+!      TGM4=zero
+!
+!      ng4loc4=int(ng4loc,kind=4)
+!
+!! Get number of elements calculated by each proc
+!      call MPI_GATHER(ng4loc4,1,MPI_INTEGER,
+!     x                ng4locarr(1),1,MPI_INTEGER,
+!     x                0,MPI_COMM_WORLD,ierr)
+!
+!! Get displacements for array storage
+!      if (rank.eq.0) then
+!        displarr(1)=0
+!        do i=2,nproc
+!          displarr(i)=displarr(i-1)+ng4locarr(i-1)
+!        end do
+!      end if
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM4 on root
+!      call MPI_GATHERV(GM4(1),ng4loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM4(1),ng4locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!!      if (rank.eq.0) then
+!!       write(*,*) "concatenated ng4"
+!!       do i=1,ng4
+!!        write(*,9001) TGM4(i)
+!!       end do
+!!      end if
+!
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !      if (rank.eq.0) then
-!       write(*,*) "concatenated ng4"
-!       do i=1,ng4
-!        write(*,9001) TGM4(i)
-!       end do
+!       open(unit=20,file="INT_GAM4.ufm",form="unformatted")
+!       write(20) TGM4
+!       close(20)
+!       write(*,*) "INT_GAM4 written to disk"
 !      end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      if (rank.eq.0) then
-       open(unit=20,file="INT_GAM4.ufm",form="unformatted")
-       write(20) TGM4
-       close(20)
-       write(*,*) "INT_GAM4 written to disk"
-      end if
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-      if(allocated(TGM4)) deallocate(TGM4)
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!      if(allocated(TGM4)) deallocate(TGM4)
 
  1000 FORMAT(/6X,'+---------------------------------------------+',/,
      x        6X,'|     CALCULATING 5-PARTICLE INTEGRALS        |',/,
@@ -238,7 +238,10 @@
  1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I3/
      x        8X,'        OMP THREADS:',1X,I3/)
 
- 2000 FORMAT(8X,'    TIME FOR PROCESS ',1X,I4,1X,F10.2)
+ 2000 FORMAT(/8X,'  INTEGRAL CALC+SYMM TIMINGS:',/,
+     x        8X,'  ---------------------------')
+
+ 2001 FORMAT( 8X,'   PROCESS ',1X,I4,1X,F10.2)
 
  9001 FORMAT(1X,1(F20.10))
 
@@ -289,8 +292,6 @@
 ! Have last process calculate ng4%nproc remaining integrals
       call get_mpi_range(ng4,nproc,rank,mpistart,mpiend)
       if(rank.eq.(nproc-1)) mpiend=ng4
-      write(*,*) "rank,mpistart,mpiend,ng4loc:",
-     x           rank,mpistart,mpiend,ng4loc
 
       if (rank.eq.0) then
        write(*,1000) ng4,nchunks
@@ -408,67 +409,69 @@
       wtime2 = MPI_WTIME() - wtime
       write(*,2000)rank,wtime2
 
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+      write(*,2001) rank,wtime2
+
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !      write(*,*) "start,end,ng4loc:",mpistart,mpiend,ng4loc
 !      do i=1,ng4loc
 !       write(*,9001) GM4(i)
 !      end do
 
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
       if(allocated(TGM2s)) deallocate(TGM2s)
       if(allocated(GAM_ee)) deallocate(GAM_ee)
 
 ! Construct global array on master process for testing
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      if(allocated(TGM4)) deallocate(TGM4)
-      if (rank.eq.0) then
-       allocate(TGM4(ng4))
-      else
-       allocate(TGM4(1))
-      end if
-      TGM4=zero
-
-      ng4loc4=int(ng4loc,kind=4)
-
-! Get number of elements calculated by each proc
-      call MPI_GATHER(ng4loc4,1,MPI_INTEGER,
-     x                ng4locarr(1),1,MPI_INTEGER,
-     x                0,MPI_COMM_WORLD,ierr)
-
-! Get displacements for array storage
-      if (rank.eq.0) then
-        displarr(1)=0
-        do i=2,nproc
-          displarr(i)=displarr(i-1)+ng4locarr(i-1)
-        end do
-      end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM4 on root
-      call MPI_GATHERV(GM4(1),ng4loc,MPI_DOUBLE_PRECISION,
-     x                 TGM4(1),ng4locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!      if(allocated(TGM4)) deallocate(TGM4)
+!      if (rank.eq.0) then
+!       allocate(TGM4(ng4))
+!      else
+!       allocate(TGM4(1))
+!      end if
+!      TGM4=zero
+!
+!      ng4loc4=int(ng4loc,kind=4)
+!
+!! Get number of elements calculated by each proc
+!      call MPI_GATHER(ng4loc4,1,MPI_INTEGER,
+!     x                ng4locarr(1),1,MPI_INTEGER,
+!     x                0,MPI_COMM_WORLD,ierr)
+!
+!! Get displacements for array storage
+!      if (rank.eq.0) then
+!        displarr(1)=0
+!        do i=2,nproc
+!          displarr(i)=displarr(i-1)+ng4locarr(i-1)
+!        end do
+!      end if
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM4 on root
+!      call MPI_GATHERV(GM4(1),ng4loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM4(1),ng4locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!!      if (rank.eq.0) then
+!!       write(*,*) "concatenated ng4"
+!!       do i=1,ng4
+!!        write(*,9001) TGM4(i)
+!!       end do
+!!      end if
+!
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !      if (rank.eq.0) then
-!       write(*,*) "concatenated ng4"
-!       do i=1,ng4
-!        write(*,9001) TGM4(i)
-!       end do
+!       open(unit=20,file="XCHF_GAM4.ufm",form="unformatted")
+!       write(20) TGM4
+!       close(20)
+!       write(*,*) "XCHF_GAM4 written to disk"
 !      end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      if (rank.eq.0) then
-       open(unit=20,file="XCHF_GAM4.ufm",form="unformatted")
-       write(20) TGM4
-       close(20)
-       write(*,*) "XCHF_GAM4 written to disk"
-      end if
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-      if(allocated(TGM4)) deallocate(TGM4)
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!      if(allocated(TGM4)) deallocate(TGM4)
 
  1000 FORMAT(/6X,'+---------------------------------------------+',/,
      x        6X,'|     CALCULATING 5-PARTICLE INTEGRALS        |',/,
@@ -484,9 +487,10 @@
  1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I3/
      x        8X,'        OMP THREADS:',1X,I3/)
 
- 2000 FORMAT(8X,'    TIME FOR PROCESS ',1X,I4,1X,F10.2)
+ 2000 FORMAT(/8X,'  INTEGRAL CALC+SYMM TIMINGS:',/,
+     x        8X,'  ---------------------------')
 
- 3000 FORMAT(/8X,'    TIME FOR RESIDUAL ',1X,F10.2)
+ 2001 FORMAT( 8X,'   PROCESS ',1X,I4,1X,F10.2)
 
  9001 FORMAT(1X,1(F20.10))
 

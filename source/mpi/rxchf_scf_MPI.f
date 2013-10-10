@@ -449,12 +449,6 @@ C )
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
-! Testing
-      write(*,*) "xxsp:"
-      call prt_lower_triangle(npbf,(npbf+npbf*npbf)/2,xxsp)
-      write(*,*) "xxse:"
-      call prt_lower_triangle(nebf,(nebf+nebf*nebf)/2,xxse)
-
 !--------------READ-INTEGRALS-NEEDED-FOR-NEO-HF------------------------)
 
 !-------------INITIAL-GUESSES------------------------------------------(
@@ -493,16 +487,6 @@ C )
         end if
       end if
 
-! Testing
-       write(*,*) "DAE:"
-       call prt_lower_triangle(nebf,(nebf+nebf*nebf)/2,DAE)
-       write(*,*) "VECAE0:"
-       call prt_lower_triangle(nebf,(nebf+nebf*nebf)/2,VECAE0)
-       write(*,*) "DBE:"
-       call prt_lower_triangle(nebf,(nebf+nebf*nebf)/2,DBE)
-       write(*,*) "VECBE0:"
-       call prt_lower_triangle(nebf,(nebf+nebf*nebf)/2,VECBE0)
-
       if(read_CP) then
 !        READ IN GUESS FOR N:
 
@@ -522,11 +506,6 @@ C )
          call guess_prot2(NUCST,npbf,xxsp,GAM_pcore,DP)
          if(rank.eq.0) write(*,*)'BACK FROM guess_prot'
       end if
-
-! Testing
-       write(*,*) "DP:"
-       call prt_lower_triangle(npbf,(npbf+npbf*npbf)/2,DP)
-
 
 C ARS( debug: print out initial guess MOs here
       AEe=0.0d+00

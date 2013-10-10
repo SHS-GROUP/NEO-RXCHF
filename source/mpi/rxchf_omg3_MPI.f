@@ -124,6 +124,9 @@ C Update Fock matrix
       call MPI_ALLREDUCE(MPI_IN_PLACE,XFP,npbf*npbf,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
+      call MPI_ALLREDUCE(MPI_IN_PLACE,E_OMG3,1,
+     x                   MPI_DOUBLE_PRECISION,MPI_SUM,
+     x                   MPI_COMM_WORLD,ierr)
 
       call add2fock(nebf,XFAE,FAE)
       call add2fock(nebf,XFBE,FBE)
@@ -259,6 +262,9 @@ C Update Fock matrix
       call MPI_ALLREDUCE(MPI_IN_PLACE,XFP,npbf*npbf,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
+      call MPI_ALLREDUCE(MPI_IN_PLACE,E_OMG3,1,
+     x                   MPI_DOUBLE_PRECISION,MPI_SUM,
+     x                   MPI_COMM_WORLD,ierr)
 
       call add2fock(nebf,XFAE,FAE)
       call add2fock(nebf,XFBE,FBE)
@@ -383,6 +389,9 @@ C Update Fock matrix
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
       call MPI_ALLREDUCE(MPI_IN_PLACE,XFP,npbf*npbf,
+     x                   MPI_DOUBLE_PRECISION,MPI_SUM,
+     x                   MPI_COMM_WORLD,ierr)
+      call MPI_ALLREDUCE(MPI_IN_PLACE,E_OMG3,1,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
 
@@ -659,7 +668,7 @@ C    iec3,jec3 : special electron 2 indicies
      x                  DBE(iec2,jec2)*DBE(iec3,jec1)*DP(ip,jp)
         XFP(ip,jp)=XFP(ip,jp)+val1*
      x             DAE(iec1,jec3)*DBE(iec2,jec2)*DBE(iec3,jec1)
-        XFBE(iec2,jec2)=XFBE(iec2,jec2)+two*val1*
+        XFBE(iec2,jec2)=XFBE(iec2,jec2)+val1*
      x                  DAE(iec1,jec3)*DBE(iec3,jec1)*DP(ip,jp)
         E_OMG3=E_OMG3+DP(ip,jp)*DAE(iec1,jec3)*
      x            DBE(iec2,jec2)*DBE(iec3,jec1)*val1
@@ -668,15 +677,15 @@ C    iec3,jec3 : special electron 2 indicies
      x                  DBE(iec2,jec1)*DBE(iec3,jec2)*DP(ip,jp)
         XFP(ip,jp)=XFP(ip,jp)+val2*
      x             DAE(iec1,jec3)*DBE(iec2,jec1)*DBE(iec3,jec2)
-        XFBE(iec2,jec1)=XFBE(iec2,jec1)+two*val2*
+        XFBE(iec2,jec1)=XFBE(iec2,jec1)+val2*
      x                  DAE(iec1,jec3)*DBE(iec3,jec2)*DP(ip,jp)
         E_OMG3=E_OMG3+DP(ip,jp)*DAE(iec1,jec3)*
      x            DBE(iec2,jec1)*DBE(iec3,jec2)*val2
 
-        XFBE(iec3,jec1)=XFBE(iec3,jec1)+two*val1*
+        XFBE(iec3,jec1)=XFBE(iec3,jec1)+val1*
      x                  DAE(iec1,jec3)*DBE(iec2,jec2)*DP(ip,jp)
 
-        XFBE(iec3,jec2)=XFBE(iec3,jec2)+two*val1*
+        XFBE(iec3,jec2)=XFBE(iec3,jec2)+val2*
      x                  DAE(iec1,jec3)*DBE(iec2,jec1)*DP(ip,jp)
 
       end do

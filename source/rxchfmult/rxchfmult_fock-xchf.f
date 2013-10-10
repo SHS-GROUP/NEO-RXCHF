@@ -237,6 +237,12 @@ C Store overlap contributions to Fock matrices separately for interaction routin
         end do
       end do
 
+C Divide energy contributions by overlap for consistent output
+      E_gam1=E_gam1/S_total
+      E_gam2=E_gam2/S_total
+      E_gam3=E_gam3/S_total
+      E_gam4=E_gam4/S_total
+
       return
       end
 !======================================================================

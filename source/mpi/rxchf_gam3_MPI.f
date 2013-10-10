@@ -59,12 +59,6 @@
 
       double precision, allocatable :: XGM3_2(:)
 
-      double precision, allocatable :: TGM3_1(:) ! Testing arrays
-      double precision, allocatable :: TGM3_2(:)
-
-      integer*4 ng3loc4
-      integer*4 ng3locarr(nproc),displarr(nproc)
-
       integer ia
       integer ia_123
       integer ia_132
@@ -85,12 +79,18 @@
       double precision wtime
       double precision wtime2
 
+! Testing Variables
+!      double precision, allocatable :: TGM3_1(:) ! Testing arrays
+!      double precision, allocatable :: TGM3_2(:)
+!
+!      integer*4 ng3loc4
+!      integer*4 ng3locarr(nproc),displarr(nproc)
+
+
 ! Have each process calculate ng3/nproc integrals according to rank
 ! Have last process calculate ng3%nproc remaining integrals
       call get_mpi_range(ng3,nproc,rank,mpistart,mpiend)
       if(rank.eq.(nproc-1)) mpiend=ng3
-      write(*,*) "rank,mpistart,mpiend,ng3loc:",
-     x           rank,mpistart,mpiend,ng3loc
 
       if (rank.eq.0) then
        write(*,1000) ng3,nchunks
@@ -167,15 +167,20 @@
 !-----CLEAN-UP-MEMORY-------------------------------------------------)
 
       wtime2 = MPI_WTIME() - wtime
-      write(*,2000)rank,wtime2
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+      if(rank.eq.0) write(*,2000) 
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+      write(*,2001) rank,wtime2
 
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !      write(*,*) "start,end,ng3loc:",mpistart,mpiend,ng3loc
 !      do i=1,ng3loc
 !       write(*,9001) GM3_1(i),GM3_2(i)
 !      end do
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !--------------------SYMMETRIZE----------------------------------------(
 C Symmetrized integrals in GM3_1ICR (XCHF integrals)
@@ -196,7 +201,7 @@ C  - completed simultaneously
       reqs_2=MPI_REQUEST_NULL
 
 ! Get appropriate ia_ji values for XGM3_2
-      if (rank.eq.0) write(*,*) "Symmetrizing GM3_2"
+!      if (rank.eq.0) write(*,*) "Symmetrizing GM3_2"
 
       do ip=1,npbf
       do jp=1,npbf
@@ -272,15 +277,13 @@ C  - completed simultaneously
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 ! Symmetrize GM3_1 integrals
-      if (rank.eq.0) write(*,*) "Symmetrizing GM3_1"
+!      if (rank.eq.0) write(*,*) "Symmetrizing GM3_1"
 
       call RXCHF_GAM3ex_MPI_symm(nproc,rank,
      x                           ng3,ng3loc,
      x                           mpistart,mpiend,arrstart,
      x                           nebf,npbf,
      x                           GM3_1)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !      write(*,*) "start,end,ng3loc:",mpistart,mpiend,ng3loc
 !      do i=1,ng3loc
@@ -289,80 +292,82 @@ C  - completed simultaneously
 
       wtime2 = MPI_WTIME() - wtime
 
-
-      if (rank.eq.0) write(*,4000) wtime2
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      write(*,2000)rank,wtime2
+
+      if(rank.eq.0) write(*,3000) 
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+      write(*,3001) rank,wtime2
 !--------------------SYMMETRIZE----------------------------------------)
 
 ! Construct global arrays on master process for testing
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      if(allocated(TGM3_1)) deallocate(TGM3_1)
-      if(allocated(TGM3_2)) deallocate(TGM3_2)
-      if (rank.eq.0) then
-       allocate(TGM3_1(ng3))
-       allocate(TGM3_2(ng3))
-      else
-       allocate(TGM3_1(1))
-       allocate(TGM3_2(1))
-      end if
-      TGM3_1=zero
-      TGM3_2=zero
-
-      ng3loc4=int(ng3loc,kind=4)
-
-! Get number of elements calculated by each proc
-      call MPI_GATHER(ng3loc4,1,MPI_INTEGER,
-     x                ng3locarr(1),1,MPI_INTEGER,
-     x                0,MPI_COMM_WORLD,ierr)
-
-! Get displacements for array storage
-      if (rank.eq.0) then
-        displarr(1)=0
-        do i=2,nproc
-          displarr(i)=displarr(i-1)+ng3locarr(i-1)
-        end do
-      end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM3_1 on root
-      call MPI_GATHERV(GM3_1(1),ng3loc,MPI_DOUBLE_PRECISION,
-     x                 TGM3_1(1),ng3locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM3_2 on root
-      call MPI_GATHERV(GM3_2(1),ng3loc,MPI_DOUBLE_PRECISION,
-     x                 TGM3_2(1),ng3locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!      if(allocated(TGM3_1)) deallocate(TGM3_1)
+!      if(allocated(TGM3_2)) deallocate(TGM3_2)
 !      if (rank.eq.0) then
-!       write(*,*) "concatenated ng3"
-!       do i=1,ng3
-!        write(*,9001) TGM3_1(i),TGM3_2(i)
-!       end do
+!       allocate(TGM3_1(ng3))
+!       allocate(TGM3_2(ng3))
+!      else
+!       allocate(TGM3_1(1))
+!       allocate(TGM3_2(1))
 !      end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      if (rank.eq.0) then
-       open(unit=20,file="XCHF_GAM3.ufm",form="unformatted")
-       write(20) TGM3_1
-       close(20)
-       write(*,*) "XCHF_GAM3 written to disk"
-       open(unit=21,file="INT_GAM3.ufm",form="unformatted")
-       write(21) TGM3_2
-       close(21)
-       write(*,*) "INT_GAM3 written to disk"
-      end if
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-      if(allocated(TGM3_2)) deallocate(TGM3_2)
-      if(allocated(TGM3_1)) deallocate(TGM3_1)
-
+!      TGM3_1=zero
+!      TGM3_2=zero
+!
+!      ng3loc4=int(ng3loc,kind=4)
+!
+!! Get number of elements calculated by each proc
+!      call MPI_GATHER(ng3loc4,1,MPI_INTEGER,
+!     x                ng3locarr(1),1,MPI_INTEGER,
+!     x                0,MPI_COMM_WORLD,ierr)
+!
+!! Get displacements for array storage
+!      if (rank.eq.0) then
+!        displarr(1)=0
+!        do i=2,nproc
+!          displarr(i)=displarr(i-1)+ng3locarr(i-1)
+!        end do
+!      end if
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM3_1 on root
+!      call MPI_GATHERV(GM3_1(1),ng3loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM3_1(1),ng3locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM3_2 on root
+!      call MPI_GATHERV(GM3_2(1),ng3loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM3_2(1),ng3locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!!      if (rank.eq.0) then
+!!       write(*,*) "concatenated ng3"
+!!       do i=1,ng3
+!!        write(*,9001) TGM3_1(i),TGM3_2(i)
+!!       end do
+!!      end if
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!      if (rank.eq.0) then
+!       open(unit=20,file="XCHF_GAM3.ufm",form="unformatted")
+!       write(20) TGM3_1
+!       close(20)
+!       write(*,*) "XCHF_GAM3 written to disk"
+!       open(unit=21,file="INT_GAM3.ufm",form="unformatted")
+!       write(21) TGM3_2
+!       close(21)
+!       write(*,*) "INT_GAM3 written to disk"
+!      end if
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!      if(allocated(TGM3_2)) deallocate(TGM3_2)
+!      if(allocated(TGM3_1)) deallocate(TGM3_1)
 
  1000 FORMAT(/6X,'+---------------------------------------------+',/,
      x        6X,'|     CALCULATING 4-PARTICLE INTEGRALS        |',/,
@@ -378,9 +383,15 @@ C  - completed simultaneously
  1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I3/
      x        8X,'        OMP THREADS:',1X,I3/)
 
- 2000 FORMAT(8X,'    TIME FOR PROCESS ',1X,I4,1X,F10.2)
+ 2000 FORMAT(/8X,'  INTEGRAL CALCULATION TIMINGS:',/,
+     x        8X,'  -----------------------------')
 
- 4000 FORMAT(8X,'      TIME TO SYMMETRIZE INTEGRALS:',1X,F12.4/)
+ 2001 FORMAT( 8X,'    PROCESS ',1X,I4,1X,F10.2)
+
+ 3000 FORMAT(/8X,' INTEGRAL SYMMETRIZATION TIMINGS:',/,
+     x        8X,' --------------------------------')
+
+ 3001 FORMAT( 8X,'    PROCESS ',1X,I4,1X,F10.2)
 
  9001 FORMAT(1X,2(F20.10))
 
@@ -454,14 +465,6 @@ C  - completed simultaneously
       double precision, allocatable :: XGM3_3(:)
       double precision, allocatable :: XGM3_4(:)
 
-      double precision, allocatable :: TGM3_1(:) ! Testing arrays
-      double precision, allocatable :: TGM3_2(:)
-      double precision, allocatable :: TGM3_3(:)
-      double precision, allocatable :: TGM3_4(:)
-
-      integer*4 ng3loc4
-      integer*4 ng3locarr(nproc),displarr(nproc)
-
       integer ia
       integer ia_123
       integer ia_132
@@ -482,12 +485,20 @@ C  - completed simultaneously
       double precision wtime
       double precision wtime2
 
+! Testing Variables
+!      double precision, allocatable :: TGM3_1(:) ! Testing arrays
+!      double precision, allocatable :: TGM3_2(:)
+!      double precision, allocatable :: TGM3_3(:)
+!      double precision, allocatable :: TGM3_4(:)
+!
+!      integer*4 ng3loc4
+!      integer*4 ng3locarr(nproc),displarr(nproc)
+
+
 ! Have each process calculate ng3/nproc integrals according to rank
 ! Have last process calculate ng3%nproc remaining integrals
       call get_mpi_range(ng3,nproc,rank,mpistart,mpiend)
       if(rank.eq.(nproc-1)) mpiend=ng3
-      write(*,*) "rank,mpistart,mpiend,ng3loc:",
-     x           rank,mpistart,mpiend,ng3loc
 
       if (rank.eq.0) then
        write(*,1000) ng3,nchunks
@@ -567,7 +578,12 @@ C  - completed simultaneously
 !-----CLEAN-UP-MEMORY-------------------------------------------------)
 
       wtime2 = MPI_WTIME() - wtime
-      write(*,2000)rank,wtime2
+
+      if(rank.eq.0) write(*,2000) 
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+      write(*,2001) rank,wtime2
 
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !      write(*,*) "start,end,ng3loc:",mpistart,mpiend,ng3loc
@@ -575,8 +591,6 @@ C  - completed simultaneously
 !       write(*,9001) GM3_1(i),GM3_2(i),
 !     x               GM3_3(i),GM3_4(i)
 !      end do
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !--------------------SYMMETRIZE----------------------------------------(
 C Symmetrized integrals in GM3_1ICR (XCHF integrals)
@@ -611,7 +625,7 @@ C  - completed simultaneously
       reqs_4=MPI_REQUEST_NULL
 
 ! Get appropriate ia_ji values for XGM3_2,XGM3_3,XGM3_4
-      if (rank.eq.0) write(*,*) "Symmetrizing GM3_2,GM3_3,GM3_4"
+!      if (rank.eq.0) write(*,*) "Symmetrizing GM3_2,GM3_3,GM3_4"
 
       do ip=1,npbf
       do jp=1,npbf
@@ -751,15 +765,13 @@ C  - completed simultaneously
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 ! Symmetrize GM3_1 integrals
-      if (rank.eq.0) write(*,*) "Symmetrizing GM3_1"
+!      if (rank.eq.0) write(*,*) "Symmetrizing GM3_1"
 
       call RXCHF_GAM3ex_MPI_symm(nproc,rank,
      x                           ng3,ng3loc,
      x                           mpistart,mpiend,arrstart,
      x                           nebf,npbf,
      x                           GM3_1)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !      write(*,*) "start,end,ng3loc:",mpistart,mpiend,ng3loc
 !      do i=1,ng3loc
@@ -769,113 +781,113 @@ C  - completed simultaneously
 
       wtime2 = MPI_WTIME() - wtime
 
+      if(rank.eq.0) write(*,3000) 
 
-      if (rank.eq.0) write(*,4000) wtime2
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      write(*,2000)rank,wtime2
+
+      write(*,3001) rank,wtime2
 !--------------------SYMMETRIZE----------------------------------------)
 
 ! Construct global arrays on master process for testing
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      if(allocated(TGM3_1)) deallocate(TGM3_1)
-      if(allocated(TGM3_2)) deallocate(TGM3_2)
-      if(allocated(TGM3_3)) deallocate(TGM3_3)
-      if(allocated(TGM3_4)) deallocate(TGM3_4)
-      if (rank.eq.0) then
-       allocate(TGM3_1(ng3))
-       allocate(TGM3_2(ng3))
-       allocate(TGM3_3(ng3))
-       allocate(TGM3_4(ng3))
-      else
-       allocate(TGM3_1(1))
-       allocate(TGM3_2(1))
-       allocate(TGM3_3(1))
-       allocate(TGM3_4(1))
-      end if
-      TGM3_1=zero
-      TGM3_2=zero
-      TGM3_3=zero
-      TGM3_4=zero
-
-      ng3loc4=int(ng3loc,kind=4)
-
-! Get number of elements calculated by each proc
-      call MPI_GATHER(ng3loc4,1,MPI_INTEGER,
-     x                ng3locarr(1),1,MPI_INTEGER,
-     x                0,MPI_COMM_WORLD,ierr)
-
-! Get displacements for array storage
-      if (rank.eq.0) then
-        displarr(1)=0
-        do i=2,nproc
-          displarr(i)=displarr(i-1)+ng3locarr(i-1)
-        end do
-      end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM3_1 on root
-      call MPI_GATHERV(GM3_1(1),ng3loc,MPI_DOUBLE_PRECISION,
-     x                 TGM3_1(1),ng3locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM3_2 on root
-      call MPI_GATHERV(GM3_2(1),ng3loc,MPI_DOUBLE_PRECISION,
-     x                 TGM3_2(1),ng3locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM3_3 on root
-      call MPI_GATHERV(GM3_3(1),ng3loc,MPI_DOUBLE_PRECISION,
-     x                 TGM3_3(1),ng3locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM3_4 on root
-      call MPI_GATHERV(GM3_4(1),ng3loc,MPI_DOUBLE_PRECISION,
-     x                 TGM3_4(1),ng3locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!      if(allocated(TGM3_1)) deallocate(TGM3_1)
+!      if(allocated(TGM3_2)) deallocate(TGM3_2)
+!      if(allocated(TGM3_3)) deallocate(TGM3_3)
+!      if(allocated(TGM3_4)) deallocate(TGM3_4)
 !      if (rank.eq.0) then
-!       write(*,*) "concatenated ng3"
-!       do i=1,ng3
-!        write(*,9001) TGM3_1(i),TGM3_2(i),
-!     x                TGM3_3(i),TGM3_4(i)
-!       end do
+!       allocate(TGM3_1(ng3))
+!       allocate(TGM3_2(ng3))
+!       allocate(TGM3_3(ng3))
+!       allocate(TGM3_4(ng3))
+!      else
+!       allocate(TGM3_1(1))
+!       allocate(TGM3_2(1))
+!       allocate(TGM3_3(1))
+!       allocate(TGM3_4(1))
 !      end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      if (rank.eq.0) then
-       open(unit=20,file="XCHF_GAM3.ufm",form="unformatted")
-       write(20) TGM3_1
-       close(20)
-       write(*,*) "XCHF_GAM3 written to disk"
-       open(unit=21,file="INT_GAM3.ufm",form="unformatted")
-       write(21) TGM3_2
-       close(21)
-       write(*,*) "INT_GAM3 written to disk"
-       open(unit=22,file="INT_GAM3ex1.ufm",form="unformatted")
-       write(22) TGM3_3
-       close(22)
-       write(*,*) "INT_GAM3ex1 written to disk"
-       open(unit=23,file="INT_GAM3ex2.ufm",form="unformatted")
-       write(23) TGM3_4
-       close(23)
-       write(*,*) "INT_GAM3ex2 written to disk"
-      end if
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-      if(allocated(TGM3_4)) deallocate(TGM3_4)
-      if(allocated(TGM3_3)) deallocate(TGM3_3)
-      if(allocated(TGM3_2)) deallocate(TGM3_2)
-      if(allocated(TGM3_1)) deallocate(TGM3_1)
-
+!      TGM3_1=zero
+!      TGM3_2=zero
+!      TGM3_3=zero
+!      TGM3_4=zero
+!
+!      ng3loc4=int(ng3loc,kind=4)
+!
+!! Get number of elements calculated by each proc
+!      call MPI_GATHER(ng3loc4,1,MPI_INTEGER,
+!     x                ng3locarr(1),1,MPI_INTEGER,
+!     x                0,MPI_COMM_WORLD,ierr)
+!
+!! Get displacements for array storage
+!      if (rank.eq.0) then
+!        displarr(1)=0
+!        do i=2,nproc
+!          displarr(i)=displarr(i-1)+ng3locarr(i-1)
+!        end do
+!      end if
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM3_1 on root
+!      call MPI_GATHERV(GM3_1(1),ng3loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM3_1(1),ng3locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM3_2 on root
+!      call MPI_GATHERV(GM3_2(1),ng3loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM3_2(1),ng3locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM3_3 on root
+!      call MPI_GATHERV(GM3_3(1),ng3loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM3_3(1),ng3locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM3_4 on root
+!      call MPI_GATHERV(GM3_4(1),ng3loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM3_4(1),ng3locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!!      if (rank.eq.0) then
+!!       write(*,*) "concatenated ng3"
+!!       do i=1,ng3
+!!        write(*,9001) TGM3_1(i),TGM3_2(i),
+!!     x                TGM3_3(i),TGM3_4(i)
+!!       end do
+!!      end if
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!      if (rank.eq.0) then
+!       open(unit=20,file="XCHF_GAM3.ufm",form="unformatted")
+!       write(20) TGM3_1
+!       close(20)
+!       write(*,*) "XCHF_GAM3 written to disk"
+!       open(unit=21,file="INT_GAM3.ufm",form="unformatted")
+!       write(21) TGM3_2
+!       close(21)
+!       write(*,*) "INT_GAM3 written to disk"
+!       open(unit=22,file="INT_GAM3ex1.ufm",form="unformatted")
+!       write(22) TGM3_3
+!       close(22)
+!       write(*,*) "INT_GAM3ex1 written to disk"
+!       open(unit=23,file="INT_GAM3ex2.ufm",form="unformatted")
+!       write(23) TGM3_4
+!       close(23)
+!       write(*,*) "INT_GAM3ex2 written to disk"
+!      end if
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!      if(allocated(TGM3_4)) deallocate(TGM3_4)
+!      if(allocated(TGM3_3)) deallocate(TGM3_3)
+!      if(allocated(TGM3_2)) deallocate(TGM3_2)
+!      if(allocated(TGM3_1)) deallocate(TGM3_1)
 
  1000 FORMAT(/6X,'+---------------------------------------------+',/,
      x        6X,'|     CALCULATING 4-PARTICLE INTEGRALS        |',/,
@@ -891,9 +903,15 @@ C  - completed simultaneously
  1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I3/
      x        8X,'        OMP THREADS:',1X,I3/)
 
- 2000 FORMAT(8X,'    TIME FOR PROCESS ',1X,I4,1X,F10.2)
+ 2000 FORMAT(/8X,'  INTEGRAL CALCULATION TIMINGS:',/,
+     x        8X,'  -----------------------------')
 
- 4000 FORMAT(8X,'      TIME TO SYMMETRIZE INTEGRALS:',1X,F12.4/)
+ 2001 FORMAT( 8X,'    PROCESS ',1X,I4,1X,F10.2)
+
+ 3000 FORMAT(/8X,' INTEGRAL SYMMETRIZATION TIMINGS:',/,
+     x        8X,' --------------------------------')
+
+ 3001 FORMAT( 8X,'    PROCESS ',1X,I4,1X,F10.2)
 
  9001 FORMAT(1X,4(F20.10))
 
@@ -1189,7 +1207,7 @@ C  - completed using six passes to reduce memory requirements
       XGM3_1=zero
 
 ! On first pass, get ia_132 set for XGM3_1
-      if (rank.eq.0) write(*,*) "   ... starting first pass"
+!      if (rank.eq.0) write(*,*) "   ... starting first pass"
       XGM3_1aux=zero
       reqs_1=MPI_REQUEST_NULL
 
@@ -1244,7 +1262,7 @@ C  - completed using six passes to reduce memory requirements
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 ! On second pass, get ia_213 set for XGM3_1
-      if (rank.eq.0) write(*,*) "   ... starting second pass"
+!      if (rank.eq.0) write(*,*) "   ... starting second pass"
       XGM3_1aux=zero
       reqs_1=MPI_REQUEST_NULL
 
@@ -1299,7 +1317,7 @@ C  - completed using six passes to reduce memory requirements
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 ! On third pass, get ia_231 set for XGM3_1
-      if (rank.eq.0) write(*,*) "   ... starting third pass"
+!      if (rank.eq.0) write(*,*) "   ... starting third pass"
       XGM3_1aux=zero
       reqs_1=MPI_REQUEST_NULL
 
@@ -1354,7 +1372,7 @@ C  - completed using six passes to reduce memory requirements
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 ! On fourth pass, get ia_312 set for XGM3_1
-      if (rank.eq.0) write(*,*) "   ... starting fourth pass"
+!      if (rank.eq.0) write(*,*) "   ... starting fourth pass"
       XGM3_1aux=zero
       reqs_1=MPI_REQUEST_NULL
 
@@ -1409,7 +1427,7 @@ C  - completed using six passes to reduce memory requirements
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 ! On fifth pass, get ia_321 set for XGM3_1
-      if (rank.eq.0) write(*,*) "   ... starting fifth pass"
+!      if (rank.eq.0) write(*,*) "   ... starting fifth pass"
       XGM3_1aux=zero
       reqs_1=MPI_REQUEST_NULL
 

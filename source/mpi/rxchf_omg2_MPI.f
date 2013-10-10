@@ -118,6 +118,9 @@ C Update Fock matrices
       call MPI_ALLREDUCE(MPI_IN_PLACE,XFP,npbf*npbf,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
+      call MPI_ALLREDUCE(MPI_IN_PLACE,E_OMG2,1,
+     x                   MPI_DOUBLE_PRECISION,MPI_SUM,
+     x                   MPI_COMM_WORLD,ierr)
 
       call add2fock(nebf,XFAE,FAE)
       call add2fock(nebf,XFBE,FBE)
@@ -244,6 +247,9 @@ C Update Fock matrices
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
       call MPI_ALLREDUCE(MPI_IN_PLACE,XFP,npbf*npbf,
+     x                   MPI_DOUBLE_PRECISION,MPI_SUM,
+     x                   MPI_COMM_WORLD,ierr)
+      call MPI_ALLREDUCE(MPI_IN_PLACE,E_OMG2,1,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
 
@@ -377,6 +383,12 @@ C Update Fock matrices
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
       call MPI_ALLREDUCE(MPI_IN_PLACE,SP,npbf*npbf,
+     x                   MPI_DOUBLE_PRECISION,MPI_SUM,
+     x                   MPI_COMM_WORLD,ierr)
+      call MPI_ALLREDUCE(MPI_IN_PLACE,E_OMG2,1,
+     x                   MPI_DOUBLE_PRECISION,MPI_SUM,
+     x                   MPI_COMM_WORLD,ierr)
+      call MPI_ALLREDUCE(MPI_IN_PLACE,S_OMG2,1,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
 

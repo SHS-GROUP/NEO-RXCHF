@@ -531,7 +531,7 @@ C=======================================================================
 
 C Input variables
       integer n
-      character*15 fname
+      character*20 fname
 C Output variables
       double precision arr(n)
 C Local variables
@@ -541,7 +541,7 @@ C Initialize
       arr=0.0d+00
 
 C Read in from file
-      open(unit=20,file=fname,form="unformatted")
+      open(unit=20,file=trim(fname),form="unformatted")
       read(20) arr
       close(20)
 

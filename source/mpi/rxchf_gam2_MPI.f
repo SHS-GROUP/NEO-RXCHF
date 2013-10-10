@@ -62,13 +62,6 @@
       double precision, allocatable :: XGM2_1(:)
       double precision, allocatable :: XGM2s(:)
 
-      double precision, allocatable :: TGM2_1(:) ! Testing arrays
-      double precision, allocatable :: TGM2_2(:)
-      double precision, allocatable :: TGM2s(:)
-
-      integer*4 ng2loc4
-      integer*4 ng2locarr(nproc),displarr(nproc)
-
       integer ia_12
       integer ia_21
 
@@ -80,12 +73,19 @@
       double precision wtime
       double precision wtime2
 
+! Testing Variables
+!      double precision, allocatable :: TGM2_1(:) ! Testing arrays
+!      double precision, allocatable :: TGM2_2(:)
+!      double precision, allocatable :: TGM2s(:)
+!
+!      integer*4 ng2loc4
+!      integer*4 ng2locarr(nproc),displarr(nproc)
+
+
 ! Have each process calculate ng2/nproc integrals according to rank
 ! Have last process calculate ng2%nproc remaining integrals
       call get_mpi_range(ng2,nproc,rank,mpistart,mpiend)
       if(rank.eq.(nproc-1)) mpiend=ng2
-      write(*,*) "rank,mpistart,mpiend,ng2loc:",
-     x           rank,mpistart,mpiend,ng2loc
 
       if (rank.eq.0) then
        write(*,1000) ng2,nchunks
@@ -158,7 +158,14 @@
 !-----CLEAN-UP-MEMORY-------------------------------------------------)
 
       wtime2 = MPI_WTIME() - wtime
-      write(*,2000)rank,wtime2
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+      if(rank.eq.0) write(*,2000) 
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+      write(*,2001) rank,wtime2
 
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !      write(*,*) "start,end,ng2loc:",mpistart,mpiend,ng2loc
@@ -166,8 +173,6 @@
 !       write(*,9001) GM2_1(i),GM2_2(i),
 !     x               GM2s(i)
 !      end do
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !--------------------SYMMETRIZE----------------------------------------(
 C Symmetrized integrals in GM2_1ICR (XCHF integrals)
@@ -290,95 +295,99 @@ C )
 
       wtime2 = MPI_WTIME() - wtime
 
-      if (rank.eq.0) write(*,4000) wtime2
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      write(*,2000)rank,wtime2
+
+      if(rank.eq.0) write(*,3000) 
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+      write(*,3001) rank,wtime2
 !--------------------SYMMETRIZE----------------------------------------)
 
 ! Construct global array on master process for testing
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      if(allocated(TGM2_1)) deallocate(TGM2_1)
-      if(allocated(TGM2_2)) deallocate(TGM2_2)
-      if(allocated(TGM2s)) deallocate(TGM2s)
-      if (rank.eq.0) then
-       allocate(TGM2_1(ng2))
-       allocate(TGM2_2(ng2))
-       allocate(TGM2s(ng2))
-      else
-       allocate(TGM2_1(1))
-       allocate(TGM2_2(1))
-       allocate(TGM2s(1))
-      end if
-      TGM2_1=zero
-      TGM2_2=zero
-      TGM2s=zero
-
-      ng2loc4=int(ng2loc,kind=4)
-
-! Get number of elements calculated by each proc
-      call MPI_GATHER(ng2loc4,1,MPI_INTEGER,
-     x                ng2locarr(1),1,MPI_INTEGER,
-     x                0,MPI_COMM_WORLD,ierr)
-
-! Get displacements for array storage
-      if (rank.eq.0) then
-        displarr(1)=0
-        do i=2,nproc
-          displarr(i)=displarr(i-1)+ng2locarr(i-1)
-        end do
-      end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM2_1 on root
-      call MPI_GATHERV(GM2_1(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 TGM2_1(1),ng2locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM2_2 on root
-      call MPI_GATHERV(GM2_2(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 TGM2_2(1),ng2locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM2s on root
-      call MPI_GATHERV(GM2s(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 TGM2s(1),ng2locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!      if(allocated(TGM2_1)) deallocate(TGM2_1)
+!      if(allocated(TGM2_2)) deallocate(TGM2_2)
+!      if(allocated(TGM2s)) deallocate(TGM2s)
 !      if (rank.eq.0) then
-!       write(*,*) "concatenated ng2"
-!       do i=1,ng2
-!        write(*,9001) TGM2_1(i),TGM2_2(i),
-!     x                TGM2s(i)
-!       end do
+!       allocate(TGM2_1(ng2))
+!       allocate(TGM2_2(ng2))
+!       allocate(TGM2s(ng2))
+!      else
+!       allocate(TGM2_1(1))
+!       allocate(TGM2_2(1))
+!       allocate(TGM2s(1))
 !      end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      if (rank.eq.0) then
-       open(unit=20,file="XCHF_GAM2.ufm",form="unformatted")
-       write(20) TGM2_1
-       close(20)
-       write(*,*) "XCHF_GAM2 written to disk"
-       open(unit=21,file="INT_GAM2.ufm",form="unformatted")
-       write(21) TGM2_2
-       close(21)
-       write(*,*) "INT_GAM2 written to disk"
-       open(unit=22,file="XCHF_GAM2s.ufm",form="unformatted")
-       write(22) TGM2s
-       close(22)
-       write(*,*) "XCHF_GAM2s written to disk"
-      end if
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-      if(allocated(TGM2s)) deallocate(TGM2s)
-      if(allocated(TGM2_2)) deallocate(TGM2_2)
-      if(allocated(TGM2_1)) deallocate(TGM2_1)
+!      TGM2_1=zero
+!      TGM2_2=zero
+!      TGM2s=zero
+!
+!      ng2loc4=int(ng2loc,kind=4)
+!
+!! Get number of elements calculated by each proc
+!      call MPI_GATHER(ng2loc4,1,MPI_INTEGER,
+!     x                ng2locarr(1),1,MPI_INTEGER,
+!     x                0,MPI_COMM_WORLD,ierr)
+!
+!! Get displacements for array storage
+!      if (rank.eq.0) then
+!        displarr(1)=0
+!        do i=2,nproc
+!          displarr(i)=displarr(i-1)+ng2locarr(i-1)
+!        end do
+!      end if
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM2_1 on root
+!      call MPI_GATHERV(GM2_1(1),ng2loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM2_1(1),ng2locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM2_2 on root
+!      call MPI_GATHERV(GM2_2(1),ng2loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM2_2(1),ng2locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM2s on root
+!      call MPI_GATHERV(GM2s(1),ng2loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM2s(1),ng2locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!!      if (rank.eq.0) then
+!!       write(*,*) "concatenated ng2"
+!!       do i=1,ng2
+!!        write(*,9001) TGM2_1(i),TGM2_2(i),
+!!     x                TGM2s(i)
+!!       end do
+!!      end if
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!      if (rank.eq.0) then
+!       open(unit=20,file="XCHF_GAM2.ufm",form="unformatted")
+!       write(20) TGM2_1
+!       close(20)
+!       write(*,*) "XCHF_GAM2 written to disk"
+!       open(unit=21,file="INT_GAM2.ufm",form="unformatted")
+!       write(21) TGM2_2
+!       close(21)
+!       write(*,*) "INT_GAM2 written to disk"
+!       open(unit=22,file="XCHF_GAM2s.ufm",form="unformatted")
+!       write(22) TGM2s
+!       close(22)
+!       write(*,*) "XCHF_GAM2s written to disk"
+!      end if
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!      if(allocated(TGM2s)) deallocate(TGM2s)
+!      if(allocated(TGM2_2)) deallocate(TGM2_2)
+!      if(allocated(TGM2_1)) deallocate(TGM2_1)
 
  1000 FORMAT(/6X,'+---------------------------------------------+',/,
      x        6X,'|     CALCULATING 3-PARTICLE INTEGRALS        |',/,
@@ -394,11 +403,15 @@ C )
  1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I3/
      x        8X,'        OMP THREADS:',1X,I3/)
 
- 2000 FORMAT(8X,'    TIME FOR PROCESS ',1X,I4,1X,F10.2)
+ 2000 FORMAT(/8X,'  INTEGRAL CALCULATION TIMINGS:',/,
+     x        8X,'  -----------------------------')
 
- 3000 FORMAT(/8X,'    TIME FOR RESIDUAL ',1X,F10.2)
+ 2001 FORMAT( 8X,'    PROCESS ',1X,I4,1X,F10.2)
 
- 4000 FORMAT(8X,'      TIME TO SYMMETRIZE INTEGRALS:',1X,F12.4/)
+ 3000 FORMAT(/8X,' INTEGRAL SYMMETRIZATION TIMINGS:',/,
+     x        8X,' --------------------------------')
+
+ 3001 FORMAT( 8X,'    PROCESS ',1X,I4,1X,F10.2)
 
  9001 FORMAT(1X,3(F20.10))
 
@@ -471,14 +484,6 @@ C )
       double precision, allocatable :: XGM2_3(:)
       double precision, allocatable :: XGM2s(:)
 
-      double precision, allocatable :: TGM2_1(:) ! Testing arrays
-      double precision, allocatable :: TGM2_2(:)
-      double precision, allocatable :: TGM2_3(:)
-      double precision, allocatable :: TGM2s(:)
-
-      integer*4 ng2loc4
-      integer*4 ng2locarr(nproc),displarr(nproc)
-
       integer ia_12
       integer ia_21
 
@@ -490,12 +495,20 @@ C )
       double precision wtime
       double precision wtime2
 
+! Testing Variables
+!      double precision, allocatable :: TGM2_1(:) ! Testing arrays
+!      double precision, allocatable :: TGM2_2(:)
+!      double precision, allocatable :: TGM2_3(:)
+!      double precision, allocatable :: TGM2s(:)
+!
+!      integer*4 ng2loc4
+!      integer*4 ng2locarr(nproc),displarr(nproc)
+
+
 ! Have each process calculate ng2/nproc integrals according to rank
 ! Have last process calculate ng2%nproc remaining integrals
       call get_mpi_range(ng2,nproc,rank,mpistart,mpiend)
       if(rank.eq.(nproc-1)) mpiend=ng2
-      write(*,*) "rank,mpistart,mpiend,ng2loc:",
-     x           rank,mpistart,mpiend,ng2loc
 
       if (rank.eq.0) then
        write(*,1000) ng2,nchunks
@@ -569,7 +582,12 @@ C )
 !-----CLEAN-UP-MEMORY-------------------------------------------------)
 
       wtime2 = MPI_WTIME() - wtime
-      write(*,2000)rank,wtime2
+
+      if(rank.eq.0) write(*,2000) 
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+      write(*,2001) rank,wtime2
 
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !      write(*,*) "start,end,ng2loc:",mpistart,mpiend,ng2loc
@@ -577,8 +595,6 @@ C )
 !       write(*,9001) GM2_1(i),GM2_2(i),
 !     x               GM2_3(i),GM2s(i)
 !      end do
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !--------------------SYMMETRIZE----------------------------------------(
 C Symmetrized integrals in GM2_1ICR (XCHF integrals)
@@ -723,111 +739,113 @@ C )
 
       wtime2 = MPI_WTIME() - wtime
 
-      if (rank.eq.0) write(*,4000) wtime2
+      if(rank.eq.0) write(*,3000) 
+
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      write(*,2000)rank,wtime2
+
+      write(*,3001) rank,wtime2
 !--------------------SYMMETRIZE----------------------------------------)
 
 ! Construct global array on master process for testing
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      if(allocated(TGM2_1)) deallocate(TGM2_1)
-      if(allocated(TGM2_2)) deallocate(TGM2_2)
-      if(allocated(TGM2_3)) deallocate(TGM2_3)
-      if(allocated(TGM2s)) deallocate(TGM2s)
-      if (rank.eq.0) then
-       allocate(TGM2_1(ng2))
-       allocate(TGM2_2(ng2))
-       allocate(TGM2_3(ng2))
-       allocate(TGM2s(ng2))
-      else
-       allocate(TGM2_1(1))
-       allocate(TGM2_2(1))
-       allocate(TGM2_3(1))
-       allocate(TGM2s(1))
-      end if
-      TGM2_1=zero
-      TGM2_2=zero
-      TGM2_3=zero
-      TGM2s=zero
-
-      ng2loc4=int(ng2loc,kind=4)
-
-! Get number of elements calculated by each proc
-      call MPI_GATHER(ng2loc4,1,MPI_INTEGER,
-     x                ng2locarr(1),1,MPI_INTEGER,
-     x                0,MPI_COMM_WORLD,ierr)
-
-! Get displacements for array storage
-      if (rank.eq.0) then
-        displarr(1)=0
-        do i=2,nproc
-          displarr(i)=displarr(i-1)+ng2locarr(i-1)
-        end do
-      end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM2_1 on root
-      call MPI_GATHERV(GM2_1(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 TGM2_1(1),ng2locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM2_2 on root
-      call MPI_GATHERV(GM2_2(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 TGM2_2(1),ng2locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM2_3 on root
-      call MPI_GATHERV(GM2_3(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 TGM2_3(1),ng2locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Form global GM2s on root
-      call MPI_GATHERV(GM2s(1),ng2loc,MPI_DOUBLE_PRECISION,
-     x                 TGM2s(1),ng2locarr,displarr,
-     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!      if(allocated(TGM2_1)) deallocate(TGM2_1)
+!      if(allocated(TGM2_2)) deallocate(TGM2_2)
+!      if(allocated(TGM2_3)) deallocate(TGM2_3)
+!      if(allocated(TGM2s)) deallocate(TGM2s)
 !      if (rank.eq.0) then
-!       write(*,*) "concatenated ng2"
-!       do i=1,ng2
-!        write(*,9001) TGM2_1(i),TGM2_2(i),
-!     x                TGM2_3(i),TGM2s(i)
-!       end do
+!       allocate(TGM2_1(ng2))
+!       allocate(TGM2_2(ng2))
+!       allocate(TGM2_3(ng2))
+!       allocate(TGM2s(ng2))
+!      else
+!       allocate(TGM2_1(1))
+!       allocate(TGM2_2(1))
+!       allocate(TGM2_3(1))
+!       allocate(TGM2s(1))
 !      end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      if (rank.eq.0) then
-       open(unit=20,file="XCHF_GAM2.ufm",form="unformatted")
-       write(20) TGM2_1
-       close(20)
-       write(*,*) "XCHF_GAM2 written to disk"
-       open(unit=21,file="INT_GAM2.ufm",form="unformatted")
-       write(21) TGM2_2
-       close(21)
-       write(*,*) "INT_GAM2 written to disk"
-       open(unit=22,file="INT_GAM2ex.ufm",form="unformatted")
-       write(22) TGM2_3
-       close(22)
-       write(*,*) "INT_GAM2ex written to disk"
-       open(unit=23,file="XCHF_GAM2s.ufm",form="unformatted")
-       write(23) TGM2s
-       close(23)
-       write(*,*) "XCHF_GAM2s written to disk"
-      end if
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-      if(allocated(TGM2s)) deallocate(TGM2s)
-      if(allocated(TGM2_3)) deallocate(TGM2_3)
-      if(allocated(TGM2_2)) deallocate(TGM2_2)
-      if(allocated(TGM2_1)) deallocate(TGM2_1)
+!      TGM2_1=zero
+!      TGM2_2=zero
+!      TGM2_3=zero
+!      TGM2s=zero
+!
+!      ng2loc4=int(ng2loc,kind=4)
+!
+!! Get number of elements calculated by each proc
+!      call MPI_GATHER(ng2loc4,1,MPI_INTEGER,
+!     x                ng2locarr(1),1,MPI_INTEGER,
+!     x                0,MPI_COMM_WORLD,ierr)
+!
+!! Get displacements for array storage
+!      if (rank.eq.0) then
+!        displarr(1)=0
+!        do i=2,nproc
+!          displarr(i)=displarr(i-1)+ng2locarr(i-1)
+!        end do
+!      end if
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM2_1 on root
+!      call MPI_GATHERV(GM2_1(1),ng2loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM2_1(1),ng2locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM2_2 on root
+!      call MPI_GATHERV(GM2_2(1),ng2loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM2_2(1),ng2locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM2_3 on root
+!      call MPI_GATHERV(GM2_3(1),ng2loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM2_3(1),ng2locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!! Form global GM2s on root
+!      call MPI_GATHERV(GM2s(1),ng2loc,MPI_DOUBLE_PRECISION,
+!     x                 TGM2s(1),ng2locarr,displarr,
+!     x                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!!      if (rank.eq.0) then
+!!       write(*,*) "concatenated ng2"
+!!       do i=1,ng2
+!!        write(*,9001) TGM2_1(i),TGM2_2(i),
+!!     x                TGM2_3(i),TGM2s(i)
+!!       end do
+!!      end if
+!
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!      if (rank.eq.0) then
+!       open(unit=20,file="XCHF_GAM2.ufm",form="unformatted")
+!       write(20) TGM2_1
+!       close(20)
+!       write(*,*) "XCHF_GAM2 written to disk"
+!       open(unit=21,file="INT_GAM2.ufm",form="unformatted")
+!       write(21) TGM2_2
+!       close(21)
+!       write(*,*) "INT_GAM2 written to disk"
+!       open(unit=22,file="INT_GAM2ex.ufm",form="unformatted")
+!       write(22) TGM2_3
+!       close(22)
+!       write(*,*) "INT_GAM2ex written to disk"
+!       open(unit=23,file="XCHF_GAM2s.ufm",form="unformatted")
+!       write(23) TGM2s
+!       close(23)
+!       write(*,*) "XCHF_GAM2s written to disk"
+!      end if
+!      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!
+!      if(allocated(TGM2s)) deallocate(TGM2s)
+!      if(allocated(TGM2_3)) deallocate(TGM2_3)
+!      if(allocated(TGM2_2)) deallocate(TGM2_2)
+!      if(allocated(TGM2_1)) deallocate(TGM2_1)
 
  1000 FORMAT(/6X,'+---------------------------------------------+',/,
      x        6X,'|     CALCULATING 3-PARTICLE INTEGRALS        |',/,
@@ -843,11 +861,15 @@ C )
  1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I3/
      x        8X,'        OMP THREADS:',1X,I3/)
 
- 2000 FORMAT(8X,'    TIME FOR PROCESS ',1X,I4,1X,F10.2)
+ 2000 FORMAT(/8X,'  INTEGRAL CALCULATION TIMINGS:',/,
+     x        8X,'  -----------------------------')
 
- 3000 FORMAT(/8X,'    TIME FOR RESIDUAL ',1X,F10.2)
+ 2001 FORMAT( 8X,'    PROCESS ',1X,I4,1X,F10.2)
 
- 4000 FORMAT(8X,'      TIME TO SYMMETRIZE INTEGRALS:',1X,F12.4/)
+ 3000 FORMAT(/8X,' INTEGRAL SYMMETRIZATION TIMINGS:',/,
+     x        8X,' --------------------------------')
+
+ 3001 FORMAT( 8X,'    PROCESS ',1X,I4,1X,F10.2)
 
  9001 FORMAT(1X,4(F20.10))
 
