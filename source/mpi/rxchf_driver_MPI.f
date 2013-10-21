@@ -87,6 +87,7 @@ C Local variables
       integer      dimINT4              !
       integer      dimINT2ex            ! Dimensions of exchange integral arrays
       integer      dimINT3ex            !
+      logical      LXCHFSYMM            ! Flag to symmetrize XCHF3 integrals (nbe > 2)
       double precision              :: wtime,wtime1,wtime2  ! Timing variables
       double precision, allocatable :: XCHF_GAM2(:)         ! 3-particle XCHF integrals
       double precision, allocatable :: XCHF_GAM2s(:)        ! 3-particle XCHF overlap integrals
@@ -381,6 +382,13 @@ C     => XCHF_GAM3 only needed if nbe >= 3
           write(*,*)
          end if
 
+! Only symmetrize XCHF_GAM3 if nbe > 2 (saves significant MPI comm)
+         if (nbe.le.2) then
+          LXCHFSYMM=.false.
+         else
+          LXCHFSYMM=.true.
+         end if
+
          if (LADDEXCH) then
           call RXCHF_GAM3ex_MPI(nproc,rank,
      x                          ng3chk,nebf,npebf,npbf,
@@ -388,7 +396,7 @@ C     => XCHF_GAM3 only needed if nbe >= 3
      x                          pmass,cat,zan,bcoef1,gamma1,
      x                          KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                          ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                          XCHF_GAM3,INT_GAM3,
+     x                          LXCHFSYMM,XCHF_GAM3,INT_GAM3,
      x                          INT_GAM3ex1,INT_GAM3ex2)
          else
           call RXCHF_GAM3_MPI(nproc,rank,
@@ -397,7 +405,7 @@ C     => XCHF_GAM3 only needed if nbe >= 3
      x                        pmass,cat,zan,bcoef1,gamma1,
      x                        KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                        XCHF_GAM3,INT_GAM3)
+     x                        LXCHFSYMM,XCHF_GAM3,INT_GAM3)
          end if
 
 ! Write integrals to disk (chunk calculated by each process)
