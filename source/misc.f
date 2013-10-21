@@ -123,11 +123,12 @@
       subroutine get_mpi_proc(n,nproc,i,rank)
 ! Get the rank of the MPI process responsible for calculating the
 ! i^th index where n total indices were split over nproc processes 
+! Returns a 4-byte integer
       implicit none
       integer n,nproc,i
-      integer rank
+      integer*4 rank
 
-      rank=min((i-1)/(n/nproc),nproc-1)
+      rank=int(min((i-1)/(n/nproc),nproc-1),kind=4)
 
       return
       end
