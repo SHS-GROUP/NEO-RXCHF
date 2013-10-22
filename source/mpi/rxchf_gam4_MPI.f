@@ -407,7 +407,7 @@
 !-----CLEAN-UP-AND-RETURN---------------------------------------------)
 
       wtime2 = MPI_WTIME() - wtime
-      write(*,2000)rank,wtime2
+      if(rank.eq.0) write(*,2000)
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 

@@ -156,7 +156,7 @@ C Local variables
      *            E_total,S_total,H_expect,
      *            se1,sp1,se2,sp2,focke,fockp,CHKfockp,CHKS)
 
-      if(LCMF) then
+      if((LCMF).and.(rank.eq.0)) then
         call RXCHFmult_xchfFock_testing(nebf,npbf,focke,fockp,DE,DP,
      x                                  E_total,S_total,
      x                                  E_gam2,E_gam3,E_gam4,S_gam2)

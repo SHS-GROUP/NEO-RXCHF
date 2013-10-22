@@ -1160,13 +1160,13 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !
-!!      if (rank.eq.0) then
-!!       write(*,*) "concatenated ng3"
-!!       do i=1,ng3
-!!        write(*,9001) TGM3_1(i),TGM3_2(i),
-!!     x                TGM3_3(i),TGM3_4(i)
-!!       end do
-!!      end if
+!      if (rank.eq.0) then
+!       write(*,*) "concatenated ng3"
+!       do i=1,ng3
+!        write(*,9001) TGM3_1(i),TGM3_2(i),
+!     x                TGM3_3(i),TGM3_4(i)
+!       end do
+!      end if
 !
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !      if (rank.eq.0) then
@@ -1483,7 +1483,6 @@ C Input Variables
       integer iec1,jec1  !
       integer iec2,jec2  ! Contracted elec basis function indices
       integer iec3,jec3  !
-      integer sendrank,recvrank
 
       double precision XGM3_1(ng3loc)    ! Stores reduction of integrals
       double precision XGM3_1aux(ng3loc) ! Stores individual set of integrals

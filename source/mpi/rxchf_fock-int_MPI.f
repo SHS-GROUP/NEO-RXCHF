@@ -133,7 +133,7 @@ C Include GAM4 contributions
 
       end if
 
-      if (rxchfdbg) then
+      if ((rxchfdbg).and.(rank.eq.0)) then
        write(*,*)
        write(*,*) "S_OMG2  (read) = ", S_OMG2
        write(*,*) "S_total (read) = ", S_total
@@ -166,14 +166,14 @@ C Correct Special Electron Fock Matrix
      x                            XFBE,XSBE,FBE)
 
 C Fock testing
-      if (LCMF) then
+      if ((LCMF).and.(rank.eq.0)) then
         call RXCHFmult_Fock_testing(nebf,npbf,FAE,FBE,FP,DAE,DBE,DP,
      x                              E_total,S_total,
      x                              E_OMG3,E_OMG4,S_OMG2)
         call UFM_sym_check(nebf,npbf,FAE,FBE,FP)
       end if
 
-      if (rxchfdbg) then
+      if ((rxchfdbg).and.(rank.eq.0)) then
         nebflt=nebf*(nebf+1)/2
         npbflt=npbf*(npbf+1)/2
         write(*,*) "FAE int:"
