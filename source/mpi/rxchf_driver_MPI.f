@@ -76,7 +76,7 @@ C Input variables
 C Local variables
       integer      ierr
       integer      unitno               ! File I/O variables
-      character*2  istring              !
+      character*3  istring              !
       integer      nebf2,npbf2,nebflt   ! Convenient quantities
       integer      npra,nprb            ! Number of distinct electron pairs
       integer      dimXCHF2             !
@@ -114,7 +114,7 @@ C Initialize dimensions
       dimINT3ex = 1
 
 C Variable for file I/O
-      write(istring,'(I2.2)') rank
+      write(istring,'(I3.3)') rank
 
 C nbe >= 1
 C  - calculate two-particle XCHF integrals and write to disk
@@ -170,13 +170,13 @@ C     => XCHF_GAM2 only needed if nbe >= 2
         write(*,*) "---------------------------"
         write(*,*) " Reading:         INT_GAM2 "
        end if
-       call RXCHFmult_readint(dimINT2,15,
+       call RXCHFmult_readint(dimINT2,16,
      x                        "INT_GAM2-"//istring//".ufm",
      x                        INT_GAM2)
 
        if (LADDEXCH) then
         if(rank.eq.0) write(*,*) "                INT_GAM2ex "
-        call RXCHFmult_readint(dimINT2ex,17,
+        call RXCHFmult_readint(dimINT2ex,18,
      x                         "INT_GAM2ex-"//istring//".ufm",
      x                         INT_GAM2ex)
        end if
@@ -186,10 +186,10 @@ C     => XCHF_GAM2 only needed if nbe >= 2
          write(*,*) "                 XCHF_GAM2 "
          write(*,*) "                XCHF_GAM2s "
         end if
-        call RXCHFmult_readint(dimXCHF2,16,
+        call RXCHFmult_readint(dimXCHF2,17,
      x                         "XCHF_GAM2-"//istring//".ufm",
      x                         XCHF_GAM2)
-        call RXCHFmult_readint(dimXCHF2,17,
+        call RXCHFmult_readint(dimXCHF2,18,
      x                         "XCHF_GAM2s-"//istring//".ufm",
      x                         XCHF_GAM2s)
        end if
@@ -338,7 +338,7 @@ C     => XCHF_GAM3 only needed if nbe >= 3
           write(*,*) "---------------------------"
           write(*,*) " Reading:         INT_GAM3 "
          end if
-         call RXCHFmult_readint(dimINT3,15,
+         call RXCHFmult_readint(dimINT3,16,
      x                          "INT_GAM3-"//istring//".ufm",
      x                          INT_GAM3)
 
@@ -347,17 +347,17 @@ C     => XCHF_GAM3 only needed if nbe >= 3
            write(*,*) "               INT_GAM3ex1 "
            write(*,*) "               INT_GAM3ex2 "
           end if
-          call RXCHFmult_readint(dimINT3ex,18,
+          call RXCHFmult_readint(dimINT3ex,19,
      x                           "INT_GAM3ex1-"//istring//".ufm",
      x                           INT_GAM3ex1)
-          call RXCHFmult_readint(dimINT3ex,18,
+          call RXCHFmult_readint(dimINT3ex,19,
      x                           "INT_GAM3ex2-"//istring//".ufm",
      x                           INT_GAM3ex2)
          end if
 
          if (nbe.gt.2) then
           if(rank.eq.0) write(*,*) "                 XCHF_GAM3 "
-          call RXCHFmult_readint(dimXCHF3,16,
+          call RXCHFmult_readint(dimXCHF3,17,
      x                           "XCHF_GAM3-"//istring//".ufm",
      x                           XCHF_GAM3)
          end if
@@ -496,7 +496,7 @@ C  - assume there is enough memory for each process to store GAM2s
             write(*,*)
            end if
 
-           call RXCHFmult_readint(dimINT4,15,
+           call RXCHFmult_readint(dimINT4,16,
      x                            "INT_GAM4-"//istring//".ufm",
      x                            INT_GAM4)
 
@@ -562,7 +562,7 @@ C  - assume there is enough memory for each process to store GAM2s
               write(*,*)
              end if
 
-             call RXCHFmult_readint(dimXCHF4,16,
+             call RXCHFmult_readint(dimXCHF4,17,
      x                              "XCHF_GAM4-"//istring//".ufm",
      x                              XCHF_GAM4)
 
