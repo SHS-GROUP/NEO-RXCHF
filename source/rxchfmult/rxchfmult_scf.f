@@ -7,7 +7,7 @@
      x                         NG2CHK,NG3CHK,NG4CHK,
      x                         read_CE,read_CP,
      x                         LG4DSCF,LG3DSCF,LG2DSCF,
-     x                         LSOSCF,LOCBSE,LCMF,LALTBAS,
+     x                         LSOSCF,LOCBSE,LCMF,LALTBAS,LADDEXCH,
      x                         nat,pmass,cat,zan,
      x                         bcoef1,gamma1,
      x                         KPESTR,KPEEND,
@@ -17,10 +17,11 @@
      x                         AMPEB2C_be,AGEBFCC_be,
      x                         ELCEX_be,ELCAM_be,ELCBFC_be,
      x                         AGNBFCC,NUCEX,NUCAM,NUCBFC,
-     x                         LG2IC1,dimXCHF2,dimINT2,
-     x                         XCHF_GAM2,INT_GAM2,XCHF_GAM2s,
-     x                         LG3IC1,dimXCHF3,dimINT3,
+     x                         LG2IC1,dimXCHF2,dimINT2,dimINT2ex,
+     x                         XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
+     x                         LG3IC1,dimXCHF3,dimINT3,dimINT3ex,
      x                         XCHF_GAM3,INT_GAM3,
+     x                         INT_GAM3ex1,INT_GAM3ex2,
      x                         LG4IC,dimXCHF4,dimINT4,
      x                         XCHF_GAM4,INT_GAM4)
 
@@ -63,6 +64,7 @@
       logical read_CP
       logical LGAM4
       logical LCMF
+      logical LADDEXCH
       logical LG4DSCF
       logical LG3DSCF
       logical LG2IC1
@@ -116,11 +118,15 @@
 
       integer          dimXCHF2,dimXCHF3,dimXCHF4
       integer          dimINT2,dimINT3,dimINT4
+      integer          dimINT2ex,dimINT3ex
       double precision XCHF_GAM2(dimXCHF2)         ! XCHF GAM2 integrals
       double precision INT_GAM2(dimINT2)           ! Interaction GAM2 integrals
+      double precision INT_GAM2ex(dimINT2)         ! Exchange GAM2 integrals
       double precision XCHF_GAM2s(dimXCHF2)        ! XCHF GAM2s integrals
       double precision XCHF_GAM3(dimXCHF3)         ! XCHF GAM3 integrals
       double precision INT_GAM3(dimINT3)           ! Interaction GAM3 integrals
+      double precision INT_GAM3ex1(dimINT3)        ! Exchange GAM3 integrals
+      double precision INT_GAM3ex2(dimINT3)        ! Exchange GAM3 integrals
       double precision XCHF_GAM4(dimXCHF4)         ! XCHF GAM4 integrals
       double precision INT_GAM4(dimINT4)           ! Interaction GAM4 integrals
 
@@ -581,14 +587,14 @@ C Call XCHF Fock build for NBE special electrons and one QM particle
      x                   S_total,S_gam1,S_gam2)
 
 C Call interaction Fock build for all particles
-         call RXCHFmult_fock_int(LCMF,nelec,NAE,NBE,
-     x                           nebf,nebf2,
-     x                           nebfBE,nebfBE2,
-     x                           npbf,npbf2,
+         call RXCHFmult_fock_int(LCMF,LADDEXCH,nelec,NAE,NBE,
+     x                           nebf,nebfBE,npbf,
      x                           dimINT2,dimINT3,dimINT4,
+     x                           dimINT2ex,dimINT3ex,
      x                           NG2CHK,NG3CHK,NG4CHK,
      x                           DAE,DBE,DP,
      x                           INT_GAM2,INT_GAM3,INT_GAM4,
+     x                           INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
      x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
      x                           FPint,FAEint,FBEint, 
      x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
@@ -689,14 +695,14 @@ C Call XCHF Fock build for NBE special electrons and one QM particle
      x                   S_total,S_gam1,S_gam2)
 
 C Call interaction Fock build for all particles
-           call RXCHFmult_fock_int(LCMF,nelec,NAE,NBE,
-     x                             nebf,nebf2,
-     x                             nebfBE,nebfBE2,
-     x                             npbf,npbf2,
+           call RXCHFmult_fock_int(LCMF,LADDEXCH,nelec,NAE,NBE,
+     x                             nebf,nebfBE,npbf,
      x                             dimINT2,dimINT3,dimINT4,
+     x                             dimINT2ex,dimINT3ex,
      x                             NG2CHK,NG3CHK,NG4CHK,
      x                             DAE,DBE,DP,
      x                             INT_GAM2,INT_GAM3,INT_GAM4,
+     x                             INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
      x                             S_total,S_gam2,SBE_XCHF,SP_XCHF,
      x                             FPint,FAEint,FBEint, 
      x                             E_int_OMG2,E_int_OMG3,E_int_OMG4,
@@ -762,14 +768,14 @@ C Call XCHF Fock build for NBE special electrons and one QM particle
      x                   S_total,S_gam1,S_gam2)
 
 C Call interaction Fock build for all particles
-           call RXCHFmult_fock_int(LCMF,nelec,NAE,NBE,
-     x                             nebf,nebf2,
-     x                             nebfBE,nebfBE2,
-     x                             npbf,npbf2,
+           call RXCHFmult_fock_int(LCMF,LADDEXCH,nelec,NAE,NBE,
+     x                             nebf,nebfBE,npbf,
      x                             dimINT2,dimINT3,dimINT4,
+     x                             dimINT2ex,dimINT3ex,
      x                             NG2CHK,NG3CHK,NG4CHK,
      x                             DAE,DBE,DP,
      x                             INT_GAM2,INT_GAM3,INT_GAM4,
+     x                             INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
      x                             S_total,S_gam2,SBE_XCHF,SP_XCHF,
      x                             FPint,FAEint,FBEint, 
      x                             E_int_OMG2,E_int_OMG3,E_int_OMG4,
@@ -928,14 +934,14 @@ C Call XCHF Fock build for NBE special electrons and one QM particle
      x                   S_total,S_gam1,S_gam2)
 
 C Call interaction Fock build for all particles
-           call RXCHFmult_fock_int(LCMF,nelec,NAE,NBE,
-     x                             nebf,nebf2,
-     x                             nebfBE,nebfBE2,
-     x                             npbf,npbf2,
+           call RXCHFmult_fock_int(LCMF,LADDEXCH,nelec,NAE,NBE,
+     x                             nebf,nebfBE,npbf,
      x                             dimINT2,dimINT3,dimINT4,
+     x                             dimINT2ex,dimINT3ex,
      x                             NG2CHK,NG3CHK,NG4CHK,
      x                             DAE,DBE,DP,
      x                             INT_GAM2,INT_GAM3,INT_GAM4,
+     x                             INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
      x                             S_total,S_gam2,SBE_XCHF,SP_XCHF,
      x                             FPint,FAEint,FBEint, 
      x                             E_int_OMG2,E_int_OMG3,E_int_OMG4,
@@ -1153,14 +1159,14 @@ C     x                   E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
 C     x                   E_XCHF_gam3,E_XCHF_gam4,
 C     x                   S_total,S_gam1,S_gam2)
 CC Call interaction Fock build for all particles
-C         call RXCHFmult_fock_int(LCMF,nelec,NAE,NBE,
-C     x                           nebf,nebf2,
-C     x                           nebfBE,nebfBE2,
-C     x                           npbf,npbf2,
+C         call RXCHFmult_fock_int(LCMF,LADDEXCH,nelec,NAE,NBE,
+C     x                           nebf,nebfBE,npbf,
 C     x                           dimINT2,dimINT3,dimINT4,
+C     x                           dimINT2ex,dimINT3ex,
 C     x                           NG2CHK,NG3CHK,NG4CHK,
 C     x                           DAE,DBE,DP,
 C     x                           INT_GAM2,INT_GAM3,INT_GAM4,
+C     x                           INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
 C     x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
 C     x                           FPint,FAEint,FBEint, 
 C     x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
@@ -1242,14 +1248,14 @@ CC     x                   E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
 CC     x                   E_XCHF_gam3,E_XCHF_gam4,
 CC     x                   S_total,S_gam1,S_gam2)
 CCC Call interaction Fock build for all particles
-CC         call RXCHFmult_fock_int(LCMF,nelec,NAE,NBE,
-CC     x                           nebf,nebf2,
-CC     x                           nebfBE,nebfBE2,
-CC     x                           npbf,npbf2,
+CC         call RXCHFmult_fock_int(LCMF,LADDEXCH,nelec,NAE,NBE,
+CC     x                           nebf,nebfBE,npbf,
 CC     x                           dimINT2,dimINT3,dimINT4,
+CC     x                           dimINT2ex,dimINT3ex,
 CC     x                           NG2CHK,NG3CHK,NG4CHK,
 CC     x                           DAE,DBE,DP,
 CC     x                           INT_GAM2,INT_GAM3,INT_GAM4,
+CC     x                           INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
 CC     x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
 CC     x                           FPint,FAEint,FBEint, 
 CC     x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,

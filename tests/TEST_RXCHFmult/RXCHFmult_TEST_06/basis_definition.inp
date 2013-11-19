@@ -1,0 +1,55 @@
+2 =NGTG
+ 0.1000  1.0E-15
+ 0.4000  1.0E-15
+1     =NAT
+3.0      0.0000000000   0.0000000000  -0.4454890217  Li
+6     =NEBF
+11    =NPEBF
+1     1      0 0 0     97.585000   0.0223580   0.0000000000   0.0000000000  -0.4454890217
+2     1      0 0 0     14.755000   0.1449900   0.0000000000   0.0000000000  -0.4454890217
+3     1      0 0 0      3.223300   0.3459400   0.0000000000   0.0000000000  -0.4454890217
+4     2      0 0 0     14.755000   0.0051875   0.0000000000   0.0000000000  -0.4454890217
+5     2      0 0 0      3.223300   0.1669800   0.0000000000   0.0000000000  -0.4454890217
+6     2      0 0 0      0.787890   0.7256600   0.0000000000   0.0000000000  -0.4454890217
+7     3      0 0 0      0.051009   1.0000000   0.0000000000   0.0000000000  -0.4454890217
+8     4      0 0 1      0.330000   1.0000000   0.0000000000   0.0000000000  -0.4454890217
+9     5      0 0 0      4.344800   0.0792990   0.0000000000   0.0000000000   1.1454890217
+10    5      0 0 0      0.660490   0.4242200   0.0000000000   0.0000000000   1.1454890217
+11    6      0 0 0      0.136690   1.0000000   0.0000000000   0.0000000000   1.1454890217
+5   =NPBF
+1   1   0   0   0       2.0915320            1.00   0.0000000000   0.0000000000   1.1454890217
+2   2   0   0   0       3.6225340            1.00   0.0000000000   0.0000000000   1.1454890217
+3   3   0   0   0       6.2745960            1.00   0.0000000000   0.0000000000   1.1454890217
+4   4   0   0   0      10.8676010            1.00   0.0000000000   0.0000000000   1.1454890217
+5   5   0   0   0      18.8237890            1.00   0.0000000000   0.0000000000   1.1454890217
+1.836d+03 =PMASS
+4        =nelec
+2       =NAE number of alpha electrons
+2       =NBE number of beta electrons
+1       =NUCST what nuclear state to use to form nuc density
+.false. =LNEOHF  only perform neo-hf calculation
+.false. =LXCUHF
+.false. =LXCROHF
+.true.  =LRXCHF
+.false. =LRXCUHF
+.false.  =read_CE optional read in elec vectors from guessCE.inp
+.false.  =read_CP optional read in nuc vectors from guessCP.inp
+.false. =read_GAM2  |
+.false. =read_GAM3  | Options to read integrals from file
+.false. =read_GAM4  |
+50      =NG4CHK Number of domains for 5-particle integrals
+.true.  =LGAM4 TRUE: Use 5-particle contributions
+.false. =LG4DSCF Direct SCF for 5-particle integrals
+.true.  =LG4IC in-core 5-particle integrals
+50      =NG3CHK Number of domains for 4-particle integrals
+.false. =LG3DSCF Direct SCF for 4-particle integrals
+.true.  =LG3IC1 in-core 4-particle integrals: loop over contracted BF
+.false. =LG3IC2 in-core 4-particle integrals: loop over primitive BF
+50      =NG2CHK Number of domains for 3-particle integrals
+.false. =LG2DSCF  Direct SCF for 3-particle integrals
+.true.  =LG2IC1 in-core 3-particle integrals: loop over contracted BF
+.true.  =LCMF Activates on-the-fly Fock matrix checking
+.true.  =LSOSCF
+.true.  =LOCBSE
+1       =EXCHLEV
+

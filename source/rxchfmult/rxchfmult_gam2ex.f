@@ -1,63 +1,42 @@
 !=======================================================================
-      subroutine RXCHFmult_GAM2(Nchunks,
-     x                          nebf,npebf,nebfBE,npebfBE,npbf,
-     x                          dimINT2,dimXCHF2,nat,ngtg1,
-     x                          pmass,cat,zan,bcoef1,gamma1,
-     x                          KPESTR,KPEEND,
-     x                          AMPEB2C,AGEBFCC,
-     x                          ELCEX,ELCAM,ELCBFC,
-     x                          KPESTR_be,KPEEND_be,
-     x                          AMPEB2C_be,AGEBFCC_be,
-     x                          ELCEX_be,ELCAM_be,ELCBFC_be,
-     x                          AGNBFCC,NUCEX,NUCAM,NUCBFC,
-     x                          INT_GAM2,XCHF_GAM2,XCHF_GAM2s)
+      subroutine RXCHFmult_GAM2_IC1ex(Nchunks,nebf,npebf,npbf,
+     x                            ng2,ng2prm,nat,ngtg1,
+     x                            pmass,cat,zan,bcoef1,gamma1,
+     x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                            GM2_1ICR,GM2_2ICR,GM2_3ICR,GM2sICR)
 
-! Calculates INT_GAM2 and XCHF_GAM2/s simultaneously
-!  - Calculates all quantities in with one index spanning all-electron
-!    basis set (of length dimINT2) in temporary storage
-!  - XCHF_GAM2/s over restricted basis (dimXCHF2) passed from temp
-!  - Requires extra memory for temp storage of XCHF_GAM2/s over dimINT2
-!      - 2*(nebf-nebfBE)^2 more dble prec values need to be stored
 !=======================================================================
       implicit none
       include 'omp_lib.h'
 ! Input Variables
       integer Nchunks
-      integer dimINT2,dimXCHF2,ng2prm,npbf
-      integer nebf,npebf
-      integer nebfBE,npebfBE
-      integer ng2,nat,ngtg1
+      integer ng2,nebf,npebf,npbf,ng2prm
+      integer nat,ngtg1
 !-------Basis Set Info-------(
-      integer ELCAM(npebf,3)                ! Angular mom for electrons
-      integer NUCAM(npbf,3)                 ! Angular mom for quantum nuclei
-      double precision ELCEX(npebf)         ! Exponents: elec basis
-      double precision NUCEX(npbf)          ! Exponents: nuc basis
-      double precision ELCBFC(npebf,3)      ! Basis centers: elec basis
-      double precision NUCBFC(npbf,3)       ! basis centers: nuc basis
-      integer AMPEB2C(npebf)                ! Map primitive index to contracted
-      double precision AGEBFCC(npebf)       ! Map prim index to contract coef
-      double precision AGNBFCC(npbf)        ! Nuclear contract coef
-      integer KPESTR(nebf)                  ! Map contracted index to primitive start
-      integer KPEEND(nebf)                  ! Map contracted index to primitive end
-! Special electron basis
-      integer ELCAM_be(npebfBE,3)           ! 
-      double precision ELCEX_be(npebfBE)    ! 
-      double precision ELCBFC_be(npebfBE,3) ! 
-      integer AMPEB2C_be(npebfBE)           ! Analogs for special electron basis
-      double precision AGEBFCC_be(npebfBE)  ! 
-      integer KPESTR_be(nebfBE)             ! 
-      integer KPEEND_be(nebfBE)             ! 
+      integer ELCAM(npebf,3)  ! Angular mom for electrons
+      integer NUCAM(npbf,3)   ! Angular mom for quantum nuclei
+      double precision ELCEX(npebf) ! Exponents: elec basis
+      double precision NUCEX(npbf)  ! Exponents: nuc basis
+      double precision ELCBFC(npebf,3) ! Basis centers: elec basis
+      double precision NUCBFC(npbf,3)  ! basis centers: nuc basis
+      integer AMPEB2C(npebf) ! Map primitive index to contracted
+      double precision AGEBFCC(npebf) ! Map prim index to contract coef
+      double precision AGNBFCC(npbf)  ! Nuclear contract coef
+      integer KPESTR(nebf)  ! Map contracted index to primitive start
+      integer KPEEND(nebf)  ! Map contracted index to primitive end
 !-------Basis Set Info-------)
-      double precision pmass                ! Mass of nonelectron quantum particle 
-      double precision zan(nat)             ! Classical nuclear charges
-      double precision cat(3,nat)           ! XYZ Coordinates of atoms
+      double precision pmass    ! Mass of nonelectron quantum particle 
+      double precision zan(nat) ! Classical nuclear charges
+      double precision cat(3,nat) ! XYZ Coordinates of atoms
       double precision bcoef1(ngtg1) 
       double precision gamma1(ngtg1)
 
 ! Variables Returned
-      double precision INT_GAM2(dimINT2)
-      double precision XCHF_GAM2(dimXCHF2)
-      double precision XCHF_GAM2s(dimXCHF2)
+      double precision GM2_1ICR(ng2)  ! XCHF OMG2   integrals (symm)
+      double precision GM2_2ICR(ng2)  ! INT  OMG2   integrals (unsymm)
+      double precision GM2_3ICR(ng2)  ! INT  OMG2ex integrals (symm)
+      double precision GM2sICR(ng2)   ! XCHF OMG2s  integrals (symm)
 
 ! Local Variables
       integer istat,ichunk,istart,iend,ng2_seg
@@ -67,11 +46,12 @@
       integer ip,jp,iec1,jec1,iec2,jec2
       integer,allocatable :: loop_map(:,:)
 
-      double precision,allocatable :: XG2_1ICR(:)  ! XCHF OMG2  integrals (symm)
-      double precision,allocatable :: XG2_2ICR(:)  ! INT  OMG2  integrals (unsymm)
-      double precision,allocatable :: XG2sICR(:)   ! XCHF OMG2s integrals (symm)
+      double precision,allocatable :: XG2_1ICR(:),XG2_2ICR(:)
+      double precision,allocatable :: XG2_3ICR(:),XG2sICR(:)
 
-      integer ia,ia_12,ia_21
+!     integer ia
+      integer ia_12
+      integer ia_21
 
       double precision x12,y12
       double precision x21,y21
@@ -84,15 +64,16 @@
       double precision wtime
       double precision wtime2
 
-      ng2=dimINT2
-      write(*,1000) ng2,nchunks,omp_get_num_procs(),
-     x              omp_get_max_threads(),1
-      wtime = omp_get_wtime()
+         write(*,1000) ng2,nchunks,omp_get_num_procs(),
+     xomp_get_max_threads(),1
+         wtime = omp_get_wtime()
 
       if(allocated(XG2_1ICR)) deallocate(XG2_1ICR)
       allocate( XG2_1ICR(ng2),stat=istat )
       if(allocated(XG2_2ICR)) deallocate(XG2_2ICR)
       allocate( XG2_2ICR(ng2),stat=istat )
+      if(allocated(XG2_3ICR)) deallocate(XG2_3ICR)
+      allocate( XG2_3ICR(ng2),stat=istat )
       if(allocated(XG2sICR)) deallocate(XG2sICR)
       allocate( XG2sICR(ng2),stat=istat )
 
@@ -114,8 +95,8 @@
             do jp=1,npbf
                do iec1=1,nebf
                do jec1=1,nebf
-                  do iec2=1,nebfBE
-                  do jec2=1,nebfBE
+                  do iec2=1,nebf
+                  do jec2=1,nebf
 
                       imas=imas+1 ! imas is master_index
                       if(imas.ge.istart.and.imas.le.iend) then
@@ -135,19 +116,13 @@
             end do
             end do
 
-         call RXCHFmult_thread_gam2(istart,iend,ng2_seg,ng2,
-     x                              nebf,npebf,nebfBE,npebfBE,npbf,
-     x                              nat,ngtg1,
-     x                              pmass,cat,zan,bcoef1,gamma1,
-     x                              loop_map,XG2_1ICR,XG2_2ICR,XG2sICR,
-     x                              KPESTR,KPEEND,
-     x                              AMPEB2C,AGEBFCC,
-     x                              ELCEX,ELCAM,ELCBFC,
-     x                              KPESTR_be,KPEEND_be,
-     x                              AMPEB2C_be,AGEBFCC_be,
-     x                              ELCEX_be,ELCAM_be,ELCBFC_be,
-     x                              AGNBFCC,NUCEX,NUCAM,NUCBFC)
-C )
+         call RXCHFmult_thread_gam2_IC1ex(istart,iend,ng2_seg,ng2,
+     x                           nebf,npebf,npbf,nat,ngtg1,
+     x                           pmass,cat,zan,bcoef1,gamma1,
+     x                           loop_map,XG2_1ICR,XG2_2ICR,
+     x                           XG2_3ICR,XG2sICR,
+     x                           KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                           ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
             wtime2 = omp_get_wtime() - wtime2
             write(*,2000)ichunk,wtime2
@@ -160,80 +135,69 @@ C )
 !-----CLEAN-UP-MEMORY-------------------------------------------------)
 
 !--------------------SYMMETRIZE----------------------------------------(
-      wtime = omp_get_wtime() - wtime
-      write(*,3000)wtime
-      wtime = omp_get_wtime() 
+         wtime = omp_get_wtime() - wtime
+         write(*,3000)wtime
+         wtime = omp_get_wtime() 
+
+         do ip=1,npbf
+         do jp=1,npbf
+            do iec1=1,nebf
+            do jec1=1,nebf
+               do iec2=1,nebf
+               do jec2=1,nebf
+
+!  GAM_2 Symmetrization:
+!  Determine packing indices for XGAM_2 integral matrices
+
+!              As Packed-->       XGAM_2(je2,ie2,je1,ie1,jp,ip)
+!                           XGAM_2(ip,jp,ie1,je1,ie2,je2,) 
+         call index_GAM_2PK(nebf,npbf,
+     x                      ip,jp,iec1,jec1,iec2,jec2,ia_12)
+!              As Packed-->       XGAM_2(je1,ie1,je2,ie2,jp,ip)
+!                           XGAM_2(ip,jp,ie2,je2,ie1,je1) 
+         call index_GAM_2PK(nebf,npbf,
+     x                      ip,jp,iec2,jec2,iec1,jec1,ia_21)
 
 C RXCHFmult(
-C    index 1: regular electron (iec1,jec1)
-C    index 2: special electron (iec2,jec2)
-C    index 3: proton           (  ip,jp  )
+C    index 1: regular electron
+C    index 2: special electron
+C    index 3: proton
 C )
 
-      do ip=1,npbf
-      do jp=1,npbf
-        do iec2=1,nebfBE
-        do jec2=1,nebfBE
-          do iec1=1,nebfBE
-          do jec1=1,nebfBE
+C Symmetrized integrals in GM2_1ICR (XCHF integrals)
+                       x12=XG2_1ICR(ia_12)
+                       x21=XG2_1ICR(ia_21)
+                       GM2_1ICR(ia_12)=(x12+x21)/two
 
-! Find places to get values from all basis array
-            call RXCHFmult_GAM_2PK(nebf,nebfBE,npbf,
-     x                             ip,jp,
-     x                             iec1,jec1,
-     x                             iec2,jec2,ia_12)
-            call RXCHFmult_GAM_2PK(nebf,nebfBE,npbf,
-     x                             ip,jp,
-     x                             iec2,jec2,
-     x                             iec1,jec1,ia_21)
+C Unsymmetrized integrals in GM2_2ICR (interaction integrals)
+                       x12=XG2_2ICR(ia_12)
+                       GM2_2ICR(ia_12)=x12
 
-! Find place to store value in restricted basis array
-            call index_GAM_2PK(nebfBE,npbf,
-     x                         ip,jp,
-     x                         iec1,jec1,
-     x                         iec2,jec2,ia)
+C Symmetrized integrals in GM2_3ICR (exchange integrals)
+                       x12=XG2_3ICR(ia_12)
+                       x21=XG2_3ICR(ia_21)
+                       GM2_3ICR(ia_12)=(x12+x21)/two
 
-C Symmetrized integrals in XCHF_GAM2
-            x12=XG2_1ICR(ia_12)
-            x21=XG2_1ICR(ia_21)
-            XCHF_GAM2(ia)=(x12+x21)/two
+C Symmetrized integrals in GM2sICR (XCHF integrals)
+                       x12=XG2sICR(ia_12)
+                       x21=XG2sICR(ia_21)
+                       GM2sICR(ia_12)=(x12+x21)/two
 
-C Symmetrized integrals in XCHF_GAM2s
-            x12=XG2sICR(ia_12)
-            x21=XG2sICR(ia_21)
-            XCHF_GAM2s(ia)=(x12+x21)/two
+               end do
+               end do
+            end do
+            end do
+         end do
+         end do
 
-          end do
-          end do
+         wtime = omp_get_wtime() - wtime
 
-          do iec1=1,nebf
-          do jec1=1,nebf
+         if(allocated(XG2sICR)) deallocate(XG2sICR)
+         if(allocated(XG2_3ICR)) deallocate(XG2_3ICR)
+         if(allocated(XG2_2ICR)) deallocate(XG2_2ICR)
+         if(allocated(XG2_1ICR)) deallocate(XG2_1ICR)
 
-C Array already stored as it is needed
-            call RXCHFmult_GAM_2PK(nebf,nebfBE,npbf,
-     x                             ip,jp,
-     x                             iec1,jec1,
-     x                             iec2,jec2,ia)
-
-C Unsymmetrized integrals in INT_GAM2
-            x12=XG2_2ICR(ia)
-            INT_GAM2(ia)=x12
-
-          end do
-          end do
-
-        end do
-        end do
-      end do
-      end do
-
-      wtime = omp_get_wtime() - wtime
-
-      if(allocated(XG2sICR)) deallocate(XG2sICR)
-      if(allocated(XG2_2ICR)) deallocate(XG2_2ICR)
-      if(allocated(XG2_1ICR)) deallocate(XG2_1ICR)
-
-      write(*,4000) wtime
+         write(*,4000) wtime
 !--------------------SYMMETRIZE----------------------------------------)
 
 
@@ -263,18 +227,13 @@ C Unsymmetrized integrals in INT_GAM2
       return
       end
 !=======================================================================
-      subroutine RXCHFmult_thread_gam2(istart,iend,ng2_seg,ng2,
-     x                               nebf,npebf,nebfBE,npebfBE,npbf,
-     x                               nat,ngtg1,
-     x                               pmass,cat,zan,bcoef1,gamma1,
-     x                               loop_map,XG2_1ICR,XG2_2ICR,XG2sICR,
-     x                               KPESTR,KPEEND,
-     x                               AMPEB2C,AGEBFCC,
-     x                               ELCEX,ELCAM,ELCBFC,
-     x                               KPESTR_be,KPEEND_be,
-     x                               AMPEB2C_be,AGEBFCC_be,
-     x                               ELCEX_be,ELCAM_be,ELCBFC_be,
-     x                               AGNBFCC,NUCEX,NUCAM,NUCBFC)
+      subroutine RXCHFmult_thread_gam2_IC1ex(istart,iend,ng2_seg,ng2,
+     x                            nebf,npebf,npbf,nat,ngtg1,
+     x                            pmass,cat,zan,bcoef1,gamma1,
+     x                            loop_map,XG2_1ICR,XG2_2ICR,
+     x                            XG2_3ICR,XG2sICR,
+     x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
 !=======================================================================
       implicit none
@@ -284,49 +243,41 @@ C Unsymmetrized integrals in INT_GAM2
       integer istart,iend,ng2_seg
       integer npebf  ! Number primitive electronic basis functions
       integer nebf   ! Number contracted electronic basis functions
-      integer npebfBE! Number primitive electronic basis functions
-      integer nebfBE ! Number contracted electronic basis functions
       integer npbf   ! Number nuclear basis functions
       integer nat    ! Number of atoms
       integer ngtg1  ! Number BGammas
       integer ng2
+
 !-------Basis Set Info-------(
-      integer ELCAM(npebf,3)                ! Angular mom for electrons
-      integer NUCAM(npbf,3)                 ! Angular mom for quantum nuclei
-      double precision ELCEX(npebf)         ! Exponents: elec basis
-      double precision NUCEX(npbf)          ! Exponents: nuc basis
-      double precision ELCBFC(npebf,3)      ! Basis centers: elec basis
-      double precision NUCBFC(npbf,3)       ! basis centers: nuc basis
-      integer AMPEB2C(npebf)                ! Map primitive index to contracted
-      double precision AGEBFCC(npebf)       ! Map prim index to contract coef
-      double precision AGNBFCC(npbf)        ! Nuclear contract coef
-      integer KPESTR(nebf)                  ! Map contracted index to primitive start
-      integer KPEEND(nebf)                  ! Map contracted index to primitive end
-! Special electron basis
-      integer ELCAM_be(npebfBE,3)           ! 
-      double precision ELCEX_be(npebfBE)    ! 
-      double precision ELCBFC_be(npebfBE,3) ! 
-      integer AMPEB2C_be(npebfBE)           ! Analogs for special electron basis
-      double precision AGEBFCC_be(npebfBE)  ! 
-      integer KPESTR_be(nebfBE)             ! 
-      integer KPEEND_be(nebfBE)             ! 
+      integer ELCAM(npebf,3)  ! Angular mom for electrons
+      integer NUCAM(npbf,3)   ! Angular mom for quantum nuclei
+      double precision ELCEX(npebf) ! Exponents: elec basis
+      double precision NUCEX(npbf)  ! Exponents: nuc basis
+      double precision ELCBFC(npebf,3) ! Basis centers: elec basis
+      double precision NUCBFC(npbf,3)  ! basis centers: nuc basis
+      integer AMPEB2C(npebf) ! Map primitive index to contracted
+      double precision AGEBFCC(npebf) ! Map prim index to contract coef
+      double precision AGNBFCC(npbf)  ! Nuclear contract coef
+      integer KPESTR(nebf)  ! Map contracted index to primitive start
+      integer KPEEND(nebf)  ! Map contracted index to primitive end
 !-------Basis Set Info-------)
-      double precision pmass                ! Mass of nonelectron quantum particle 
-      double precision zan(nat)             ! Classical nuclear charges
-      double precision cat(3,nat)           ! XYZ Coordinates of atoms
+      double precision pmass    ! Mass of nonelectron quantum particle 
+      double precision zan(nat) ! Classical nuclear charges
+      double precision cat(3,nat) ! XYZ Coordinates of atoms
       double precision bcoef1(ngtg1) 
       double precision gamma1(ngtg1)
       integer loop_map(ng2_seg,6)
 
 ! Variables Returned
-      double precision XG2_1ICR(ng2),XG2_2ICR(ng2),XG2sICR(ng2)
+      double precision XG2_1ICR(ng2),XG2_2ICR(ng2)
+      double precision XG2_3ICR(ng2),XG2sICR(ng2)
 
 ! Local Variables
       integer ip,jp
       integer iec1,jec1  !
       integer iec2,jec2  ! Contracted elec basis function indices
       integer imap,ia
-      double precision OMG2_1,OMG2_2,OMG2s
+      double precision OMG2_1,OMG2_2,OMG2_3,OMG2s
 
 !---OPENMP-RELATED-VARIABLES-----(
       integer IFIL
@@ -340,23 +291,18 @@ C Unsymmetrized integrals in INT_GAM2
 !$omp parallel 
 !$ompx shared(istart,iend)
 !$ompx shared(loop_map)
-!$ompx shared(XG2_1ICR,XG2_2ICR,XG2sICR)
-!$ompx shared(KPESTR,KPEEND)
-!$ompx shared(AMPEB2C,AGEBFCC)
-!$ompx shared(ELCEX,ELCAM,ELCBFC)
-!$ompx shared(KPESTR_be,KPEEND_be)
-!$ompx shared(AMPEB2C_be,AGEBFCC_be)
-!$ompx shared(ELCEX_be,ELCAM_be,ELCBFC_be)
-!$ompx shared(AGNBFCC,NUCEX,NUCAM,NUCBFC)
+!$ompx shared(XG2_1ICR,XG2_2ICR,XG2_3ICR,XG2sICR)
+!$ompx shared(ELCEX,ELCAM,ELCBFC,NUCEX,NUCAM,NUCBFC) 
+!$ompx shared(KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC)
 !$ompx shared(nat,ngtg1,pmass,cat,zan,bcoef1,gamma1)
-!$ompx shared(nebf,npebf,nebfBE,npebfBE,npbf,ng2_seg)
+!$ompx shared(nebf,npebf,npbf,ng2_seg)
 !$ompx shared(ng2)
 !$ompx private(iLp) 
 !$ompx private(imap)
 !$ompx private(ip,jp) 
 !$ompx private(iec1,jec1)
 !$ompx private(iec2,jec2)
-!$ompx private(OMG2_1,OMG2_2,OMG2s)
+!$ompx private(OMG2_1,OMG2_2,OMG2_3,OMG2s)
 !$ompx private(ia)
 !$ompx private(id)
 
@@ -378,27 +324,22 @@ C Unsymmetrized integrals in INT_GAM2
          jp =loop_map(imap,5)
          ip =loop_map(imap,6)
 
-         call RXCHFmult_contract_omega2(ip,jp,iec1,jec1,iec2,jec2,
-     x                                  nebf,npebf,nebfBE,npebfBE,
-     x                                  npbf,nat,ngtg1,
-     x                                  pmass,cat,zan,bcoef1,gamma1,
-     x                                  KPESTR,KPEEND,
-     x                                  AMPEB2C,AGEBFCC,
-     x                                  ELCEX,ELCAM,ELCBFC,
-     x                                  KPESTR_be,KPEEND_be,
-     x                                  AMPEB2C_be,AGEBFCC_be,
-     x                                  ELCEX_be,ELCAM_be,ELCBFC_be,
-     x                                  AGNBFCC,NUCEX,NUCAM,NUCBFC,
-     x                                  OMG2_1,OMG2_2,OMG2s)
+        call RXCHFmult_contract_omega2_convex(ip,jp,iec1,jec1,iec2,jec2,
+     x                            nebf,npebf,npbf,nat,ngtg1,
+     x                            pmass,cat,zan,bcoef1,gamma1,
+     x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                            OMG2_1,OMG2_2,OMG2_3,OMG2s)
 
 
-         call RXCHFmult_GAM_2PK(nebf,nebfBE,npbf,
-     x                          ip,jp,
-     x                          iec1,jec1,
-     x                          iec2,jec2,ia)
+!         XG2ICR(imap)=OMG2
+
+         call index_GAM_2PK(nebf,npbf,
+     x                      ip,jp,iec1,jec1,iec2,jec2,ia)
 
          XG2_1ICR(ia)=OMG2_1
          XG2_2ICR(ia)=OMG2_2
+         XG2_3ICR(ia)=OMG2_3
          XG2sICR(ia)=OMG2s
 
       end do
@@ -410,18 +351,13 @@ C Unsymmetrized integrals in INT_GAM2
       return
       end
 !======================================================================
-      subroutine RXCHFmult_contract_omega2(ip,jp,iec1,jec1,iec2,jec2,
-     x                                     nebf,npebf,nebfBE,npebfBE,
-     x                                     npbf,nat,ngtg1,
-     x                                     pmass,cat,zan,bcoef1,gamma1,
-     x                                     KPESTR,KPEEND,
-     x                                     AMPEB2C,AGEBFCC,
-     x                                     ELCEX,ELCAM,ELCBFC,
-     x                                     KPESTR_be,KPEEND_be,
-     x                                     AMPEB2C_be,AGEBFCC_be,
-     x                                     ELCEX_be,ELCAM_be,ELCBFC_be,
-     x                                     AGNBFCC,NUCEX,NUCAM,NUCBFC,
-     x                                     OMG2_1,OMG2_2,OMG2s)
+      subroutine RXCHFmult_contract_omega2_convex(ip,jp,
+     x                           iec1,jec1,iec2,jec2,
+     x                           nebf,npebf,npbf,nat,ngtg1,
+     x                           pmass,cat,zan,bcoef1,gamma1,
+     x                           KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                           ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                           OMG2_1,OMG2_2,OMG2_3,OMG2s)
 
 !======================================================================
       implicit none
@@ -431,44 +367,34 @@ c     include 'mpif.h'
 C Input Variables
       integer npebf  ! Number primitive electronic basis functions
       integer nebf   ! Number contracted electronic basis functions
-      integer npebfBE! Number primitive electronic basis functions
-      integer nebfBE ! Number contracted electronic basis functions
       integer npbf   ! Number nuclear basis functions
       integer nat    ! Number of atoms
       integer ngtg1  ! Number BGammas
 
       integer ip,jp
-      integer iec1,jec1                     !
-      integer iec2,jec2                     ! Contracted elec basis function indices
-!-------Basis Set Info-------(
-      integer ELCAM(npebf,3)                ! Angular mom for electrons
-      integer NUCAM(npbf,3)                 ! Angular mom for quantum nuclei
-      double precision ELCEX(npebf)         ! Exponents: elec basis
-      double precision NUCEX(npbf)          ! Exponents: nuc basis
-      double precision ELCBFC(npebf,3)      ! Basis centers: elec basis
-      double precision NUCBFC(npbf,3)       ! basis centers: nuc basis
-      integer AMPEB2C(npebf)                ! Map primitive index to contracted
-      double precision AGEBFCC(npebf)       ! Map prim index to contract coef
-      double precision AGNBFCC(npbf)        ! Nuclear contract coef
-      integer KPESTR(nebf)                  ! Map contracted index to primitive start
-      integer KPEEND(nebf)                  ! Map contracted index to primitive end
-! Special electron basis
-      integer ELCAM_be(npebfBE,3)           ! 
-      double precision ELCEX_be(npebfBE)    ! 
-      double precision ELCBFC_be(npebfBE,3) ! 
-      integer AMPEB2C_be(npebfBE)           ! Analogs for special electron basis
-      double precision AGEBFCC_be(npebfBE)  ! 
-      integer KPESTR_be(nebfBE)             ! 
-      integer KPEEND_be(nebfBE)             ! 
-!-------Basis Set Info-------)
-      double precision pmass                ! Mass of nonelectron quantum particle 
-      double precision zan(nat)             ! Classical nuclear charges
-      double precision cat(3,nat)           ! XYZ Coordinates of atoms
+      integer iec1,jec1  !
+      integer iec2,jec2  ! Contracted elec basis function indices
+C-------Basis Set Info-------(
+      integer ELCAM(npebf,3)  ! Angular mom for electrons
+      integer NUCAM(npbf,3)   ! Angular mom for quantum nuclei
+      double precision ELCEX(npebf) ! Exponents: elec basis
+      double precision NUCEX(npbf)  ! Exponents: nuc basis
+      double precision ELCBFC(npebf,3) ! Basis centers: elec basis
+      double precision NUCBFC(npbf,3)  ! basis centers: nuc basis
+      integer AMPEB2C(npebf) ! Map primitive index to contracted
+      double precision AGEBFCC(npebf) ! Map prim index to contract coef
+      double precision AGNBFCC(npbf)  ! Nuclear contract coef
+      integer KPESTR(nebf)  ! Map contracted index to primitive start
+      integer KPEEND(nebf)  ! Map contracted index to primitive end
+C-------Basis Set Info-------)
+      double precision pmass    ! Mass of nonelectron quantum particle 
+      double precision zan(nat) ! Classical nuclear charges
+      double precision cat(3,nat) ! XYZ Coordinates of atoms
       double precision bcoef1(ngtg1) 
       double precision gamma1(ngtg1)
 
 C Variables Returned
-      double precision OMG2_1,OMG2_2,OMG2s
+      double precision OMG2_1,OMG2_2,OMG2_3,OMG2s
 
 C Local Variables
       integer ie1,je1
@@ -502,23 +428,24 @@ C Basis set-related local variables
       double precision B3,Bmat3(3) 
 C--------------------------------)
       double precision ans
-      double precision ansE1,ansE2,ansS
+      double precision ansE1,ansE2,ansE3,ansS
 
 
       ie1_start=KPESTR(iec1)
-      ie2_start=KPESTR_be(iec2)
+      ie2_start=KPESTR(iec2)
 
       je1_start=KPESTR(jec1)
-      je2_start=KPESTR_be(jec2)
+      je2_start=KPESTR(jec2)
 
       ie1_end=KPEEND(iec1)
-      ie2_end=KPEEND_be(iec2)
+      ie2_end=KPEEND(iec2)
 
       je1_end=KPEEND(jec1)
-      je2_end=KPEEND_be(jec2)
+      je2_end=KPEEND(jec2)
 
       OMG2_1=0.0d+00
       OMG2_2=0.0d+00
+      OMG2_3=0.0d+00
       OMG2s=0.0d+00
 
       do ie1=ie1_start,ie1_end
@@ -535,13 +462,13 @@ C             Get Basis set info:
               Amat1(2)=ELCBFC(ie1,2)
               Amat1(3)=ELCBFC(ie1,3)
 
-              A2=ELCEX_be(ie2)
-              I2=ELCAM_be(ie2,1)
-              J2=ELCAM_be(ie2,2)
-              K2=ELCAM_be(ie2,3)
-              Amat2(1)=ELCBFC_be(ie2,1)
-              Amat2(2)=ELCBFC_be(ie2,2)
-              Amat2(3)=ELCBFC_be(ie2,3)
+              A2=ELCEX(ie2)
+              I2=ELCAM(ie2,1)
+              J2=ELCAM(ie2,2)
+              K2=ELCAM(ie2,3)
+              Amat2(1)=ELCBFC(ie2,1)
+              Amat2(2)=ELCBFC(ie2,2)
+              Amat2(3)=ELCBFC(ie2,3)
 
               A3=NUCEX(ip)
               I3=NUCAM(ip,1)
@@ -559,13 +486,13 @@ C             Get Basis set info:
               Bmat1(2)=ELCBFC(je1,2)
               Bmat1(3)=ELCBFC(je1,3)
 
-              B2=ELCEX_be(je2)
-              L2=ELCAM_be(je2,1)
-              M2=ELCAM_be(je2,2)
-              N2=ELCAM_be(je2,3)
-              Bmat2(1)=ELCBFC_be(je2,1)
-              Bmat2(2)=ELCBFC_be(je2,2)
-              Bmat2(3)=ELCBFC_be(je2,3)
+              B2=ELCEX(je2)
+              L2=ELCAM(je2,1)
+              M2=ELCAM(je2,2)
+              N2=ELCAM(je2,3)
+              Bmat2(1)=ELCBFC(je2,1)
+              Bmat2(2)=ELCBFC(je2,2)
+              Bmat2(3)=ELCBFC(je2,3)
 
               B3=NUCEX(jp)
               L3=NUCAM(jp,1)
@@ -577,25 +504,25 @@ C             Get Basis set info:
 
 C  Get primitive Electron Basis Function Contraction Coefficients 
               Cof_ie1=AGEBFCC(ie1)
-              Cof_ie2=AGEBFCC_be(ie2)
+              Cof_ie2=AGEBFCC(ie2)
               Cof_je1=AGEBFCC(je1)
-              Cof_je2=AGEBFCC_be(je2)
+              Cof_je2=AGEBFCC(je2)
 C  Get Nuclear Basis Function Contraction Coefficients
               Cof_ip=AGNBFCC(ip)
               Cof_jp=AGNBFCC(jp)
 
 C ARS( particle 1: regular e ; particle 2: special e ; index 3: prot )
 C---------------------OMG_12-------------------------------------------(
-              call RXCHFmult_GAM2_MD(I1,J1,K1,A1,Amat1,
-     x                               I2,J2,K2,A2,Amat2,
-     x                               I3,J3,K3,A3,Amat3,
-     x                               L1,M1,N1,B1,Bmat1,
-     x                               L2,M2,N2,B2,Bmat2,
-     x                               L3,M3,N3,B3,Bmat3,
-     x                               nat,ngtg1,
-     x                               pmass,cat,zan,
-     x                               bcoef1,gamma1,
-     x                               ansE1,ansE2,ansS)
+              call RXCHFmult_xcalc_GAM2_MDex(I1,J1,K1,A1,Amat1,
+     x                                     I2,J2,K2,A2,Amat2,
+     x                                     I3,J3,K3,A3,Amat3,
+     x                                     L1,M1,N1,B1,Bmat1,
+     x                                     L2,M2,N2,B2,Bmat2,
+     x                                     L3,M3,N3,B3,Bmat3,
+     x                                     nat,ngtg1,
+     x                                     pmass,cat,zan,
+     x                                     bcoef1,gamma1,
+     x                                     ansE1,ansE2,ansE3,ansS)
 
 !                       call underflow(ans)
 
@@ -605,6 +532,11 @@ C---------------------OMG_12-------------------------------------------(
      x                      *Cof_ie2*Cof_je2
 
                         OMG2_2=OMG2_2+ansE2
+     x                      *Cof_ip*Cof_jp
+     x                      *Cof_ie1*Cof_je1
+     x                      *Cof_ie2*Cof_je2
+
+                        OMG2_3=OMG2_3+ansE3
      x                      *Cof_ip*Cof_jp
      x                      *Cof_ie1*Cof_je1
      x                      *Cof_ie2*Cof_je2
@@ -624,16 +556,16 @@ C---------------------OMG_12-------------------------------------------)
       return
       end
 C======================================================================
-      subroutine RXCHFmult_GAM2_MD(I1,J1,K1,A1,Amat1,
-     x                             I2,J2,K2,A2,Amat2,
-     x                             I3,J3,K3,A3,Amat3,
-     x                             L1,M1,N1,B1,Bmat1,
-     x                             L2,M2,N2,B2,Bmat2,
-     x                             L3,M3,N3,B3,Bmat3,
-     x                             nat,ngtg1,
-     x                             pmass,cat,zan,
-     x                             bcoef1,gamma1,
-     x                             ansE1,ansE2,ansS)
+      subroutine RXCHFmult_xcalc_GAM2_MDex(I1,J1,K1,A1,Amat1,
+     x                                   I2,J2,K2,A2,Amat2,
+     x                                   I3,J3,K3,A3,Amat3,
+     x                                   L1,M1,N1,B1,Bmat1,
+     x                                   L2,M2,N2,B2,Bmat2,
+     x                                   L3,M3,N3,B3,Bmat3,
+     x                                   nat,ngtg1,
+     x                                   pmass,cat,zan,
+     x                                   bcoef1,gamma1,
+     x                                   ansE1,ansE2,ansE3,ansS)
 
 C Adapted ../gam_2_OMP.f to account for INT_GAM2 terms separately
 C======================================================================
@@ -651,8 +583,9 @@ c     integer je1,je2,jp
       double precision gamma1(ngtg1)
 
 C Variables Returned
-      double precision ansE1   ! XCHF OMG2 contribution
-      double precision ansE2   ! INT OMG2 contribution
+      double precision ansE1   ! XCHF OMG2  contribution
+      double precision ansE2   ! INT OMG2   contribution
+      double precision ansE3   ! INT OMG2ex contribution
       double precision ansS    ! XCHF OMG2s contribution
 
 C Local Variables
@@ -1154,6 +1087,8 @@ C sum of terms:
      x      + two*gVEEg2*half
 
       ansE2 = gVEPg2 + gVEEg1
+
+      ansE3 = gVEEg2
 
       ansS=gsg
 
