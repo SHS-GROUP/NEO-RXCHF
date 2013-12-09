@@ -587,7 +587,7 @@ C Call separate routine for RXCHF(nbe>1) integral calculations
 
             if(nelec.gt.1) then
 
-              if(.not.(read_GAM2.or.LG2DSCF)) then
+              if(.not.(LG2DSCF)) then
 
                 if(LG2IC1) then
 
@@ -633,12 +633,31 @@ C Above hack commented out as should be handled by EXCHLEV=0
                        if(allocated(GM2exICR)) deallocate(GM2exICR)
                        allocate( GM2exICR(SZG2ICR),stat=istat )
 
+                     if (read_gam2) then
+                      write(*,*) "Reading GAM2 from GAM2.ufm"
+                      call RXCHFmult_readint(ng2,"GAM2.ufm",GM2ICR)
+                      if (EXCHLEV.eq.1) then
+                       write(*,*) "Reading GAM2ex from GAM2ex.ufm"
+                       call RXCHFmult_readint(ng2,"GAM2ex.ufm",GM2exICR)
+                      end if
+                     else
                        call RXCHFne_GAM2_IC1(NG2CHK,nebf,npebf,
      x                           npbf,ng2,ng2prm,nat,ngtg1,
      x                           pmass,cat,zan,bcoef1,gamma1,
      x                           KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                           ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                           GM2ICR,GM2exICR)
+                       write(*,*) "Writing GAM2 to GAM2.ufm"
+                       open(unit=20,file="GAM2.ufm",form="unformatted")
+                       write(20) GM2ICR
+                       close(20)
+                       if (EXCHLEV.eq.1) then
+                        write(*,*) "Writing GAM2ex to GAM2ex.ufm"
+                      open(unit=21,file="GAM2ex.ufm",form="unformatted")
+                        write(21) GM2exICR
+                        close(21)
+                       end if
+                     end if
 
                     end if
 
