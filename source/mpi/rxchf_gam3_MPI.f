@@ -54,6 +54,9 @@
       integer*4 ierr
       integer mpistart,mpiend,arrstart
 
+      integer      unitno               ! File I/O variables
+      character*3  istring              !
+
       integer*4 tag_2
       integer*4 sendrank,recvrank
       integer*4, allocatable :: reqs(:)
@@ -80,6 +83,7 @@
       parameter(zero=0.0d+00,half=0.5d+00,six=6.0d+00)
 
       double precision wtime
+      double precision wtime1
       double precision wtime2
 
 ! Testing Variables
@@ -103,10 +107,20 @@
       GM3_1=0.0d+00
       GM3_2=0.0d+00
 
+C Variables for file I/O
+      unitno=20+rank
+      write(istring,'(I3.3)') rank
+
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_3--------------------------------(
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+      if(rank.eq.0) write(*,2000) 
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
       wtime = MPI_WTIME()
 
       do ichunk=1,Nchunks
+
+         wtime1 = MPI_WTIME()
 
 ! Have threads chop calculation of mpiend-mpistart+1=ng3/nproc integrals
          call loop_size(mpistart,mpiend,Nchunks,ichunk-1,istart,iend)
@@ -163,6 +177,20 @@
      x                         KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                         ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
+         open(unit=unitno,
+     x        file="GM3_1-"//istring//".ufm",
+     x        form="unformatted")
+         write(unitno) GM3_1
+         close(unitno)
+         open(unit=unitno,
+     x        file="GM3_2-"//istring//".ufm",
+     x        form="unformatted")
+         write(unitno) GM3_2
+         close(unitno)
+
+         wtime2 = MPI_WTIME() - wtime1
+         write(*,2001) rank,ichunk,wtime2
+
       end do !end loop over chunks
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_3--------------------------------)
 !-----CLEAN-UP-MEMORY-------------------------------------------------(
@@ -172,12 +200,10 @@
       wtime2 = MPI_WTIME() - wtime
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-      if(rank.eq.0) write(*,2000) 
-
+      if(rank.eq.0) write(*,2010) 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-      write(*,2001) rank,wtime2
+      write(*,2011) rank,wtime2
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !      write(*,*) "start,end,ng3loc:",mpistart,mpiend,ng3loc
@@ -441,15 +467,20 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
  1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I3/
      x        8X,'        OMP THREADS:',1X,I3/)
 
- 2000 FORMAT(/8X,'  INTEGRAL CALCULATION TIMINGS:',/,
-     x        8X,'  -----------------------------')
+ 2000 FORMAT(/8X,'  INTEGRAL BLOCK CALCULATION TIMINGS:',/,
+     x        8X,' -------------------------------------')
 
- 2001 FORMAT( 8X,'    PROCESS ',1X,I4,1X,F10.2)
+ 2001 FORMAT( 8X,' PROCESS ',1X,I4,1X,' BLOCK ',1X,I4,1X,F10.2)
+
+ 2010 FORMAT(/8X,'  TOTAL INTEGRAL CALCULATION TIMINGS:',/,
+     x        8X,'  -----------------------------------')
+
+ 2011 FORMAT( 8X,'       PROCESS ',1X,I4,1X,F10.2)
 
  3000 FORMAT(/8X,' INTEGRAL SYMMETRIZATION TIMINGS:',/,
      x        8X,' --------------------------------')
 
- 3001 FORMAT( 8X,'    PROCESS ',1X,I4,1X,F10.2)
+ 3001 FORMAT( 8X,'     PROCESS ',1X,I4,1X,F10.2)
 
  9001 FORMAT(1X,2(F20.10))
 
@@ -514,6 +545,9 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
       integer*4 ierr
       integer mpistart,mpiend,arrstart
 
+      integer      unitno               ! File I/O variables
+      character*3  istring              !
+
       integer*4 tag_2,tag_3,tag_4
       integer*4 sendrank,recvrank
       integer*4, allocatable :: reqs(:)
@@ -542,6 +576,7 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
       parameter(zero=0.0d+00,half=0.5d+00,six=6.0d+00)
 
       double precision wtime
+      double precision wtime1
       double precision wtime2
 
 ! Testing Variables
@@ -569,10 +604,20 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
       GM3_3=0.0d+00
       GM3_4=0.0d+00
 
+C Variables for file I/O
+      unitno=20+rank
+      write(istring,'(I3.3)') rank
+
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_3--------------------------------(
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+      if(rank.eq.0) write(*,2000) 
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
       wtime = MPI_WTIME()
 
       do ichunk=1,Nchunks
+
+         wtime1 = MPI_WTIME()
 
 ! Have threads chop calculation of mpiend-mpistart+1=ng3/nproc integrals
          call loop_size(mpistart,mpiend,Nchunks,ichunk-1,istart,iend)
@@ -630,6 +675,30 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
      x                           KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                           ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
+         open(unit=unitno,
+     x        file="GM3_1-"//istring//".ufm",
+     x        form="unformatted")
+         write(unitno) GM3_1
+         close(unitno)
+         open(unit=unitno,
+     x        file="GM3_2-"//istring//".ufm",
+     x        form="unformatted")
+         write(unitno) GM3_2
+         close(unitno)
+         open(unit=unitno,
+     x        file="GM3_3-"//istring//".ufm",
+     x        form="unformatted")
+         write(unitno) GM3_3
+         close(unitno)
+         open(unit=unitno,
+     x        file="GM3_4-"//istring//".ufm",
+     x        form="unformatted")
+         write(unitno) GM3_4
+         close(unitno)
+
+         wtime2 = MPI_WTIME() - wtime1
+         write(*,2001) rank,ichunk,wtime2
+
       end do !end loop over chunks
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_3--------------------------------)
 !-----CLEAN-UP-MEMORY-------------------------------------------------(
@@ -638,11 +707,11 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
       wtime2 = MPI_WTIME() - wtime
 
-      if(rank.eq.0) write(*,2000) 
-
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-      write(*,2001) rank,wtime2
+      if(rank.eq.0) write(*,2010) 
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+      write(*,2011) rank,wtime2
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !      write(*,*) "start,end,ng3loc:",mpistart,mpiend,ng3loc
@@ -1208,15 +1277,20 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
  1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I3/
      x        8X,'        OMP THREADS:',1X,I3/)
 
- 2000 FORMAT(/8X,'  INTEGRAL CALCULATION TIMINGS:',/,
-     x        8X,'  -----------------------------')
+ 2000 FORMAT(/8X,'  INTEGRAL BLOCK CALCULATION TIMINGS:',/,
+     x        8X,' -------------------------------------')
 
- 2001 FORMAT( 8X,'    PROCESS ',1X,I4,1X,F10.2)
+ 2001 FORMAT( 8X,' PROCESS ',1X,I4,1X,' BLOCK ',1X,I4,1X,F10.2)
+
+ 2010 FORMAT(/8X,'  TOTAL INTEGRAL CALCULATION TIMINGS:',/,
+     x        8X,'  -----------------------------------')
+
+ 2011 FORMAT( 8X,'       PROCESS ',1X,I4,1X,F10.2)
 
  3000 FORMAT(/8X,' INTEGRAL SYMMETRIZATION TIMINGS:',/,
      x        8X,' --------------------------------')
 
- 3001 FORMAT( 8X,'    PROCESS ',1X,I4,1X,F10.2)
+ 3001 FORMAT( 8X,'     PROCESS ',1X,I4,1X,F10.2)
 
  9001 FORMAT(1X,4(F20.10))
 
