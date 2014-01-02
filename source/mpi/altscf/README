@@ -1,0 +1,7 @@
+Alternative SCF implementations:
+  freezereg           : Microiterating with regular orbitals frozen
+  nomicro             : No microiterating
+  nomicro-freezereg   : No microiterating with regular orbitals frozen
+  protmicro           : Microiterate proton prior to microiterations for electrons
+  protmicro-freezereg : Microiterate proton prior to microiterations for electrons with regular orbitals frozen
+Select which to use by modifying the SCF routine call in ../rxchf_driver_MPI.f 
