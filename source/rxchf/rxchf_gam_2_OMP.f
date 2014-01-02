@@ -373,7 +373,7 @@ c    x                                     ansE,ansS)
      x                      nat,ngtg1,
      x                      pmass,cat,zan,
      x                      bcoef1,gamma1,
-     x                      ansE,ansS)
+     x                      ansE,ansE,ansS)
 c                       ansE=1.0d-08
 c                       ansS=1.0d-08
 

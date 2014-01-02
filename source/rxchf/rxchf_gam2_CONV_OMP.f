@@ -370,7 +370,7 @@ C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------(
      x                             pmass,cat,zan,bcoef1,gamma1,
      x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                            OMG2,OMG2s)
+     x                            OMG2,OMG2,OMG2s)
 
 
          GAM_2(imap)=OMG2

@@ -381,7 +381,7 @@ C-------Basis Set Info-------)
 
 
 !---OPENMP-TIMING------------------------------------------------------(
-      wtime = omp_get_wtime()
+C      wtime = omp_get_wtime()
 !---OPENMP-TIMING------------------------------------------------------)
 
 C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------(
@@ -437,8 +437,8 @@ C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------(
 C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------)
 
 C---OPENMP-TIMING------------------------------------------------------(
-      wtime = omp_get_wtime() - wtime
-      write(*,*)'TIME TO CALCULATE GAM_3 INTEGRALS: ',wtime
+C      wtime = omp_get_wtime() - wtime
+C      write(*,*)'TIME TO CALCULATE GAM_3 INTEGRALS: ',wtime
 !     write(*,*)'ISTART=',istart
 !     write(*,*)'IEND  =',iend
 C---OPENMP-TIMING------------------------------------------------------)

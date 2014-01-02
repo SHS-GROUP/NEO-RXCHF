@@ -47,7 +47,7 @@
       integer my1st,mylast
       integer iLp,imap
       integer Loopi,imas
-      integer ip,jp,iec1,jec1,iec2,jec2,i
+      integer ip,jp,iec1,jec1,iec2,jec2,i,j
       integer,allocatable :: loop_map(:,:)
 
       integer nproc,rank
@@ -56,8 +56,12 @@
 
       integer*4 tag_1,tag_s
       integer*4 sendrank,recvrank
+C      integer*4,allocatable :: req(:)
+C      integer*4,pointer :: req(:)
       integer*4, allocatable :: reqs(:)
+C      integer*4, allocatable, target :: reqs(:)
       integer ia_first,ia_last,nmsgs,reqscount
+      logical flag
       logical locblock
 
       double precision, allocatable :: XGM2_1(:)
@@ -230,6 +234,13 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
          allocate(reqs(nmsgs))
          reqs=MPI_REQUEST_NULL
          reqscount=0
+C         if(locblock) then
+C          write(*,*) "locblock",rank,ia_first,ia_last,
+C     x               mpistart,mpiend,nmsgs
+C         else
+C          write(*,*) "not locblock,first,last:",rank,ia_first,ia_last,
+C     x               mpistart,mpiend,nmsgs
+C         end if
 
 C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 C         if(rank.eq.0) write(*,1001) "index:",rank,ip,jp
@@ -263,6 +274,7 @@ C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
          call MPI_IRECV(XGM2_1(ia_12-arrstart+1),1,
      x                  MPI_DOUBLE_PRECISION,recvrank,tag_1,
      x                  MPI_COMM_WORLD,reqs(reqscount),ierr)
+C         write(*,*) "add req",rank,reqscount,reqs(reqscount),"recv"
         end if
 
        end if
@@ -282,6 +294,7 @@ C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
          call MPI_ISEND(GM2_1(ia_21-arrstart+1),1,
      x                  MPI_DOUBLE_PRECISION,sendrank,tag_1,
      x                  MPI_COMM_WORLD,reqs(reqscount),ierr)
+C         write(*,*) "add req",rank,reqscount,reqs(reqscount),"send"
 
         end if
 
@@ -292,13 +305,54 @@ C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
          end do
          end do
 
-         call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-         if (ierr.ne.0) write(*,*) "Trouble with GM2_1 waitall"
+         if (.not.locblock) then
+C          call MPI_TESTALL(nmsgs,reqs,flag,MPI_STATUSES_IGNORE,ierr)
+C          write(*,*) "testall flag:",rank,flag
+C          call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+C          if (ierr.ne.0) write(*,*) "Trouble with GM2_1 waitall"
+
+C          write(*,*) "nmsgs,reqscount:",rank,nmsgs,reqscount
+C          allocate(req(nmsgs),stat=allocstat)
+C          write(*,*) "stat:",rank,allocstat
+C          do i=1,nmsgs
+C            do j=1,nmsgs
+C              req(j)=reqs(j)
+C            end do
+C            write(*,*) "loop:",rank,i
+CC            if(allocated(req)) deallocate(req)
+CC            req(:)=reqs(:)
+C            write(*,*) "i,reqs 1:",rank,i,reqs(1),reqs(2),reqs(3)
+C            write(*,*) "i,req 1:",rank,i,req(1),req(2),req(3)
+C            if (req(i).ne.MPI_REQUEST_NULL) then
+CC             call MPI_WAIT(req,stat,ierr)
+CC           write(*,*) "allocated 1:",rank,allocated(reqs),allocated(req)
+C             call MPI_TEST(req(i),flag,stat1,ierr)
+CC           write(*,*) "allocated 2:",rank,allocated(reqs),allocated(req)
+C             write(*,*) "i,flag:",rank,i,flag
+C             write(*,*) "i,req 2:",rank,i,req(1),req(2),req(3)
+C             write(*,*) "i,reqs 2:",rank,i,reqs(1),reqs(2),reqs(3)
+C            end if
+C          end do
+
+C          write(*,*) "after all:",rank!,reqs
+          call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+         end if
 
       end do
       end do
 
-      if(allocated(reqs)) deallocate(reqs)
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C      if(allocated(XGM2_1)) deallocate(XGM2_1)
+C      RETURN
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+C      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+C      write(*,*) "after loop:",rank
+C      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+C      if(allocated(reqs)) deallocate(reqs)
+C      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+C      write(*,*) "after loop2:",rank
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 ! Symmetrize integrals locally
       do i=1,ng2loc
@@ -421,8 +475,33 @@ C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
          end do
          end do
 
-         call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-         if (ierr.ne.0) write(*,*) "Trouble with GM2s waitall"
+         if (.not.locblock) then
+CC          call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+CC          if (ierr.ne.0) write(*,*) "Trouble with GM2s waitall"
+C          flag=.false.
+C          write(*,*) "nmsgs,reqscount:",rank,nmsgs,reqscount
+C          do i=1,nmsgs
+C            write(*,*) "loop:",rank,i
+CC            if(allocated(req)) deallocate(req)
+C            allocate(req(nmsgs),stat=allocstat)
+C            write(*,*) "stat:",rank,i,allocstat
+CC            req=reqs(i)
+C            req(:)=reqs(:)
+C            write(*,*) "i,reqs 1:",rank,i,reqs(1),reqs(2),reqs(3)
+C            write(*,*) "i,req 1:",rank,i,req(1),req(2),req(3)
+C            if (req(i).ne.MPI_REQUEST_NULL) then
+CC            call MPI_WAIT(req,stat,ierr)
+CC           write(*,*) "allocated 1:",rank,allocated(reqs),allocated(req)
+CC             call MPI_TEST(req(i),flag,stat,ierr)
+CC           write(*,*) "allocated 2:",rank,allocated(reqs),allocated(req)
+C             write(*,*) "i,flag:",rank,i,flag
+CC             write(*,*) "i,reqs 2:",rank,i,reqs(1),reqs(2),reqs(3)
+CC             write(*,*) "i,req 2:",rank,i,req(1),req(2),req(3)
+C            end if
+C          end do
+C          write(*,*) "after all:",rank!,reqs
+          call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+         end if
 
       end do
       end do
@@ -869,8 +948,15 @@ C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
          end do
          end do
 
-         call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-         if (ierr.ne.0) write(*,*) "Trouble with GM2_1 waitall"
+         if (.not.locblock) then
+C          call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+C          if (ierr.ne.0) write(*,*) "Trouble with GM2_1 waitall"
+C          do i=1,nmsgs
+C            req=reqs(i)
+C            call MPI_WAIT(req,stat,ierr)
+C          end do
+          call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+         end if
 
       end do
       end do
@@ -998,8 +1084,15 @@ C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
          end do
          end do
 
-         call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-         if (ierr.ne.0) write(*,*) "Trouble with GM2_3 waitall"
+         if (.not.locblock) then
+C          call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+C          if (ierr.ne.0) write(*,*) "Trouble with GM2_3 waitall"
+C          do i=1,nmsgs
+C            req=reqs(i)
+C            call MPI_WAIT(req,stat,ierr)
+C          end do
+          call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+         end if
 
       end do
       end do
@@ -1127,8 +1220,15 @@ C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
          end do
          end do
 
-         call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-         if (ierr.ne.0) write(*,*) "Trouble with GM2s waitall"
+         if (.not.locblock) then
+C          call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+C          if (ierr.ne.0) write(*,*) "Trouble with GM2s waitall"
+C          do i=1,nmsgs
+C            req=reqs(i)
+C            call MPI_WAIT(req,stat,ierr)
+C          end do
+          call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+         end if
 
       end do
       end do

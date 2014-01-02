@@ -119,7 +119,7 @@ C Evaluate integral over hermite gaussians
       do u2=0,J2+M2
       do v2=0,K2+N2
 
-         c2=(-one)**dble(t2+u2+v2)
+         c2=dble((-1)**(t2+u2+v2))
 
          Nt=t1+t2
          Nu=u1+u2
@@ -759,7 +759,7 @@ C Evaluate integral over hermite gaussians
       do u2=0,J2+M2
       do v2=0,K2+N2
 
-         c2=(-one)**dble(t2+u2+v2)
+         c2=dble((-1)**(t2+u2+v2))
 
          Nt=t1+t2
          Nu=u1+u2

@@ -306,8 +306,11 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
             end do
             end do
 
-            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
+            if (.not.(locblock)) then
+             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+            end if
+C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+C            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
 
          end do
          end do
@@ -334,11 +337,11 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
       if (LSYMM) then
        if (rank.eq.0) write(*,*) "Symmetrizing GM3_1"
-       call RXCHF_GAM3ex_MPI_symm(nproc,rank,
-     x                            ng3,ng3loc,
-     x                            mpistart,mpiend,arrstart,
-     x                            nebf,npbf,
-     x                            GM3_1)
+       call RXCHF_GAM3_MPI_symm(nproc,rank,
+     x                          ng3,ng3loc,
+     x                          mpistart,mpiend,arrstart,
+     x                          nebf,npbf,
+     x                          GM3_1)
       else
        if (rank.eq.0) write(*,*) "Not symmetrizing GM3_1"
       end if
@@ -773,8 +776,11 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
             end do
             end do
 
-            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
+            if (.not.(locblock)) then
+             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+            end if
+C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+C            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
 
          end do
          end do
@@ -907,8 +913,11 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
             end do
             end do
 
-            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-            if (ierr.ne.0) write(*,*) "Trouble with ia_213 waitall"
+            if (.not.(locblock)) then
+             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+            end if
+C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+C            if (ierr.ne.0) write(*,*) "Trouble with ia_213 waitall"
 
          end do
          end do
@@ -1041,8 +1050,11 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
             end do
             end do
 
-            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-            if (ierr.ne.0) write(*,*) "Trouble with ia_321 waitall"
+            if (.not.(locblock)) then
+             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+            end if
+C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+C            if (ierr.ne.0) write(*,*) "Trouble with ia_321 waitall"
 
          end do
          end do
@@ -1069,11 +1081,11 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
       if (LSYMM) then
        if (rank.eq.0) write(*,*) "Symmetrizing GM3_1"
-       call RXCHF_GAM3ex_MPI_symm(nproc,rank,
-     x                            ng3,ng3loc,
-     x                            mpistart,mpiend,arrstart,
-     x                            nebf,npbf,
-     x                            GM3_1)
+       call RXCHF_GAM3_MPI_symm(nproc,rank,
+     x                          ng3,ng3loc,
+     x                          mpistart,mpiend,arrstart,
+     x                          nebf,npbf,
+     x                          GM3_1)
       else
        if (rank.eq.0) write(*,*) "Not symmetrizing GM3_1"
       end if
@@ -1453,11 +1465,11 @@ C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------)
       return
       end
 C=======================================================================
-      subroutine RXCHF_GAM3ex_MPI_symm(nproc,rank,
-     x                                 ng3,ng3loc,
-     x                                 mpistart,mpiend,arrstart,
-     x                                 nebf,npbf,
-     x                                 GM3_1)
+      subroutine RXCHF_GAM3_MPI_symm(nproc,rank,
+     x                               ng3,ng3loc,
+     x                               mpistart,mpiend,arrstart,
+     x                               nebf,npbf,
+     x                               GM3_1)
 
 C=======================================================================
       implicit none
@@ -1615,8 +1627,11 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
             end do
             end do
 
-            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
+            if (.not.(locblock)) then
+             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+            end if
+C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+C            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
 
          end do
          end do
@@ -1727,8 +1742,11 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
             end do
             end do
 
-            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-            if (ierr.ne.0) write(*,*) "Trouble with ia_213 waitall"
+            if (.not.(locblock)) then
+             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+            end if
+C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+C            if (ierr.ne.0) write(*,*) "Trouble with ia_213 waitall"
 
          end do
          end do
@@ -1839,8 +1857,11 @@ C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
             end do
             end do
 
-            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-            if (ierr.ne.0) write(*,*) "Trouble with ia_321 waitall"
+            if (.not.(locblock)) then
+             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+            end if
+C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+C            if (ierr.ne.0) write(*,*) "Trouble with ia_321 waitall"
 
          end do
          end do
@@ -1953,8 +1974,11 @@ C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
          end do
          end do
 
-         call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-         if (ierr.ne.0) write(*,*) "Trouble with ia_231 waitall"
+         if (.not.(locblock)) then
+          call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+         end if
+C         call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+C         if (ierr.ne.0) write(*,*) "Trouble with ia_231 waitall"
 
       end do
       end do
@@ -2065,8 +2089,11 @@ C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
          end do
          end do
 
-         call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-         if (ierr.ne.0) write(*,*) "Trouble with ia_312 waitall"
+         if (.not.(locblock)) then
+          call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
+         end if
+C         call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
+C         if (ierr.ne.0) write(*,*) "Trouble with ia_312 waitall"
 
       end do
       end do

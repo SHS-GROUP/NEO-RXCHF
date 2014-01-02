@@ -404,7 +404,7 @@ C Get Basis set info:
      x                      nat,ngtg1,
      x                      pmass,cat,zan,
      x                      bcoef1,gamma1,
-     x                      ans)
+     x                      ans,ans)
 
 c                       call underflow(ans)
 

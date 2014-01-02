@@ -380,7 +380,7 @@ c     call MPI_COMM_RANK(MPI_COMM_WORLD,myid,ierr)
 c     call MPI_COMM_SIZE(MPI_COMM_WORLD,nprocs,ierr)
 
 C---OPENMP-TIMING------------------------------------------------------(
-      wtime = omp_get_wtime()
+C      wtime = omp_get_wtime()
 C---OPENMP-TIMING------------------------------------------------------)
 
 C-----------INITIALIZE-DATA-STRUCTURES-ON-MASTER-----------------------(
@@ -573,8 +573,8 @@ c        close(IFIL)
 C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------)
 
 C---OPENMP-TIMING------------------------------------------------------(
-      wtime = omp_get_wtime() - wtime
-      write(*,*)'TIME TO CALCULATE GAM_4 INTEGRALS: ',wtime
+C      wtime = omp_get_wtime() - wtime
+C      write(*,*)'TIME TO CALCULATE GAM_4 INTEGRALS: ',wtime
 C---OPENMP-TIMING------------------------------------------------------)
 
 

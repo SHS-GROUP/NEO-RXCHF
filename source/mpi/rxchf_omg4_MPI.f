@@ -35,6 +35,10 @@ C Local variables
       double precision  XFAE(nebf,nebf)
       double precision  XFBE(nebf,nebf)
       double precision  XFP(npbf,npbf)
+      double precision  TFAE(nebf,nebf)
+      double precision  TFBE(nebf,nebf)
+      double precision  TFP(npbf,npbf)
+      double precision  TE_OMG4
 
       integer,allocatable :: loop_map(:,:)
 
@@ -46,6 +50,10 @@ C Initialize
       XFBE      = 0.0d+00
       XFP       = 0.0d+00
       E_OMG4    = 0.0d+00
+      TFAE      = 0.0d+00
+      TFBE      = 0.0d+00
+      TFP       = 0.0d+00
+      TE_OMG4   = 0.0d+00
 
 ! Each process has ng4/nproc integrals according to rank
 ! Last process also has ng4%nproc remaining integrals
@@ -114,23 +122,24 @@ C Nested loop compression for this chunk:
      x                              loop_map,arrstart,
      x                              DAE,DBE,DP,
      x                              GM4,
-     x                              XFAE,XFBE,XFP,E_OMG4)
+     x                              TFAE,TFBE,TFP,TE_OMG4)
 
       end do !end loop over chunks
 
       if(allocated(loop_map)) deallocate(loop_map)
 
 C Update Fock matrices
-      call MPI_ALLREDUCE(MPI_IN_PLACE,XFAE,nebf*nebf,
+C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
+      call MPI_ALLREDUCE(TFAE(1,1),XFAE(1,1),nebf*nebf,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
-      call MPI_ALLREDUCE(MPI_IN_PLACE,XFBE,nebf*nebf,
+      call MPI_ALLREDUCE(TFBE(1,1),XFBE(1,1),nebf*nebf,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
-      call MPI_ALLREDUCE(MPI_IN_PLACE,XFP,npbf*npbf,
+      call MPI_ALLREDUCE(TFP(1,1),XFP(1,1),npbf*npbf,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
-      call MPI_ALLREDUCE(MPI_IN_PLACE,E_OMG4,1,
+      call MPI_ALLREDUCE(TE_OMG4,E_OMG4,1,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
 
@@ -174,6 +183,9 @@ C Local variables
       integer           ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,iec4,jec4
       double precision  XFE(nebf,nebf)
       double precision  XFP(npbf,npbf)
+      double precision  TFE(nebf,nebf)
+      double precision  TFP(npbf,npbf)
+      double precision  TE_OMG4
 
       integer,allocatable :: loop_map(:,:)
 
@@ -184,6 +196,9 @@ C Initialize
       XFE       = 0.0d+00
       XFP       = 0.0d+00
       E_OMG4    = 0.0d+00
+      TFE       = 0.0d+00
+      TFP       = 0.0d+00
+      TE_OMG4   = 0.0d+00
 
 ! Each process has ng4/nproc integrals according to rank
 ! Last process also has ng4%nproc remaining integrals
@@ -252,20 +267,21 @@ C Nested loop compression for this chunk:
      x                             loop_map,arrstart,
      x                             DE,DP,
      x                             GM4,
-     x                             XFE,XFP,E_OMG4)
+     x                             TFE,TFP,TE_OMG4)
 
       end do !end loop over chunks
 
       if(allocated(loop_map)) deallocate(loop_map)
 
 C Update Fock matrices
-      call MPI_ALLREDUCE(MPI_IN_PLACE,XFE,nebf*nebf,
+C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
+      call MPI_ALLREDUCE(TFE(1,1),XFE(1,1),nebf*nebf,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
-      call MPI_ALLREDUCE(MPI_IN_PLACE,XFP,npbf*npbf,
+      call MPI_ALLREDUCE(TFP(1,1),XFP(1,1),npbf*npbf,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
-      call MPI_ALLREDUCE(MPI_IN_PLACE,E_OMG4,1,
+      call MPI_ALLREDUCE(TE_OMG4,E_OMG4,1,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
 

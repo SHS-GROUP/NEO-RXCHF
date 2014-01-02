@@ -1101,7 +1101,7 @@
 
          write(*,1000) ng4,nchunks,omp_get_num_procs(),
      xomp_get_max_threads(),1
-         wtime = omp_get_wtime()
+C         wtime = omp_get_wtime()
 
 !----READ-GAM_ee-AND-GAM_2s-INTO-MEMORY-------------------------------(
       if(allocated(GAM_ee)) deallocate(GAM_ee)
@@ -1114,7 +1114,7 @@
 
       do ichunk=1,Nchunks
 
-         wtime2 = omp_get_wtime()
+C         wtime2 = omp_get_wtime()
 
          call loop_size(1,ng4,Nchunks,ichunk-1,istart,iend)
 
@@ -1167,8 +1167,8 @@
          call thread_omg4_IC(ne,np,ngee,ng2,ng4,ng4_seg,istart,iend,
      x                       loop_map,GAM_ee,GAM_2s,GAM_4)
 
-         wtime2 = omp_get_wtime() - wtime2
-         write(*,2000)ichunk,wtime2
+C         wtime2 = omp_get_wtime() - wtime2
+C         write(*,2000)ichunk,wtime2
 
       end do !end loop over chunks
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_4--------------------------------)
@@ -1180,8 +1180,8 @@
 !     if(allocated(GAM_4)) deallocate(GAM_4)
 !-----CLEAN-UP-AND-RETURN---------------------------------------------)
 
-      wtime = omp_get_wtime() - wtime
-      write(*,3000)wtime
+C      wtime = omp_get_wtime() - wtime
+C      write(*,3000)wtime
 
 
  1000 FORMAT(/6X,'+---------------------------------------------+',/,

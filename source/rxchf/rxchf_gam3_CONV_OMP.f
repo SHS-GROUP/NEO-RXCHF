@@ -381,7 +381,7 @@ C-------Basis Set Info-------)
 
 
 !---OPENMP-TIMING------------------------------------------------------(
-      wtime = omp_get_wtime()
+C      wtime = omp_get_wtime()
 !---OPENMP-TIMING------------------------------------------------------)
 
 C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------(
@@ -427,7 +427,7 @@ C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------(
      x                             pmass,cat,zan,bcoef1,gamma1,
      x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                            OMG3)
+     x                            OMG3,OMG3)
 
          GAM_3(imap)=OMG3
 
@@ -437,8 +437,8 @@ C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------(
 C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------)
 
 C---OPENMP-TIMING------------------------------------------------------(
-      wtime = omp_get_wtime() - wtime
-      write(*,*)'TIME TO CALCULATE GAM_3 INTEGRALS: ',wtime
+C      wtime = omp_get_wtime() - wtime
+C      write(*,*)'TIME TO CALCULATE GAM_3 INTEGRALS: ',wtime
 !     write(*,*)'ISTART=',istart
 !     write(*,*)'IEND  =',iend
 C---OPENMP-TIMING------------------------------------------------------)
