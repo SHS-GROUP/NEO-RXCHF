@@ -15,7 +15,7 @@ FIL=$@
 F77=ftn
 #OPT='-O2 -openmp -integer-size 64 -fp-model strict -no-ftz -ipo -c' # Intel
 #OPT='-O2 -mp=nonuma -i8 -i8storage -r8 -Mnoflushz -Ktrap=fp -c' # PGI
-OPT='-O2 -s default64 -Ktrap=fp -R b -c' #Cray
+OPT='-O2 -s default64 -Ktrap=fp -c' #Cray
 
 set echo
 

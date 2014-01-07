@@ -491,6 +491,10 @@ C            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
       end
 !=======================================================================
       subroutine RXCHF_GAM3ex_MPI(nproc,rank,
+C ARS( blocks
+     x                            nblocks,blockrank,
+     x                            blockstart,blockend,
+C )
      x                            Nchunks,nebf,npebf,npbf,
      x                            ng3,ng3loc,ng3prm,nat,ngtg1,
      x                            pmass,cat,zan,bcoef1,gamma1,
@@ -505,6 +509,11 @@ C            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
       include 'omp_lib.h'
 
 ! Input Variables
+C ARS( blocks
+      integer nblocks
+      integer blockrank
+      integer blockstart,blockend
+C )
       integer Nchunks
       integer ng3             ! Total number of integrals
       integer ng3loc          ! Number of integrals for MPI proc to calc
@@ -549,7 +558,7 @@ C            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
       integer mpistart,mpiend,arrstart
 
       integer      unitno               ! File I/O variables
-      character*3  istring              !
+      character*4  istring              !
 
       integer*4 tag_2,tag_3,tag_4
       integer*4 sendrank,recvrank
@@ -597,6 +606,14 @@ C            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
       call get_mpi_range(ng3,nproc,rank,mpistart,mpiend)
       if(rank.eq.(nproc-1)) mpiend=ng3
 
+C ARS( blocks
+      mpistart=mpistart+blockstart-1
+      mpiend=mpiend+blockstart-1
+C      write(*,*) "nblocks,blockrank,blockstart,blockend,
+C     x            mpistart,mpiend:",rank,nblocks,blockrank,
+C     x            blockstart,blockend,mpistart,mpiend
+C )
+
       if (rank.eq.0) then
        write(*,1000) ng3,nchunks
        write(*,1500) nproc,omp_get_max_threads()
@@ -608,8 +625,8 @@ C            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
       GM3_4=0.0d+00
 
 C Variables for file I/O
-      unitno=20+rank
-      write(istring,'(I3.3)') rank
+      unitno=120+rank
+      write(istring,'(I4.4)') rank
 
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_3--------------------------------(
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -679,22 +696,22 @@ C Variables for file I/O
      x                           ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
          open(unit=unitno,
-     x        file="GM3_1-"//istring//".ufm",
+     x        file="XCHF_GAM3-"//istring//".ufm",
      x        form="unformatted")
          write(unitno) GM3_1
          close(unitno)
          open(unit=unitno,
-     x        file="GM3_2-"//istring//".ufm",
+     x        file="INT_GAM3-"//istring//".ufm",
      x        form="unformatted")
          write(unitno) GM3_2
          close(unitno)
          open(unit=unitno,
-     x        file="GM3_3-"//istring//".ufm",
+     x        file="INT_GAM3ex1-"//istring//".ufm",
      x        form="unformatted")
          write(unitno) GM3_3
          close(unitno)
          open(unit=unitno,
-     x        file="GM3_4-"//istring//".ufm",
+     x        file="INT_GAM3ex2-"//istring//".ufm",
      x        form="unformatted")
          write(unitno) GM3_4
          close(unitno)
@@ -722,6 +739,10 @@ C Variables for file I/O
 !       write(*,9001) GM3_1(i),GM3_2(i),
 !     x               GM3_3(i),GM3_4(i)
 !      end do
+
+C ARS( blocks
+      if (nblocks.eq.1) then
+C )
 
 !--------------------SYMMETRIZE----------------------------------------(
 C Symmetrized integrals in GM3_1ICR (XCHF integrals)
@@ -1172,7 +1193,18 @@ C            if (ierr.ne.0) write(*,*) "Trouble with ia_321 waitall"
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
       write(*,3001) rank,wtime2
+
 !--------------------SYMMETRIZE----------------------------------------)
+
+C ARS( blocks
+      else
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+       if(rank.eq.0) then
+        write(*,*) "  NOT SYMMETRIZING GAM3!!!  "
+       end if
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+      end if
+C )
 
 ! Construct global arrays on master process for testing
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)

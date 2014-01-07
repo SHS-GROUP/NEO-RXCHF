@@ -653,6 +653,9 @@ C          write(*,*) "after all:",rank!,reqs
       end
 !=======================================================================
       subroutine RXCHF_GAM2ex_MPI(nproc,rank,
+C ARS( blocks
+     x                            nblocks,blockrank,
+C )
      x                            Nchunks,nebf,npebf,npbf,
      x                            ng2,ng2loc,ng2prm,nat,ngtg1,
      x                            pmass,cat,zan,bcoef1,gamma1,
@@ -666,6 +669,10 @@ C          write(*,*) "after all:",rank!,reqs
       include 'omp_lib.h'
 
 ! Input Variables
+C ARS( blocks
+      integer nblocks
+      integer blockrank
+C )
       integer Nchunks
       integer ng2             ! Total number of integrals
       integer ng2loc          ! Number of integrals for MPI proc to calc
@@ -830,6 +837,10 @@ C          write(*,*) "after all:",rank!,reqs
 !       write(*,9001) GM2_1(i),GM2_2(i),
 !     x               GM2_3(i),GM2s(i)
 !      end do
+
+C ARS( blocks
+      if (nblocks.eq.1) then
+C )
 
 !--------------------SYMMETRIZE----------------------------------------(
 C Symmetrized integrals in GM2_1ICR (XCHF integrals)
@@ -1255,6 +1266,16 @@ C          end do
 
       write(*,3001) rank,wtime2
 !--------------------SYMMETRIZE----------------------------------------)
+
+C ARS( blocks
+      else
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+       if(rank.eq.0) then
+        write(*,*) "  NOT SYMMETRIZING GAM2!!!  "
+       end if
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+      end if
+C )
 
 ! Construct global array on master process for testing
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
