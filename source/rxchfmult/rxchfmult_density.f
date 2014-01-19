@@ -42,11 +42,15 @@
       return
       end
 !=======================================================================
-      subroutine RXCHFmult_read_CAE(nebf,NAE,DAE,C)
+      subroutine RXCHFmult_read_CAE(nebf,nebfBE,LALTBAS,elindBE,
+     x                              NAE,DAE,C)
 !=======================================================================
       implicit none
 ! Input Variables
       integer nebf,NAE
+      integer nebfBE              ! num bfs in special elec basis
+      logical LALTBAS             ! flag for distinct special elec basis
+      integer elindBE(nebfBE)     ! Contracted indices of NBE basis set
 ! Variables Returned
       double precision DAE(nebf,nebf)
 ! Local Variables
@@ -55,6 +59,8 @@
       integer ie1,je1
       integer I,J,NMOS,IC,IMIN,IMAX,NUM1,JJ,ICC,NSTM,MODJ,MODIC
       integer k
+      integer contrind,currcontrind
+      logical laddbasis
       double precision ans
       double precision coeff
       double precision C(nebf,nebf)
@@ -104,7 +110,40 @@
 
       close(862)
 
-      C=VEC
+      if (LALTBAS) then
+
+C Reorder electronic basis set such that special electron subset is first
+       currcontrind=1
+
+C First add bfs that are also in special electronic set
+       do i=1,nebfBE
+         contrind=elindBE(i)
+         do j=1,nebf
+           C(currcontrind,j)=VEC(contrind,j)
+         end do
+         currcontrind=currcontrind+1
+       end do
+
+C Add remaining bfs
+       do i=1,nebf
+         laddbasis=.true.
+         do j=1,nebfBE
+           contrind=elindBE(j)
+           if (i.eq.contrind) laddbasis=.false.
+         end do
+         if (laddbasis) then
+          do j=1,nebf
+            C(currcontrind,j)=VEC(i,j)
+          end do
+          currcontrind=currcontrind+1
+         end if
+       end do
+
+      else
+
+       C=VEC
+
+      end if
 
 !-----FORM-DENSITY-MATRIX----------------------------------------------(
       if(NAE.gt.1) then

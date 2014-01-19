@@ -8,6 +8,7 @@ fi
 
 EXEDIR=../bin
 EXE=$1
+LIBDIR=/opt/intel/Compiler/11.1/075/mkl/lib/em64t
 
 if [ -e $EXEDIR/$EXE.exe ] ; then
   echo "Executable $EXE.exe exists in ../bin. Exiting..."
@@ -20,6 +21,8 @@ OPT='-O2 -openmp -integer-size 64 -fp-model strict -no-ftz -ipo'                
 #OPT='-O2 -openmp -openmp-link static -integer-size 64 -fp-model strict -no-ftz -xHOST -ipo'    # LionXF/PSU cluster options
 #OPT='-O2 -openmp -traceback -check all -integer-size 64 -fp-model strict -no-ftz -ipo'         # Debug options
 
+LIB="-L$LIBDIR -Wl,--start-group $LIBDIR/libmkl_intel_lp64.a $LIBDIR/libmkl_intel_thread.a $LIBDIR/libmkl_core.a -Wl,--end-group -liomp5 -lpthread -lm"
+
 FILS='../object/*.o'
 
 set echo
@@ -28,9 +31,13 @@ echo Using compiler $F77 with options $OPT to link files
 echo
 echo $FILS
 echo
+echo with libraries
+echo
+echo $LIB
+echo
 echo to executable $EXE.exe in ../bin
 
-$F77 $OPT $FILS -o $EXEDIR/$EXE.exe
+$F77 $OPT $FILS $LIB -o $EXEDIR/$EXE.exe
 
 echo Done.
 

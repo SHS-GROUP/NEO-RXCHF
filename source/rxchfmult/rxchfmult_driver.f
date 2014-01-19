@@ -350,18 +350,18 @@ C     => INT_GAM3ex2 only needed if RXCHF-ae
        write(*,*) "---------------------------"
 
        write(*,*) " Reading:         INT_GAM2 "
-       call RXCHFmult_readint(dimINT2,"INT_GAM2.ufm",INT_GAM2)
+       call RXCHFmult_readint(12,dimINT2,"INT_GAM2.ufm",INT_GAM2)
 
        if (LADDEXCH) then
         write(*,*) "                INT_GAM2ex "
-        call RXCHFmult_readint(dimINT2ex,"INT_GAM2ex.ufm",INT_GAM2ex)
+        call RXCHFmult_readint(14,dimINT2ex,"INT_GAM2ex.ufm",INT_GAM2ex)
        end if
 
        if (nbe.gt.1) then
         write(*,*) "                 XCHF_GAM2 "
         write(*,*) "                XCHF_GAM2s "
-        call RXCHFmult_readint(dimXCHF2,"XCHF_GAM2.ufm",XCHF_GAM2)
-        call RXCHFmult_readint(dimXCHF2,"XCHF_GAM2s.ufm",XCHF_GAM2s)
+        call RXCHFmult_readint(13,dimXCHF2,"XCHF_GAM2.ufm",XCHF_GAM2)
+        call RXCHFmult_readint(14,dimXCHF2,"XCHF_GAM2s.ufm",XCHF_GAM2s)
        end if
 
        write(*,*) "---------------------------"
@@ -439,13 +439,15 @@ C     => INT_GAM3ex2 only needed if RXCHF-ae
        write(*,*) "---------------------------"
 
        write(*,*) " Reading:         INT_GAM3 "
-       call RXCHFmult_readint(dimINT3,"INT_GAM3.ufm",INT_GAM3)
+       call RXCHFmult_readint(12,dimINT3,"INT_GAM3.ufm",INT_GAM3)
 
        if (LADDEXCH) then
         write(*,*) "               INT_GAM3ex1 "
         write(*,*) "               INT_GAM3ex2 "
-        call RXCHFmult_readint(dimINT3ex,"INT_GAM3ex1.ufm",INT_GAM3ex1)
-        call RXCHFmult_readint(dimINT3ex,"INT_GAM3ex2.ufm",INT_GAM3ex2)
+        call RXCHFmult_readint(15,dimINT3ex,
+     x                         "INT_GAM3ex1.ufm",INT_GAM3ex1)
+        call RXCHFmult_readint(15,dimINT3ex,
+     x                         "INT_GAM3ex2.ufm",INT_GAM3ex2)
        end if
 
        write(*,*) "---------------------------"
@@ -532,7 +534,7 @@ C     => INT_GAM4
         write(*,*) "---------------------------"
         write(*,*)
 
-        call RXCHFmult_readint(dimXCHF3,"XCHF_GAM3.ufm",XCHF_GAM3)
+        call RXCHFmult_readint(13,dimXCHF3,"XCHF_GAM3.ufm",XCHF_GAM3)
 
        else
 
@@ -573,7 +575,7 @@ C     => INT_GAM4
         write(*,*) "---------------------------"
         write(*,*)
 
-        call RXCHFmult_readint(dimINT4,"INT_GAM4.ufm",INT_GAM4)
+        call RXCHFmult_readint(12,dimINT4,"INT_GAM4.ufm",INT_GAM4)
 
        else
 
@@ -618,7 +620,7 @@ C     => XCHF_GAM4
          write(*,*) "---------------------------"
          write(*,*)
 
-         call RXCHFmult_readint(dimXCHF4,"XCHF_GAM4.ufm",XCHF_GAM4)
+         call RXCHFmult_readint(13,dimXCHF4,"XCHF_GAM4.ufm",XCHF_GAM4)
 
         else
 
@@ -644,13 +646,6 @@ C     => XCHF_GAM4
       end if ! nbe >= 3
 
       wtime1 = omp_get_wtime() - wtime
-
-      write(*,*) "dimINT2:",dimINT2
-      write(*,*) "dimINT3:",dimINT3
-      write(*,*) "dimINT4:",dimINT4
-      write(*,*) "dimXCHF2:",dimXCHF2
-      write(*,*) "dimXCHF3:",dimXCHF3
-      write(*,*) "dimXCHF4:",dimXCHF4
 
 C Integral testing(
 C     write(*,*)
@@ -707,7 +702,7 @@ C Kick-off SCF
       nebflt=nebf*(nebf+1)/2
 
       nebfBE2=nebfBE*nebfBE
-      nebflt=nebfBE*(nebfBE+1)/2
+      nebfBElt=nebfBE*(nebfBE+1)/2
 
       npbf2=npbf*npbf
       npbflt=npbf*(npbf+1)/2
@@ -729,7 +724,7 @@ C Kick-off SCF
 
       call RXCHFmult_scf(nelec,nae,nbe,npra,nprb,nucst,
      x                   npebf,nebf,nebf2,nebflt,
-     x                   npebfBE,nebfBE,nebfBE2,nebfBElt,
+     x                   npebfBE,nebfBE,nebfBE2,nebfBElt,elindBE,
      x                   npbf,npbf2,npbflt,
      x                   ngtg1,ngee,
      x                   NG2CHK,NG3CHK,NG4CHK,
@@ -794,7 +789,7 @@ C Print timing summary
 
 
 C=======================================================================
-      subroutine RXCHFmult_readint(n,fname,arr)
+      subroutine RXCHFmult_readint(namelen,n,fname,arr)
 
 C Reads integrals from file "fname" into an n-dimensional array [arr]
 C Integrals must be written to an unformatted file as a one-array-write
@@ -802,8 +797,8 @@ C=======================================================================
       implicit none
 
 C Input variables
-      integer n
-      character*15 fname
+      integer namelen,n
+      character(len=namelen) fname
 C Output variables
       double precision arr(n)
 C Local variables

@@ -41,8 +41,8 @@
 .false. =LXCROHF
 .true.  =LRXCHF
 .false. =LRXCUHF
-.true.   =read_CE optional read in elec vectors from guessCE.inp
-.true.   =read_CP optional read in nuc vectors from guessCP.inp
+.false.  =read_CE optional read in elec vectors from guessCE.inp
+.false.  =read_CP optional read in nuc vectors from guessCP.inp
 .false. =read_GAM2  |
 .false. =read_GAM3  | Options to read integrals from file
 .false. =read_GAM4  |
@@ -61,7 +61,7 @@
 .true.  =LSOSCF
 .true.  =LOCBSE
 0       =EXCHLEV
-10      =nebfBE
+8       =nebfBE
 1
 2
 3
@@ -70,6 +70,4 @@
 6
 7
 8
-9
-10
 
