@@ -836,9 +836,10 @@ C ARS( new stuff
 
 ! Transform FBE (calculated at end of previous iteration) to new W basis
 !  - W updated with new vecA from this iteration
-!  - vecBE in old W basis still from previous iteration
-         call RXCHFmult_OCBSE_transF(nebf,nocca,nwbf,
-     x                               vecAE,FBE,WB,wFBEw)
+!  - vecBE in AO basis from previous iteration is transformed to new W basis
+!    (relevant for SOSCF only)
+         call RXCHFmult_OCBSE_transF(nebf,nwbf,vecAE(:,nocca+1:nebf),
+     x                               FBE,WB,wFBEw)
 
 !-----------------------POSSIBLE-SOSCF-BETA----------------------------(
          if(LSOSCFB) THEN
@@ -848,6 +849,9 @@ C ARS( new stuff
          IF(LSOSCFB .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
 !!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
            call pack_LT(nwbf,nwbfLT,wFBEw,wFLTw)
+! Transform vecBE that was used to build FBE into new W basis
+           call RXCHFmult_OCBSE_transVt(nebf,nwbf,WB,
+     x                                  xxse,vecBE,wvecBEw)
            call SOGRAD(GRADB,wFLTw,wvecBEw,wWRKw,NPRB,NB,
      x                 L0w,L1w,NwBFLT,ORBGRDB)
 !!!!!!      IF(ORBGRD.LT.SMALL) THEN
@@ -1819,7 +1823,7 @@ C )
       end
 
 !======================================================================
-      subroutine RXCHFmult_OCBSE_transF(nebf,nocca,nwbf,
+      subroutine RXCHFmult_OCBSE_transF(nebf,nwbf,
      x                                  vecAE,FBE,WB,wFBEw)
 !
 !     OCBSE Procedure:
@@ -1827,12 +1831,14 @@ C )
 !       - Transform FBE (wFBEw)
 !
 !  Transformation to virtual space of regular electrons (in vecAE)
+!  vecAE on input are the virtuals only (no occupied) to facilitate
+!  portability to restricted basis set formulation
 !
 !======================================================================
       implicit none
 ! Input Variables
       integer nebf
-      integer nocca,nwbf
+      integer nwbf
       double precision vecAE(nebf,nebf)
       double precision FBE(nebf,nebf)
 ! Variables Returned
@@ -1857,15 +1863,15 @@ C )
       zero2=zero
 
       if (debug) then
-       write(*,*) "nebf-nocca,nwbf:",nebf-nocca,nwbf
+       write(*,*) "nwbf:",nwbf
        write(*,*) "MATRIX vecAE:"
-       call PREVNU(vecAE,zero1,nebf,nebf,nebf)
+       call PREVNU(vecAE,zero1,nwbf,nebf,nebf)
       end if
 
 ! Form special electronic transformation matrix
       do i=1,nwbf
         do j=1,nebf
-          WB(j,i)=vecAE(j,nocca+i)
+          WB(j,i)=vecAE(j,i)
         end do
       end do
 
@@ -1994,6 +2000,91 @@ C )
       if (debug) then
        WRITE(*,*) "MATRIX New vecBE:"
        call PREVNU(vecBE,BEen,nebf,nebf,nebf)
+      end if
+
+      return
+      end
+
+!======================================================================
+      subroutine RXCHFmult_OCBSE_transVt(nebf,nwbf,WB,
+     x                                   Selec,vecBE,wvecBEw)
+!
+!     OCBSE Procedure:
+!       - Transform vectors from AO basis to W basis vecBE -> wvecBEw
+!
+!======================================================================
+      implicit none
+! Input Variables
+      integer nebf
+      integer nwbf
+      double precision WB(nebf,nwbf)
+      double precision vecBE(nebf,nebf)
+      double precision Selec(nebf,nebf)
+! Variables Returned
+      double precision wvecBEw(nwbf,nwbf)
+! Local variables
+      integer i,j
+      double precision WBtrans(nwbf,nebf)
+      double precision WBinv(nwbf,nebf)
+      double precision blockvecBE(nwbf,nebf)
+      double precision wSBw(nwbf,nwbf)
+      double precision zero1(nwbf),zero2(nebf)
+      double precision zero
+      parameter(zero=0.0d+00)
+      integer k,l
+      double precision ovlap
+
+      logical debug
+      debug=.false.
+
+! Initialize
+      WBtrans=zero
+      WBinv=zero
+      blockvecBE=zero
+      wvecBEw=zero
+      zero1=zero
+      zero2=zero
+
+      if (debug) then
+       WRITE(*,*) "MATRIX Pretransformed vecBE:"
+       call PREVNU(vecBE,zero2,nebf,nebf,nebf)
+      end if
+
+      if (debug) then
+       WRITE(*,*) "MATRIX Pretransformed WB:"
+       call PREVNU(WB,zero1,nwbf,nebf,nebf)
+      end if
+
+! Form transpose
+      do i=1,nwbf
+        do j=1,nebf
+          WBtrans(i,j)=WB(j,i)
+        end do
+      end do
+
+      call RXCHF_matmult(nwbf,nebf,nebf,nebf,
+     x                   WBtrans,Selec,WBinv)
+      call RXCHF_matmult(nwbf,nebf,nebf,nwbf,
+     x                   WBinv,WB,wSBw)
+
+      if (debug) then
+      write(*,*) "MATRIX wSBw:"
+      call PREVNU(wSBw,zero1,nwbf,nwbf,nwbf)
+      end if
+
+! Transform evectors to W basis as xvecBE = (W^t * S_AO) * vecBE
+      call RXCHF_matmult(nwbf,nebf,nebf,nebf,WBinv,vecBE,blockvecBE)
+
+! Pass evectors to output variables (unpassed part should be zero)
+      do i=1,nwbf
+        do j=1,nwbf
+          wvecBEw(j,i)=blockvecBE(j,i)
+        end do
+      end do
+
+      if (debug) then
+       WRITE(*,*) "MATRIX Transformed wvecBEw:"
+       call PREVNU(wvecBEw,zero1,nwbf,nwbf,nwbf)
       end if
 
       return
