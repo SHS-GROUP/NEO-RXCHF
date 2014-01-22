@@ -907,9 +907,10 @@ C ARS( OCBSE/SOSCF
 
 ! Transform FBE (calculated at end of previous iteration) to new W basis
 !  - W updated with new vecA from this iteration
-!  - vecBE in old W basis still from previous iteration
-         call RXCHFmult_OCBSE_transF(nebf,nocca,nwbf,
-     x                               vecAE,FBE,WB,wFBEw)
+!  - vecBE in AO basis from previous iteration is transformed to new W basis
+!    (relevant for SOSCF only)
+         call RXCHFmult_OCBSE_transF(nebf,nwbf,vecAE(:,nocca+1:nebf),
+     x                               FBE,WB,wFBEw)
 
 !-----------------------POSSIBLE-SOSCF-BETA----------------------------(
          if(LSOSCFB) THEN
@@ -919,6 +920,9 @@ C ARS( OCBSE/SOSCF
          IF(LSOSCFB .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
 !!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
            call pack_LT(nwbf,nwbfLT,wFBEw,wFLTw)
+! Transform vecBE that was used to build FBE into new W basis
+           call RXCHFmult_OCBSE_transVt(nebf,nwbf,WB,
+     x                                  xxse,vecBE,wvecBEw)
            call SOGRAD(GRADB,wFLTw,wvecBEw,wWRKw,NPRB,NB,
      x                 L0w,L1w,NwBFLT,ORBGRDB)
 !!!!!!      IF(ORBGRD.LT.SMALL) THEN

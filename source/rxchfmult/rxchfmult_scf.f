@@ -1839,7 +1839,7 @@ C )
 ! Input Variables
       integer nebf
       integer nwbf
-      double precision vecAE(nebf,nebf)
+      double precision vecAE(nebf,nwbf)
       double precision FBE(nebf,nebf)
 ! Variables Returned
       double precision WB(nebf,nwbf)
