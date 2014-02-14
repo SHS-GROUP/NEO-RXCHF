@@ -272,7 +272,7 @@ C ARS( testing variables
       double precision work1(nebf,nebf)
       double precision work2(nebf,nebf)
 C )
-      integer*4 ierr
+      integer ierr
 
 !--------OUTPUT-FORMATTING---------------------------------------------(
  9000 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
@@ -582,7 +582,8 @@ C         if((nbe.eq.1).or.(LOCBSE).or.(LOCBSE2)) LSOSCFB=.FALSE.
       DO I=1,MAXIT
 
 C Call HF Fock build for NAE regular electrons
-         call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
+         call RXCHF_fock_hf_MPI(nproc,rank,
+     x                          LCMF,nebf,nebf2,NAE,ngee,
      x                          DAE,GAM_ecore,GAM_ee,
      x                          FAE,E_HF,E_HF_ecore,E_HF_ee)
 
@@ -698,7 +699,8 @@ C )
 
        if((.not.((locbse).or.(locbse2))).or.(ielec.eq.1)) then
 C Call HF Fock build for NAE regular electrons
-           call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
+           call RXCHF_fock_hf_MPI(nproc,rank,
+     x                            LCMF,nebf,nebf2,NAE,ngee,
      x                            DAE,GAM_ecore,GAM_ee,
      x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
 
@@ -781,7 +783,8 @@ C )
 ! Calculate energy for this it and Fock matrices for next it
 
 C Call HF Fock build for NAE regular electrons
-           call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
+           call RXCHF_fock_hf_MPI(nproc,rank,
+     x                            LCMF,nebf,nebf2,NAE,ngee,
      x                            DAE,GAM_ecore,GAM_ee,
      x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
 
@@ -975,7 +978,8 @@ C )
 ! Calculate energy for this it and Fock matrices for next it
 
 C Call HF Fock build for NAE regular electrons
-           call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
+           call RXCHF_fock_hf_MPI(nproc,rank,
+     x                            LCMF,nebf,nebf2,NAE,ngee,
      x                            DAE,GAM_ecore,GAM_ee,
      x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
 

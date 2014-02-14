@@ -1,5 +1,7 @@
 !=======================================================================
       subroutine RXCHF_GAM3_MPI(nproc,rank,
+     x                          nblocks,blockrank,
+     x                          blockstart,blockend,
      x                          Nchunks,nebf,npebf,npbf,
      x                          ng3,ng3loc,ng3prm,nat,ngtg1,
      x                          pmass,cat,zan,bcoef1,gamma1,
@@ -10,9 +12,11 @@
 !=======================================================================
       implicit none
       include 'mpif.h'
-      include 'omp_lib.h'
 
 ! Input Variables
+      integer nblocks
+      integer blockrank
+      integer blockstart,blockend
       integer Nchunks
       integer ng3             ! Total number of integrals
       integer ng3loc          ! Number of integrals for MPI proc to calc
@@ -51,33 +55,10 @@
       integer,allocatable :: loop_map(:,:)
 
       integer nproc,rank
-      integer*4 ierr
+      integer ierr
       integer mpistart,mpiend,arrstart
 
-      integer      unitno               ! File I/O variables
-      character*3  istring              !
-
-      integer*4 tag_2
-      integer*4 sendrank,recvrank
-      integer*4, allocatable :: reqs(:)
-      integer ia_first,ia_last,nmsgs,reqscount
-      logical locblock
-
-      double precision, allocatable :: XGM3_2(:)
-
-      integer ia
-      integer ia_123
-      integer ia_132
-      integer ia_213
-      integer ia_231
-      integer ia_312
-      integer ia_321
-
-      double precision x123
-      double precision x132
-      double precision x213
-      double precision x321
-      double precision xxxx
+      character*4  istring              ! File I/O variables
 
       double precision zero,half,six
       parameter(zero=0.0d+00,half=0.5d+00,six=6.0d+00)
@@ -99,6 +80,12 @@
       call get_mpi_range(ng3,nproc,rank,mpistart,mpiend)
       if(rank.eq.(nproc-1)) mpiend=ng3
 
+      mpistart=mpistart+blockstart-1
+      mpiend=mpiend+blockstart-1
+C      write(*,*) "nblocks,blockrank,blockstart,blockend,
+C     x            mpistart,mpiend:",rank,nblocks,blockrank,
+C     x            blockstart,blockend,mpistart,mpiend
+
       if (rank.eq.0) then
        write(*,1000) ng3,nchunks
        write(*,1500) nproc,omp_get_max_threads()
@@ -108,8 +95,7 @@
       GM3_2=0.0d+00
 
 C Variables for file I/O
-      unitno=20+rank
-      write(istring,'(I3.3)') rank
+      write(istring,'(I4.4)') rank
 
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_3--------------------------------(
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -177,25 +163,20 @@ C Variables for file I/O
      x                         KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                         ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
-         open(unit=unitno,
-     x        file="GM3_1-"//istring//".ufm",
-     x        form="unformatted")
-         write(unitno) GM3_1
-         close(unitno)
-         open(unit=unitno,
-     x        file="GM3_2-"//istring//".ufm",
-     x        form="unformatted")
-         write(unitno) GM3_2
-         close(unitno)
+         call RXCHF_writeint_mpi(nproc,rank,ng3loc,18,
+     x                           "XCHF_GAM3-"//istring//".ufm",
+     x                           GM3_1)
+         call RXCHF_writeint_mpi(nproc,rank,ng3loc,17,
+     x                           "INT_GAM3-"//istring//".ufm",
+     x                           GM3_2)
 
          wtime2 = MPI_WTIME() - wtime1
          write(*,2001) rank,ichunk,wtime2
 
       end do !end loop over chunks
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_3--------------------------------)
-!-----CLEAN-UP-MEMORY-------------------------------------------------(
+
       if(allocated(loop_map)) deallocate(loop_map)
-!-----CLEAN-UP-MEMORY-------------------------------------------------)
 
       wtime2 = MPI_WTIME() - wtime
 
@@ -211,171 +192,29 @@ C Variables for file I/O
 !       write(*,9001) GM3_1(i),GM3_2(i)
 !      end do
 
+! Symmetrize only if all integrals have been calculated
+      if (nblocks.eq.1) then
+
 !--------------------SYMMETRIZE----------------------------------------(
-C Symmetrized integrals in GM3_1ICR (XCHF integrals)
-C  - completed using separate routine to reduce memory requirements
+C Symmetrized integrals in GM3_1ICR (XCHF integrals) (if LSYMM)
 C Symmetrized integrals in GM3_2ICR (interaction integrals)
-C  - completed simultaneously
 
       wtime = MPI_WTIME() 
 
-! Allocate storage for temporary arrays to store ia_ji integrals
-      if(allocated(XGM3_2)) deallocate(XGM3_2)
-      allocate(XGM3_2(ng3loc)) ! stores ia_132 integrals
-      XGM3_2=0.0d+00
-
-! Get appropriate ia_ji values for XGM3_2
       if (rank.eq.0) write(*,*) "Symmetrizing GM3_2"
-
-      do ip=1,npbf
-      do jp=1,npbf
-         do iec1=1,nebf
-         do jec1=1,nebf
-
-! Get indices of first/last integrals to be passed for fixed ip,jp,iec1,jec1
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,iec1,jec1,
-     x                         1,1,1,1,ia_first)
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,iec1,jec1,
-     x                         nebf,nebf,nebf,nebf,ia_last)
-! Determine how many messages (send+recv) will be passed by this MPI proc
-! Only pass through MPI in case of block being split over >1 MPI proc
-            if((mpistart.le.ia_first).and.(mpiend.ge.ia_last)) then
-             nmsgs=2*(ia_last-ia_first+1)
-             locblock=.true.
-            else
-             locblock=.false.
-             if((mpistart.ge.ia_first).and.(mpistart.le.ia_last)) then
-              if (mpiend.le.ia_last) then
-               nmsgs=2*(mpiend-mpistart+1)
-              else
-               nmsgs=2*(ia_last-mpistart+1)
-              end if
-             else if((mpiend.ge.ia_first).and.(mpiend.le.ia_last)) then
-              if (mpistart.le.ia_first) then
-               nmsgs=2*(mpiend-ia_first+1)
-              else
-               nmsgs=2*(mpiend-mpistart+1)
-              end if
-             else
-              nmsgs=1
-              locblock=.true.
-             end if
-            end if
-! Allocate and initialize arrays for MPI requests
-            if(allocated(reqs)) deallocate(reqs)
-            allocate(reqs(nmsgs))
-            reqs=MPI_REQUEST_NULL
-            reqscount=0
-
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-C            if(rank.eq.0) write(*,1001) "index:",rank,ip,jp,iec1,jec1
-C            write(*,*) "nmsgs:",rank,nmsgs
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-            do iec2=1,nebf
-            do jec2=1,nebf
-               do iec3=1,nebf
-               do jec3=1,nebf
-
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,ia)
-                             ia_123=ia
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec1,jec1,iec3,jec3,iec2,jec2,ia)
-                             ia_132=ia
-
-! ia_123 index is on this MPI process
-       if ((ia_123.ge.mpistart).and.(ia_123.le.mpiend)) then
-
-        if (locblock) then
-         XGM3_2(ia_123-arrstart+1)=GM3_2(ia_132-arrstart+1)
-        else
-! MPI receive ia_ji integrals and store in X* arrs at ia_ji index
-         call pack_4D(nebf,nebf,nebf,
-     x                jec3,iec3,jec2,iec2,ia)
-         tag_2=int(ia,kind=4)
-         reqscount=reqscount+1
-
-! Get ia_132 for GM3_2
-         call get_mpi_proc(ng3,nproc,ia_132,recvrank)
-         call MPI_IRECV(XGM3_2(ia_123-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,recvrank,tag_2,
-     x                  MPI_COMM_WORLD,reqs(reqscount),ierr)
-        end if
-
-       end if
-
-! ia_132 index is on this MPI process
-       if ((ia_132.ge.mpistart).and.(ia_132.le.mpiend)) then
-
-        if (.not.(locblock)) then
-! Get rank of MPI process with ia_123 integrals
-         call get_mpi_proc(ng3,nproc,ia_123,sendrank)
-
-! MPI send ia_132 integrals for GM3_2
-         call pack_4D(nebf,nebf,nebf,
-     x                jec3,iec3,jec2,iec2,ia)
-         tag_2=int(ia,kind=4)
-         reqscount=reqscount+1
-         call MPI_ISEND(GM3_2(ia_132-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,sendrank,tag_2,
-     x                  MPI_COMM_WORLD,reqs(reqscount),ierr)
-
-        end if
-
-       end if
-
-               end do
-               end do
-            end do
-            end do
-
-            if (.not.(locblock)) then
-             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
-            end if
-C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-C            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
-
-         end do
-         end do
-      end do
-      end do
-
-      if(allocated(reqs)) deallocate(reqs)
-
-! Symmetrize integrals locally
-      do i=1,ng3loc
-
-        x123=GM3_2(i)
-        x132=XGM3_2(i)
-        GM3_2(i)=(x123+x132)*half
-
-      end do
-
-! Done with GM3_2 integrals
-      if(allocated(XGM3_2)) deallocate(XGM3_2)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Symmetrize GM3_1 integrals
+      call gam3_symm1(nproc,rank,
+     x                nebf,npbf,ng3,ng3loc,GM3_2)
 
       if (LSYMM) then
-       if (rank.eq.0) write(*,*) "Symmetrizing GM3_1"
-       call RXCHF_GAM3_MPI_symm(nproc,rank,
-     x                          ng3,ng3loc,
-     x                          mpistart,mpiend,arrstart,
-     x                          nebf,npbf,
-     x                          GM3_1)
-      else
-       if (rank.eq.0) write(*,*) "Not symmetrizing GM3_1"
+C       if (rank.eq.0) write(*,*) "Symmetrizing GM3_1"
+C       call RXCHF_GAM3_MPI_symm(nproc,rank,
+C     x                          ng3,ng3loc,
+C     x                          mpistart,mpiend,arrstart,
+C     x                          nebf,npbf,
+C     x                          GM3_1)
+       if (rank.eq.0) write(*,*) "GM3_1 symm not supported yet"
       end if
-
-!      write(*,*) "start,end,ng3loc:",mpistart,mpiend,ng3loc
-!      do i=1,ng3loc
-!       write(*,9001) GM3_1(i),GM3_2(i)
-!      end do
+      if (rank.eq.0) write(*,*) "Not symmetrizing GM3_1"
 
       wtime2 = MPI_WTIME() - wtime
 
@@ -387,6 +226,14 @@ C            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
 
       write(*,3001) rank,wtime2
 !--------------------SYMMETRIZE----------------------------------------)
+
+      else
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+       if(rank.eq.0) then
+        write(*,*) "  NOT SYMMETRIZING GAM3!!!  "
+       end if
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+      end if
 
 ! Construct global arrays on master process for testing
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -491,10 +338,8 @@ C            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
       end
 !=======================================================================
       subroutine RXCHF_GAM3ex_MPI(nproc,rank,
-C ARS( blocks
      x                            nblocks,blockrank,
      x                            blockstart,blockend,
-C )
      x                            Nchunks,nebf,npebf,npbf,
      x                            ng3,ng3loc,ng3prm,nat,ngtg1,
      x                            pmass,cat,zan,bcoef1,gamma1,
@@ -506,14 +351,11 @@ C )
 !=======================================================================
       implicit none
       include 'mpif.h'
-      include 'omp_lib.h'
 
 ! Input Variables
-C ARS( blocks
       integer nblocks
       integer blockrank
       integer blockstart,blockend
-C )
       integer Nchunks
       integer ng3             ! Total number of integrals
       integer ng3loc          ! Number of integrals for MPI proc to calc
@@ -554,35 +396,10 @@ C )
       integer,allocatable :: loop_map(:,:)
 
       integer nproc,rank
-      integer*4 ierr
+      integer ierr
       integer mpistart,mpiend,arrstart
 
-      integer      unitno               ! File I/O variables
-      character*4  istring              !
-
-      integer*4 tag_2,tag_3,tag_4
-      integer*4 sendrank,recvrank
-      integer*4, allocatable :: reqs(:)
-      integer ia_first,ia_last,nmsgs,reqscount
-      logical locblock
-
-      double precision, allocatable :: XGM3_2(:)
-      double precision, allocatable :: XGM3_3(:)
-      double precision, allocatable :: XGM3_4(:)
-
-      integer ia
-      integer ia_123
-      integer ia_132
-      integer ia_213
-      integer ia_231
-      integer ia_312
-      integer ia_321
-
-      double precision x123
-      double precision x132
-      double precision x213
-      double precision x321
-      double precision xall
+      character*4  istring              ! File I/O variables
 
       double precision zero,half,six
       parameter(zero=0.0d+00,half=0.5d+00,six=6.0d+00)
@@ -606,13 +423,11 @@ C )
       call get_mpi_range(ng3,nproc,rank,mpistart,mpiend)
       if(rank.eq.(nproc-1)) mpiend=ng3
 
-C ARS( blocks
       mpistart=mpistart+blockstart-1
       mpiend=mpiend+blockstart-1
 C      write(*,*) "nblocks,blockrank,blockstart,blockend,
 C     x            mpistart,mpiend:",rank,nblocks,blockrank,
 C     x            blockstart,blockend,mpistart,mpiend
-C )
 
       if (rank.eq.0) then
        write(*,1000) ng3,nchunks
@@ -625,7 +440,6 @@ C )
       GM3_4=0.0d+00
 
 C Variables for file I/O
-      unitno=120+rank
       write(istring,'(I4.4)') rank
 
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_3--------------------------------(
@@ -695,35 +509,26 @@ C Variables for file I/O
      x                           KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                           ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
-         open(unit=unitno,
-     x        file="XCHF_GAM3-"//istring//".ufm",
-     x        form="unformatted")
-         write(unitno) GM3_1
-         close(unitno)
-         open(unit=unitno,
-     x        file="INT_GAM3-"//istring//".ufm",
-     x        form="unformatted")
-         write(unitno) GM3_2
-         close(unitno)
-         open(unit=unitno,
-     x        file="INT_GAM3ex1-"//istring//".ufm",
-     x        form="unformatted")
-         write(unitno) GM3_3
-         close(unitno)
-         open(unit=unitno,
-     x        file="INT_GAM3ex2-"//istring//".ufm",
-     x        form="unformatted")
-         write(unitno) GM3_4
-         close(unitno)
+         call RXCHF_writeint_mpi(nproc,rank,ng3loc,18,
+     x                           "XCHF_GAM3-"//istring//".ufm",
+     x                           GM3_1)
+         call RXCHF_writeint_mpi(nproc,rank,ng3loc,17,
+     x                           "INT_GAM3-"//istring//".ufm",
+     x                           GM3_2)
+         call RXCHF_writeint_mpi(nproc,rank,ng3loc,20,
+     x                           "INT_GAM3ex1-"//istring//".ufm",
+     x                           GM3_3)
+         call RXCHF_writeint_mpi(nproc,rank,ng3loc,20,
+     x                           "INT_GAM3ex2-"//istring//".ufm",
+     x                           GM3_4)
 
          wtime2 = MPI_WTIME() - wtime1
          write(*,2001) rank,ichunk,wtime2
 
       end do !end loop over chunks
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_3--------------------------------)
-!-----CLEAN-UP-MEMORY-------------------------------------------------(
+
       if(allocated(loop_map)) deallocate(loop_map)
-!-----CLEAN-UP-MEMORY-------------------------------------------------)
 
       wtime2 = MPI_WTIME() - wtime
 
@@ -740,453 +545,43 @@ C Variables for file I/O
 !     x               GM3_3(i),GM3_4(i)
 !      end do
 
-C ARS( blocks
+! Symmetrize only if all integrals have been calculated
       if (nblocks.eq.1) then
-C )
 
 !--------------------SYMMETRIZE----------------------------------------(
-C Symmetrized integrals in GM3_1ICR (XCHF integrals)
-C  - completed using separate routine to reduce memory requirements
+C Symmetrized integrals in GM3_1ICR (XCHF integrals) (if LSYMM)
 C Symmetrized integrals in GM3_2ICR (interaction integrals)
 C Symmetrized integrals in GM3_3ICR (exchange integrals)
 C Symmetrized integrals in GM3_4ICR (exchange integrals)
-C  - completed sequentially in this routine
 
-      wtime = MPI_WTIME() 
+      wtime = MPI_WTIME()
 
-! Get appropriate ia_ji values for XGM3_2
       if (rank.eq.0) write(*,*) "Symmetrizing GM3_2"
+      call gam3_symm1(nproc,rank,
+     x                nebf,npbf,ng3,ng3loc,GM3_2)
 
-! Allocate storage for temporary arrays to store ia_ji integrals
-      if(allocated(XGM3_2)) deallocate(XGM3_2)
-      allocate(XGM3_2(ng3loc)) ! stores ia_132 integrals
-      XGM3_2=0.0d+00
-
-      do ip=1,npbf
-      do jp=1,npbf
-         do iec1=1,nebf
-         do jec1=1,nebf
-
-! Get indices of first/last integrals to be passed for fixed ip,jp,iec1,jec1
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,iec1,jec1,
-     x                         1,1,1,1,ia_first)
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,iec1,jec1,
-     x                         nebf,nebf,nebf,nebf,ia_last)
-! Determine how many messages (send+recv) will be passed by this MPI proc
-! Only pass through MPI in case of block being split over >1 MPI proc
-            if((mpistart.le.ia_first).and.(mpiend.ge.ia_last)) then
-             nmsgs=2*(ia_last-ia_first+1)
-             locblock=.true.
-            else
-             locblock=.false.
-             if((mpistart.ge.ia_first).and.(mpistart.le.ia_last)) then
-              if (mpiend.le.ia_last) then
-               nmsgs=2*(mpiend-mpistart+1)
-              else
-               nmsgs=2*(ia_last-mpistart+1)
-              end if
-             else if((mpiend.ge.ia_first).and.(mpiend.le.ia_last)) then
-              if (mpistart.le.ia_first) then
-               nmsgs=2*(mpiend-ia_first+1)
-              else
-               nmsgs=2*(mpiend-mpistart+1)
-              end if
-             else
-              nmsgs=1
-              locblock=.true.
-             end if
-            end if
-! Allocate and initialize arrays for MPI requests
-            if(allocated(reqs)) deallocate(reqs)
-            allocate(reqs(nmsgs))
-            reqs=MPI_REQUEST_NULL
-            reqscount=0
-
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-C            if(rank.eq.0) write(*,1001) "index:",rank,ip,jp,iec1,jec1
-C            write(*,*) "nmsgs:",rank,nmsgs
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-            do iec2=1,nebf
-            do jec2=1,nebf
-               do iec3=1,nebf
-               do jec3=1,nebf
-
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,ia)
-                             ia_123=ia
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec1,jec1,iec3,jec3,iec2,jec2,ia)
-                             ia_132=ia
-
-! ia_123 index is on this MPI process
-       if ((ia_123.ge.mpistart).and.(ia_123.le.mpiend)) then
-
-        if (locblock) then
-         XGM3_2(ia_123-arrstart+1)=GM3_2(ia_132-arrstart+1)
-        else
-! MPI receive ia_ji integrals and store in X* arrs at ia_ji index
-         call pack_4D(nebf,nebf,nebf,
-     x                jec3,iec3,jec2,iec2,ia)
-         tag_2=int(ia,kind=4)
-         reqscount=reqscount+1
-
-! Get ia_132 for GM3_2
-         call get_mpi_proc(ng3,nproc,ia_132,recvrank)
-         call MPI_IRECV(XGM3_2(ia_123-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,recvrank,tag_2,
-     x                  MPI_COMM_WORLD,reqs(reqscount),ierr)
-        end if
-
-       end if
-
-! ia_132 index is on this MPI process
-       if ((ia_132.ge.mpistart).and.(ia_132.le.mpiend)) then
-
-        if (.not.(locblock)) then
-! Get rank of MPI process with ia_123 integrals
-         call get_mpi_proc(ng3,nproc,ia_123,sendrank)
-
-! MPI send ia_132 integrals for GM3_2
-         call pack_4D(nebf,nebf,nebf,
-     x                jec3,iec3,jec2,iec2,ia)
-         tag_2=int(ia,kind=4)
-         reqscount=reqscount+1
-         call MPI_ISEND(GM3_2(ia_132-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,sendrank,tag_2,
-     x                  MPI_COMM_WORLD,reqs(reqscount),ierr)
-        end if
-
-       end if
-
-               end do
-               end do
-            end do
-            end do
-
-            if (.not.(locblock)) then
-             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
-            end if
-C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-C            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
-
-         end do
-         end do
-      end do
-      end do
-
-      if(allocated(reqs)) deallocate(reqs)
-
-! Symmetrize integrals locally
-      do i=1,ng3loc
-
-        x123=GM3_2(i)
-        x132=XGM3_2(i)
-        GM3_2(i)=(x123+x132)*half
-
-      end do
-
-! Done with GM3_2 integrals
-      if(allocated(XGM3_2)) deallocate(XGM3_2)
-
-! Get appropriate ia_ji values for XGM3_3
       if (rank.eq.0) write(*,*) "Symmetrizing GM3_3"
+      call gam3_symm2(nproc,rank,
+     x                nebf,npbf,ng3,ng3loc,GM3_3)
 
-! Allocate storage for temporary arrays to store ia_ji integrals
-      if(allocated(XGM3_3)) deallocate(XGM3_3)
-      allocate(XGM3_3(ng3loc)) ! stores ia_213 integrals
-      XGM3_3=0.0d+00
-
-      do ip=1,npbf
-      do jp=1,npbf
-         do iec3=1,nebf
-         do jec3=1,nebf
-
-! Get indices of first/last integrals to be passed for fixed ip,jp,iec3,jec3
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,1,1,
-     x                         1,1,iec3,jec3,ia_first)
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,nebf,nebf,
-     x                         nebf,nebf,iec3,jec3,ia_last)
-! Determine how many messages (send+recv) will be passed by this MPI proc
-! Only pass through MPI in case of block being split over >1 MPI proc
-            if((mpistart.le.ia_first).and.(mpiend.ge.ia_last)) then
-             nmsgs=2*(ia_last-ia_first+1)
-             locblock=.true.
-            else
-             locblock=.false.
-             if((mpistart.ge.ia_first).and.(mpistart.le.ia_last)) then
-              if (mpiend.le.ia_last) then
-               nmsgs=2*(mpiend-mpistart+1)
-              else
-               nmsgs=2*(ia_last-mpistart+1)
-              end if
-             else if((mpiend.ge.ia_first).and.(mpiend.le.ia_last)) then
-              if (mpistart.le.ia_first) then
-               nmsgs=2*(mpiend-ia_first+1)
-              else
-               nmsgs=2*(mpiend-mpistart+1)
-              end if
-             else
-              nmsgs=1
-              locblock=.true.
-             end if
-            end if
-! Allocate and initialize arrays for MPI requests
-            if(allocated(reqs)) deallocate(reqs)
-            allocate(reqs(nmsgs))
-            reqs=MPI_REQUEST_NULL
-            reqscount=0
-
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-C            if(rank.eq.0) write(*,1001) "index:",rank,ip,jp,iec3,jec3
-C            write(*,*) "nmsgs:",rank,nmsgs
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-            do iec1=1,nebf
-            do jec1=1,nebf
-               do iec2=1,nebf
-               do jec2=1,nebf
-
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,ia)
-                             ia_123=ia
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec2,jec2,iec1,jec1,iec3,jec3,ia)
-                             ia_213=ia
-
-! ia_123 index is on this MPI process
-       if ((ia_123.ge.mpistart).and.(ia_123.le.mpiend)) then
-
-        if (locblock) then
-         XGM3_3(ia_123-arrstart+1)=GM3_3(ia_213-arrstart+1)
-        else
-! MPI receive ia_ji integrals and store in X* arrs at ia_ji index
-         call pack_4D(nebf,nebf,nebf,
-     x                jec2,iec2,jec1,iec1,ia)
-         tag_3=int(ia,kind=4)
-         reqscount=reqscount+1
-
-! Get ia_213 for GM3_3
-        call get_mpi_proc(ng3,nproc,ia_213,recvrank)
-        call MPI_IRECV(XGM3_3(ia_123-arrstart+1),1,
-     x                 MPI_DOUBLE_PRECISION,recvrank,tag_3,
-     x                 MPI_COMM_WORLD,reqs(reqscount),ierr)
-        end if
-
-       end if
-
-! ia_213 index is on this MPI process
-       if ((ia_213.ge.mpistart).and.(ia_213.le.mpiend)) then
-
-        if (.not.(locblock)) then
-! Get rank of MPI process with ia_123 integrals
-         call get_mpi_proc(ng3,nproc,ia_123,sendrank)
-
-! MPI send ia_213 integrals for GM3_3
-         call pack_4D(nebf,nebf,nebf,
-     x                jec2,iec2,jec1,iec1,ia)
-         tag_3=int(ia,kind=4)
-         reqscount=reqscount+1
-         call MPI_ISEND(GM3_3(ia_213-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,sendrank,tag_3,
-     x                  MPI_COMM_WORLD,reqs(reqscount),ierr)
-        end if
-
-       end if
-
-               end do
-               end do
-            end do
-            end do
-
-            if (.not.(locblock)) then
-             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
-            end if
-C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-C            if (ierr.ne.0) write(*,*) "Trouble with ia_213 waitall"
-
-         end do
-         end do
-      end do
-      end do
-
-      if(allocated(reqs)) deallocate(reqs)
-
-! Symmetrize integrals locally
-      do i=1,ng3loc
-
-        x123=GM3_3(i)
-        x213=XGM3_3(i)
-        GM3_3(i)=(x123+x213)*half
-
-      end do
-
-! Done with GM3_3 integrals
-      if(allocated(XGM3_3)) deallocate(XGM3_3)
-
-! Get appropriate ia_ji values for XGM3_4
       if (rank.eq.0) write(*,*) "Symmetrizing GM3_4"
-
-! Allocate storage for temporary arrays to store ia_ji integrals
-      if(allocated(XGM3_4)) deallocate(XGM3_4)
-      allocate(XGM3_4(ng3loc)) ! stores ia_321 integrals
-      XGM3_4=0.0d+00
-
-      do ip=1,npbf
-      do jp=1,npbf
-         do iec2=1,nebf
-         do jec2=1,nebf
-
-! Get indices of first/last integrals to be passed for fixed ip,jp,iec2,jec2
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,1,1,
-     x                         iec2,iec2,1,1,ia_first)
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,nebf,nebf,
-     x                         iec2,iec2,nebf,nebf,ia_last)
-! Determine how many messages (send+recv) will be passed by this MPI proc
-! Only pass through MPI in case of block being split over >1 MPI proc
-            if((mpistart.le.ia_first).and.(mpiend.ge.ia_last)) then
-             nmsgs=2*(ia_last-ia_first+1)
-             locblock=.true.
-            else
-             locblock=.false.
-             if((mpistart.ge.ia_first).and.(mpistart.le.ia_last)) then
-              if (mpiend.le.ia_last) then
-               nmsgs=2*(mpiend-mpistart+1)
-              else
-               nmsgs=2*(ia_last-mpistart+1)
-              end if
-             else if((mpiend.ge.ia_first).and.(mpiend.le.ia_last)) then
-              if (mpistart.le.ia_first) then
-               nmsgs=2*(mpiend-ia_first+1)
-              else
-               nmsgs=2*(mpiend-mpistart+1)
-              end if
-             else
-              nmsgs=1
-              locblock=.true.
-             end if
-            end if
-! Allocate and initialize arrays for MPI requests
-            if(allocated(reqs)) deallocate(reqs)
-            allocate(reqs(nmsgs))
-            reqs=MPI_REQUEST_NULL
-            reqscount=0
-
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-C            if(rank.eq.0) write(*,1001) "index:",rank,ip,jp,iec2,jec2
-C            write(*,*) "nmsgs:",rank,nmsgs
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-            do iec1=1,nebf
-            do jec1=1,nebf
-               do iec3=1,nebf
-               do jec3=1,nebf
-
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,ia)
-                             ia_123=ia
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec3,jec3,iec2,jec2,iec1,jec1,ia)
-                             ia_321=ia
-
-! ia_123 index is on this MPI process
-       if ((ia_123.ge.mpistart).and.(ia_123.le.mpiend)) then
-
-        if (locblock) then
-         XGM3_4(ia_123-arrstart+1)=GM3_4(ia_321-arrstart+1)
-        else
-! MPI receive ia_ji integrals and store in X* arrs at ia_ji index
-         call pack_4D(nebf,nebf,nebf,
-     x                jec3,iec3,jec1,iec1,ia)
-         tag_4=int(ia,kind=4)
-         reqscount=reqscount+1
-
-! Get ia_321 for GM3_4
-         call get_mpi_proc(ng3,nproc,ia_321,recvrank)
-         call MPI_IRECV(XGM3_4(ia_123-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,recvrank,tag_4,
-     x                  MPI_COMM_WORLD,reqs(reqscount),ierr)
-        end if
-
-       end if
-
-! ia_321 index is on this MPI process
-       if ((ia_321.ge.mpistart).and.(ia_321.le.mpiend)) then
-
-        if (.not.(locblock)) then
-! Get rank of MPI process with ia_123 integrals
-         call get_mpi_proc(ng3,nproc,ia_123,sendrank)
-
-! MPI send ia_321 integrals for GM3_4
-         call pack_4D(nebf,nebf,nebf,
-     x                jec3,iec3,jec1,iec1,ia)
-         tag_4=int(ia,kind=4)
-         reqscount=reqscount+1
-         call MPI_ISEND(GM3_4(ia_321-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,sendrank,tag_4,
-     x                  MPI_COMM_WORLD,reqs(reqscount),ierr)
-        end if
-
-       end if
-
-               end do
-               end do
-            end do
-            end do
-
-            if (.not.(locblock)) then
-             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
-            end if
-C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-C            if (ierr.ne.0) write(*,*) "Trouble with ia_321 waitall"
-
-         end do
-         end do
-      end do
-      end do
-
-      if(allocated(reqs)) deallocate(reqs)
-
-! Symmetrize integrals locally
-      do i=1,ng3loc
-
-        x123=GM3_4(i)
-        x321=XGM3_4(i)
-        GM3_4(i)=(x123+x321)*half
-
-      end do
-
-! Done with GM3_4 integrals
-      if(allocated(XGM3_4)) deallocate(XGM3_4)
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Symmetrize GM3_1 integrals
+      call gam3_symm3(nproc,rank,
+     x                nebf,npbf,ng3,ng3loc,GM3_4)
 
       if (LSYMM) then
-       if (rank.eq.0) write(*,*) "Symmetrizing GM3_1"
-       call RXCHF_GAM3_MPI_symm(nproc,rank,
-     x                          ng3,ng3loc,
-     x                          mpistart,mpiend,arrstart,
-     x                          nebf,npbf,
-     x                          GM3_1)
-      else
-       if (rank.eq.0) write(*,*) "Not symmetrizing GM3_1"
+C       if (rank.eq.0) write(*,*) "Symmetrizing GM3_1"
+C       call RXCHF_GAM3_MPI_symm(nproc,rank,
+C     x                          ng3,ng3loc,
+C     x                          mpistart,mpiend,arrstart,
+C     x                          nebf,npbf,
+C     x                          GM3_1)
+       if (rank.eq.0) write(*,*) "GM3_1 symm not supported yet"
       end if
-
-!      write(*,*) "start,end,ng3loc:",mpistart,mpiend,ng3loc
-!      do i=1,ng3loc
-!       write(*,9001) GM3_1(i),GM3_2(i),
-!     x               GM3_3(i),GM3_4(i)
-!      end do
+      if (rank.eq.0) write(*,*) "Not symmetrizing GM3_1"
 
       wtime2 = MPI_WTIME() - wtime
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
       if(rank.eq.0) write(*,3000) 
 
@@ -1196,7 +591,6 @@ C            if (ierr.ne.0) write(*,*) "Trouble with ia_321 waitall"
 
 !--------------------SYMMETRIZE----------------------------------------)
 
-C ARS( blocks
       else
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
        if(rank.eq.0) then
@@ -1204,7 +598,6 @@ C ARS( blocks
        end if
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
       end if
-C )
 
 ! Construct global arrays on master process for testing
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -1571,652 +964,358 @@ C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------)
       return
       end
 C=======================================================================
-      subroutine RXCHF_GAM3_MPI_symm(nproc,rank,
-     x                               ng3,ng3loc,
-     x                               mpistart,mpiend,arrstart,
-     x                               nebf,npbf,
-     x                               GM3_1)
+      subroutine gam3_symm1(nproc,rank,
+     x                      nebf,npbf,ntotints,nlocints,GAM3)
 
 C=======================================================================
       implicit none
-      include 'mpif.h'
+      include "mpif.h"
 
-C Input Variables
-      integer nproc     ! Number of MPI processes
-      integer rank      ! Rank of this MPI proc
-      integer ng3       ! Total number of integrals
-      integer ng3loc    ! Number of integrals for MPI proc to calc
-      integer mpistart  ! Start index covered by this MPI proc
-      integer mpiend    ! End index covered by this MPI proc
-      integer arrstart  ! Index shift for this MPI proc
-      integer nebf      ! Number contracted electronic basis functions
-      integer npbf      ! Number nuclear basis functions
-      integer*4 ierr
+! Input variables
+      integer nproc,rank
+      integer nebf,npbf
+      integer ntotints,nlocints
 
-! Output Variables
-      double precision GM3_1(ng3loc)  ! On output, symmetrized integrals
+! Input/output variables
+      double precision GAM3(nlocints)
 
-! Local Variables
-      integer ip,jp
-      integer iec1,jec1  !
-      integer iec2,jec2  ! Contracted elec basis function indices
-      integer iec3,jec3  !
+! Local variables
+      integer i
+      integer mpistart,mpiend
+      integer ip,jp,ie1,je1,ie2,je2,ie3,je3
+      integer ia_first,ia_last
+      integer ia,ia_12,ia_21
+      integer tag,reqscount,ierr
+      integer sendrank,recvrank
+      integer reqs(2*nlocints)
+      double precision x12,x21
+      double precision xGAM3(nlocints)
 
-      double precision XGM3_1(ng3loc)    ! Stores reduction of integrals
-      double precision XGM3_1aux(ng3loc) ! Stores individual set of integrals
+      xGAM3=0.0d+00
 
-      integer*4 tag_1
-      integer*4 sendrank,recvrank
-      integer*4, allocatable :: reqs(:)
-      integer ia_first,ia_last,nmsgs,reqscount
-      logical locblock
+      call get_mpi_range(ntotints,nproc,rank,mpistart,mpiend)
+      if(rank.eq.(nproc-1)) mpiend=ntotints
 
-      integer i,ia
-      integer ia_123
-      integer ia_132
-      integer ia_213
-      integer ia_231
-      integer ia_312
-      integer ia_321
-
-      double precision x123
-      double precision xall
-
-      double precision zero,six
-      parameter(zero=0.0d+00,six=6.0d+00)
-
-!--------------------SYMMETRIZE----------------------------------------(
-C Symmetrized integrals in GM3_1ICR (XCHF integrals)
-C  - completed using five passes to reduce memory requirements
-C  - first three passes analogous to symm of other GM3 integrals
-C  - last two passes require more send/recvs and larger tags
-C    due to third order permutations
-C      => likely to cause problems with larger systems - reformulate
-
-      XGM3_1=zero
-
-! On first pass, get ia_132 set for XGM3_1
-      if (rank.eq.0) write(*,*) "   ... starting first pass"
-      XGM3_1aux=zero
+! Get appropriate ia_ji values for xGAM3
 
       do ip=1,npbf
       do jp=1,npbf
-         do iec1=1,nebf
-         do jec1=1,nebf
+         do ie1=1,nebf
+         do je1=1,nebf
 
-! Get indices of first/last integrals to be passed for fixed ip,jp,iec1,jec1
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,iec1,jec1,
-     x                         1,1,1,1,ia_first)
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,iec1,jec1,
-     x                         nebf,nebf,nebf,nebf,ia_last)
-! Determine how many messages (send+recv) will be passed by this MPI proc
-! Only pass through MPI in case of block being split over >1 MPI proc
-            if((mpistart.le.ia_first).and.(mpiend.ge.ia_last)) then
-             nmsgs=2*(ia_last-ia_first+1)
-             locblock=.true.
-            else
-             locblock=.false.
-             if((mpistart.ge.ia_first).and.(mpistart.le.ia_last)) then
-              if (mpiend.le.ia_last) then
-               nmsgs=2*(mpiend-mpistart+1)
-              else
-               nmsgs=2*(ia_last-mpistart+1)
-              end if
-             else if((mpiend.ge.ia_first).and.(mpiend.le.ia_last)) then
-              if (mpistart.le.ia_first) then
-               nmsgs=2*(mpiend-ia_first+1)
-              else
-               nmsgs=2*(mpiend-mpistart+1)
-              end if
-             else
-              nmsgs=1
-              locblock=.true.
-             end if
-            end if
-! Allocate and initialize arrays for MPI requests
-            if(allocated(reqs)) deallocate(reqs)
-            allocate(reqs(nmsgs))
-            reqs=MPI_REQUEST_NULL
             reqscount=0
 
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-C            if(rank.eq.0) write(*,1001) "index:",rank,ip,jp,iec1,jec1
-C            write(*,*) "nmsgs:",rank,nmsgs
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+            do ie2=1,nebf
+            do je2=1,nebf
+               do ie3=1,nebf
+               do je3=1,nebf
 
-            do iec2=1,nebf
-            do jec2=1,nebf
-               do iec3=1,nebf
-               do jec3=1,nebf
+             call index_GAM_3PK(nebf,npbf,
+     x                          ip,jp,ie1,je1,ie2,je2,ie3,je3,ia_12)
+             call index_GAM_3PK(nebf,npbf,
+     x                          ip,jp,ie1,je1,ie3,je3,ie2,je2,ia_21)
 
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,ia)
-                             ia_123=ia
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec1,jec1,iec3,jec3,iec2,jec2,ia)
-                             ia_132=ia
+       if ((ia_12.ge.mpistart).and.(ia_12.le.mpiend)) then
 
-       if ((ia_123.ge.mpistart).and.(ia_123.le.mpiend)) then
-        if (locblock) then
-         XGM3_1aux(ia_123-arrstart+1)=GM3_1(ia_132-arrstart+1)
-        else
-         call pack_4D(nebf,nebf,nebf,
-     x                jec3,iec3,jec2,iec2,ia)
-         tag_1=int(ia,kind=4)
-         reqscount=reqscount+1
-         call get_mpi_proc(ng3,nproc,ia_132,recvrank)
-         call MPI_IRECV(XGM3_1aux(ia_123-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,
-     x                  recvrank,tag_1,MPI_COMM_WORLD,
-     x                  reqs(reqscount),ierr)
-        end if
-       end if
+         call get_mpi_proc(ntotints,nproc,ia_21,recvrank)
 
-       if ((ia_132.ge.mpistart).and.(ia_132.le.mpiend)) then
-        if (.not.(locblock)) then
-         call get_mpi_proc(ng3,nproc,ia_123,sendrank)
-         call pack_4D(nebf,nebf,nebf,
-     x                jec3,iec3,jec2,iec2,ia)
-         tag_1=int(ia,kind=4)
-         reqscount=reqscount+1
-         call MPI_ISEND(GM3_1(ia_132-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,
-     x                  sendrank,tag_1,MPI_COMM_WORLD,
-     x                  reqs(reqscount),ierr)
-        end if
-       end if
-
-               end do
-               end do
-            end do
-            end do
-
-            if (.not.(locblock)) then
-             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
-            end if
-C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-C            if (ierr.ne.0) write(*,*) "Trouble with ia_132 waitall"
-
-         end do
-         end do
-      end do
-      end do
-
-      if(allocated(reqs)) deallocate(reqs)
-
-! Add ia_132 data to XGM3_1
-      call add_to_arr(ng3loc,XGM3_1aux,XGM3_1)
-
-
-! On second pass, get ia_213 set for XGM3_1
-      if (rank.eq.0) write(*,*) "   ... starting second pass"
-      XGM3_1aux=zero
-
-      do ip=1,npbf
-      do jp=1,npbf
-         do iec3=1,nebf
-         do jec3=1,nebf
-
-! Get indices of first/last integrals to be passed for fixed ip,jp,iec3,jec3
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,1,1,
-     x                         1,1,iec3,jec3,ia_first)
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,nebf,nebf,
-     x                         nebf,nebf,iec3,jec3,ia_last)
-! Determine how many messages (send+recv) will be passed by this MPI proc
-! Only pass through MPI in case of block being split over >1 MPI proc
-            if((mpistart.le.ia_first).and.(mpiend.ge.ia_last)) then
-             nmsgs=2*(ia_last-ia_first+1)
-             locblock=.true.
-            else
-             locblock=.false.
-             if((mpistart.ge.ia_first).and.(mpistart.le.ia_last)) then
-              if (mpiend.le.ia_last) then
-               nmsgs=2*(mpiend-mpistart+1)
-              else
-               nmsgs=2*(ia_last-mpistart+1)
-              end if
-             else if((mpiend.ge.ia_first).and.(mpiend.le.ia_last)) then
-              if (mpistart.le.ia_first) then
-               nmsgs=2*(mpiend-ia_first+1)
-              else
-               nmsgs=2*(mpiend-mpistart+1)
-              end if
-             else
-              nmsgs=1
-              locblock=.true.
-             end if
-            end if
-! Allocate and initialize arrays for MPI requests
-            if(allocated(reqs)) deallocate(reqs)
-            allocate(reqs(nmsgs))
-            reqs=MPI_REQUEST_NULL
-            reqscount=0
-
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-C            if(rank.eq.0) write(*,1001) "index:",rank,ip,jp,iec3,jec3
-C            write(*,*) "nmsgs:",rank,nmsgs
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-            do iec1=1,nebf
-            do jec1=1,nebf
-               do iec2=1,nebf
-               do jec2=1,nebf
-
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,ia)
-                             ia_123=ia
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec2,jec2,iec1,jec1,iec3,jec3,ia)
-                             ia_213=ia
-
-       if ((ia_123.ge.mpistart).and.(ia_123.le.mpiend)) then
-        if (locblock) then
-         XGM3_1aux(ia_123-arrstart+1)=GM3_1(ia_213-arrstart+1)
-        else
-         call pack_4D(nebf,nebf,nebf,
-     x                jec2,iec2,jec1,iec1,ia)
-         tag_1=int(ia,kind=4)
-         reqscount=reqscount+1
-         call get_mpi_proc(ng3,nproc,ia_213,recvrank)
-         call MPI_IRECV(XGM3_1aux(ia_123-arrstart+1),1,
-     x                 MPI_DOUBLE_PRECISION,
-     x                 recvrank,tag_1,MPI_COMM_WORLD,
-     x                 reqs(reqscount),ierr)
-        end if
-       end if
-
-       if ((ia_213.ge.mpistart).and.(ia_213.le.mpiend)) then
-        if (.not.(locblock)) then
-         call get_mpi_proc(ng3,nproc,ia_123,sendrank)
-         call pack_4D(nebf,nebf,nebf,
-     x                jec2,iec2,jec1,iec1,ia)
-         tag_1=int(ia,kind=4)
-         reqscount=reqscount+1
-         call MPI_ISEND(GM3_1(ia_213-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,
-     x                  sendrank,tag_1,MPI_COMM_WORLD,
-     x                  reqs(reqscount),ierr)
-        end if
-       end if
-
-               end do
-               end do
-            end do
-            end do
-
-            if (.not.(locblock)) then
-             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
-            end if
-C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-C            if (ierr.ne.0) write(*,*) "Trouble with ia_213 waitall"
-
-         end do
-         end do
-      end do
-      end do
-
-      if(allocated(reqs)) deallocate(reqs)
-
-! Add ia_213 data to XGM3_1
-      call add_to_arr(ng3loc,XGM3_1aux,XGM3_1)
-
-
-! On third pass, get ia_321 set for XGM3_1
-      if (rank.eq.0) write(*,*) "   ... starting third pass"
-      XGM3_1aux=zero
-
-      do ip=1,npbf
-      do jp=1,npbf
-         do iec2=1,nebf
-         do jec2=1,nebf
-
-! Get indices of first/last integrals to be passed for fixed ip,jp,iec2,jec2
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,1,1,
-     x                         iec2,iec2,1,1,ia_first)
-            call index_GAM_3PK(nebf,npbf,
-     x                         ip,jp,nebf,nebf,
-     x                         iec2,iec2,nebf,nebf,ia_last)
-! Determine how many messages (send+recv) will be passed by this MPI proc
-! Only pass through MPI in case of block being split over >1 MPI proc
-            if((mpistart.le.ia_first).and.(mpiend.ge.ia_last)) then
-             nmsgs=2*(ia_last-ia_first+1)
-             locblock=.true.
-            else
-             locblock=.false.
-             if((mpistart.ge.ia_first).and.(mpistart.le.ia_last)) then
-              if (mpiend.le.ia_last) then
-               nmsgs=2*(mpiend-mpistart+1)
-              else
-               nmsgs=2*(ia_last-mpistart+1)
-              end if
-             else if((mpiend.ge.ia_first).and.(mpiend.le.ia_last)) then
-              if (mpistart.le.ia_first) then
-               nmsgs=2*(mpiend-ia_first+1)
-              else
-               nmsgs=2*(mpiend-mpistart+1)
-              end if
-             else
-              nmsgs=1
-              locblock=.true.
-             end if
-            end if
-! Allocate and initialize arrays for MPI requests
-            if(allocated(reqs)) deallocate(reqs)
-            allocate(reqs(nmsgs))
-            reqs=MPI_REQUEST_NULL
-            reqscount=0
-
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-C            if(rank.eq.0) write(*,1001) "index:",rank,ip,jp,iec2,jec2
-C            write(*,*) "nmsgs:",rank,nmsgs
-C            call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-            do iec1=1,nebf
-            do jec1=1,nebf
-               do iec3=1,nebf
-               do jec3=1,nebf
-
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,ia)
-                             ia_123=ia
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec3,jec3,iec2,jec2,iec1,jec1,ia)
-                             ia_321=ia
-
-       if ((ia_123.ge.mpistart).and.(ia_123.le.mpiend)) then
-        if (locblock) then
-         XGM3_1aux(ia_123-arrstart+1)=GM3_1(ia_321-arrstart+1)
-        else
-         call pack_4D(nebf,nebf,nebf,
-     x                jec3,iec3,jec1,iec1,ia)
-         tag_1=int(ia,kind=4)
-         reqscount=reqscount+1
-         call get_mpi_proc(ng3,nproc,ia_321,recvrank)
-         call MPI_IRECV(XGM3_1aux(ia_123-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,
-     x                  recvrank,tag_1,MPI_COMM_WORLD,
-     x                  reqs(reqscount),ierr)
-        end if
-       end if
-
-       if ((ia_321.ge.mpistart).and.(ia_321.le.mpiend)) then
-        if (.not.(locblock)) then
-         call get_mpi_proc(ng3,nproc,ia_123,sendrank)
-         call pack_4D(nebf,nebf,nebf,
-     x                jec3,iec3,jec1,iec1,ia)
-         tag_1=int(ia,kind=4)
-         reqscount=reqscount+1
-         call MPI_ISEND(GM3_1(ia_321-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,
-     x                  sendrank,tag_1,MPI_COMM_WORLD,
-     x                  reqs(reqscount),ierr)
-        end if
-       end if
-
-               end do
-               end do
-            end do
-            end do
-
-            if (.not.(locblock)) then
-             call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
-            end if
-C            call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-C            if (ierr.ne.0) write(*,*) "Trouble with ia_321 waitall"
-
-         end do
-         end do
-      end do
-      end do
-
-      if(allocated(reqs)) deallocate(reqs)
-
-! Add ia_321 data to XGM3_1
-      call add_to_arr(ng3loc,XGM3_1aux,XGM3_1)
-
-
-! On fourth pass, get ia_231 set for XGM3_1
-      if (rank.eq.0) write(*,*) "   ... starting fourth pass"
-      XGM3_1aux=zero
-
-      do ip=1,npbf
-      do jp=1,npbf
-
-! Get indices of first/last integrals to be passed for fixed ip,jp
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,1,1,
-     x                      1,1,1,1,ia_first)
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,nebf,nebf,
-     x                      nebf,nebf,nebf,nebf,ia_last)
-! Determine how many messages (send+recv) will be passed by this MPI proc
-! Only pass through MPI in case of block being split over >1 MPI proc
-         if((mpistart.le.ia_first).and.(mpiend.ge.ia_last)) then
-          nmsgs=2*(ia_last-ia_first+1)
-          locblock=.true.
+         if (recvrank.eq.rank) then
+          xGAM3(ia_12-mpistart+1)=GAM3(ia_21-mpistart+1)
          else
-          locblock=.false.
-          if((mpistart.ge.ia_first).and.(mpistart.le.ia_last)) then
-           if (mpiend.le.ia_last) then
-            nmsgs=2*(mpiend-mpistart+1)
-           else
-            nmsgs=2*(ia_last-mpistart+1)
-           end if
-          else if((mpiend.ge.ia_first).and.(mpiend.le.ia_last)) then
-           if (mpistart.le.ia_first) then
-            nmsgs=2*(mpiend-ia_first+1)
-           else
-            nmsgs=2*(mpiend-mpistart+1)
-           end if
-          else
-           nmsgs=1
-           locblock=.true.
-          end if
+          call pack_4D(nebf,nebf,nebf,
+     x                 je3,ie3,je2,ie2,ia)
+          tag=ia
+          reqscount=reqscount+1
+          call MPI_IRECV(xGAM3(ia_12-mpistart+1),1,
+     x                   MPI_DOUBLE_PRECISION,recvrank,tag,
+     x                   MPI_COMM_WORLD,reqs(reqscount),ierr)
          end if
-! Allocate and initialize arrays for MPI requests
-         if(allocated(reqs)) deallocate(reqs)
-         allocate(reqs(nmsgs))
-         reqs=MPI_REQUEST_NULL
-         reqscount=0
 
-C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-C         if(rank.eq.0) write(*,1001) "index:",rank,ip,jp
-C         write(*,*) "nmsgs:",rank,nmsgs
-C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-         do iec1=1,nebf
-         do jec1=1,nebf
-            do iec2=1,nebf
-            do jec2=1,nebf
-               do iec3=1,nebf
-               do jec3=1,nebf
-
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,ia)
-                             ia_123=ia
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec2,jec2,iec3,jec3,iec1,jec1,ia)
-                             ia_231=ia
-
-       if ((ia_123.ge.mpistart).and.(ia_123.le.mpiend)) then
-        if (locblock) then
-         XGM3_1aux(ia_123-arrstart+1)=GM3_1(ia_231-arrstart+1)
-        else
-         call index_GAM_2PK(nebf,nebf,
-     x                      jec3,iec3,jec2,iec2,jec1,iec1,ia)
-         tag_1=int(ia,kind=4)
-         reqscount=reqscount+1
-         call get_mpi_proc(ng3,nproc,ia_231,recvrank)
-         call MPI_IRECV(XGM3_1aux(ia_123-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,
-     x                  recvrank,tag_1,MPI_COMM_WORLD,
-     x                  reqs(reqscount),ierr)
-        end if
        end if
 
-       if ((ia_231.ge.mpistart).and.(ia_231.le.mpiend)) then
-        if (.not.(locblock)) then
-         call get_mpi_proc(ng3,nproc,ia_123,sendrank)
-         call index_GAM_2PK(nebf,nebf,
-     x                      jec3,iec3,jec2,iec2,jec1,iec1,ia)
-         tag_1=int(ia,kind=4)
-         reqscount=reqscount+1
-         call MPI_ISEND(GM3_1(ia_231-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,
-     x                  sendrank,tag_1,MPI_COMM_WORLD,
-     x                  reqs(reqscount),ierr)
-        end if
+       if ((ia_21.ge.mpistart).and.(ia_21.le.mpiend)) then
+
+         call get_mpi_proc(ntotints,nproc,ia_12,sendrank)
+
+         if (sendrank.ne.rank) then
+          call pack_4D(nebf,nebf,nebf,
+     x                 je3,ie3,je2,ie2,ia)
+          tag=ia
+          reqscount=reqscount+1
+          call MPI_ISEND(GAM3(ia_21-mpistart+1),1,
+     x                   MPI_DOUBLE_PRECISION,sendrank,tag,
+     x                   MPI_COMM_WORLD,reqs(reqscount),ierr)
+         end if
+
        end if
 
                end do
                end do
             end do
             end do
+
+            if(reqscount.eq.0) then
+             reqscount=1
+             reqs(1)=MPI_REQUEST_NULL
+            end if
+            call MPI_WAITALL(reqscount,reqs(1:reqscount),
+     x                       MPI_STATUSES_IGNORE,ierr)
+            if (ierr.ne.0) write(*,*) "Trouble with GAM3 waitall"
+C            if(reqscount.ne.1) then
+C             write(*,*) "Success with waitall:",
+C     x                  rank,ip,jp,ie1,je1,reqscount
+C            end if
+
          end do
          end do
-
-         if (.not.(locblock)) then
-          call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
-         end if
-C         call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-C         if (ierr.ne.0) write(*,*) "Trouble with ia_231 waitall"
-
       end do
       end do
-
-      if(allocated(reqs)) deallocate(reqs)
-
-! Add ia_231 data to XGM3_1
-      call add_to_arr(ng3loc,XGM3_1aux,XGM3_1)
-
-
-! On fifth pass, get ia_312 set for XGM3_1
-      if (rank.eq.0) write(*,*) "   ... starting fifth pass"
-      XGM3_1aux=zero
-
-      do ip=1,npbf
-      do jp=1,npbf
-
-! Get indices of first/last integrals to be passed for fixed ip,jp
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,1,1,
-     x                      1,1,1,1,ia_first)
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,nebf,nebf,
-     x                      nebf,nebf,nebf,nebf,ia_last)
-! Determine how many messages (send+recv) will be passed by this MPI proc
-! Only pass through MPI in case of block being split over >1 MPI proc
-         if((mpistart.le.ia_first).and.(mpiend.ge.ia_last)) then
-          nmsgs=2*(ia_last-ia_first+1)
-          locblock=.true.
-         else
-          locblock=.false.
-          if((mpistart.ge.ia_first).and.(mpistart.le.ia_last)) then
-           if (mpiend.le.ia_last) then
-            nmsgs=2*(mpiend-mpistart+1)
-           else
-            nmsgs=2*(ia_last-mpistart+1)
-           end if
-          else if((mpiend.ge.ia_first).and.(mpiend.le.ia_last)) then
-           if (mpistart.le.ia_first) then
-            nmsgs=2*(mpiend-ia_first+1)
-           else
-            nmsgs=2*(mpiend-mpistart+1)
-           end if
-          else
-           nmsgs=1
-           locblock=.true.
-          end if
-         end if
-! Allocate and initialize arrays for MPI requests
-         if(allocated(reqs)) deallocate(reqs)
-         allocate(reqs(nmsgs))
-         reqs=MPI_REQUEST_NULL
-         reqscount=0
-
-C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-C         if(rank.eq.0) write(*,1001) "index:",rank,ip,jp
-C         write(*,*) "nmsgs:",rank,nmsgs
-C         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-         do iec1=1,nebf
-         do jec1=1,nebf
-            do iec2=1,nebf
-            do jec2=1,nebf
-               do iec3=1,nebf
-               do jec3=1,nebf
-
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,ia)
-                             ia_123=ia
-         call index_GAM_3PK(nebf,npbf,
-     x                      ip,jp,iec3,jec3,iec1,jec1,iec2,jec2,ia)
-                             ia_312=ia
-
-       if ((ia_123.ge.mpistart).and.(ia_123.le.mpiend)) then
-        if (locblock) then
-         XGM3_1aux(ia_123-arrstart+1)=GM3_1(ia_312-arrstart+1)
-        else
-         call index_GAM_2PK(nebf,nebf,
-     x                      jec3,iec3,jec2,iec2,jec1,iec1,ia)
-         tag_1=int(ia,kind=4)
-         reqscount=reqscount+1
-         call get_mpi_proc(ng3,nproc,ia_312,recvrank)
-         call MPI_IRECV(XGM3_1aux(ia_123-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,
-     x                  recvrank,tag_1,MPI_COMM_WORLD,
-     x                  reqs(reqscount),ierr)
-        end if
-       end if
-
-       if ((ia_312.ge.mpistart).and.(ia_312.le.mpiend)) then
-        if (.not.(locblock)) then
-         call get_mpi_proc(ng3,nproc,ia_123,sendrank)
-         call index_GAM_2PK(nebf,nebf,
-     x                      jec3,iec3,jec2,iec2,jec1,iec1,ia)
-         tag_1=int(ia,kind=4)
-         reqscount=reqscount+1
-         call MPI_ISEND(GM3_1(ia_312-arrstart+1),1,
-     x                  MPI_DOUBLE_PRECISION,
-     x                  sendrank,tag_1,MPI_COMM_WORLD,
-     x                  reqs(reqscount),ierr)
-        end if
-       end if
-
-               end do
-               end do
-            end do
-            end do
-         end do
-         end do
-
-         if (.not.(locblock)) then
-          call RXCHF_MPI_WAITALL2(rank,nmsgs,reqs)
-         end if
-C         call MPI_WAITALL(nmsgs,reqs,MPI_STATUSES_IGNORE,ierr)
-C         if (ierr.ne.0) write(*,*) "Trouble with ia_312 waitall"
-
-      end do
-      end do
-
-      if(allocated(reqs)) deallocate(reqs)
-
-! Add ia_312 data to XGM3_1
-      call add_to_arr(ng3loc,XGM3_1aux,XGM3_1)
-
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
-! Symmetrize GM3_1 locally
-      do i=1,ng3loc
-        x123=GM3_1(i)
-        xall=XGM3_1(i)
-        GM3_1(i)=(x123+xall)/six
+! Symmetrize integrals locally
+      do i=1,nlocints
+        x12=GAM3(i)
+        x21=xGAM3(i)
+        GAM3(i)=(x12+x21)/2.0d+00
+      end do
+
+      return
+      end
+C=======================================================================
+      subroutine gam3_symm2(nproc,rank,
+     x                      nebf,npbf,ntotints,nlocints,GAM3)
+
+C=======================================================================
+      implicit none
+      include "mpif.h"
+
+! Input variables
+      integer nproc,rank
+      integer nebf,npbf
+      integer ntotints,nlocints
+
+! Input/output variables
+      double precision GAM3(nlocints)
+
+! Local variables
+      integer i
+      integer mpistart,mpiend
+      integer ip,jp,ie1,je1,ie2,je2,ie3,je3
+      integer ia_first,ia_last
+      integer ia,ia_12,ia_21
+      integer tag,reqscount,ierr
+      integer sendrank,recvrank
+      integer reqs(2*nlocints)
+      double precision x12,x21
+      double precision xGAM3(nlocints)
+
+      xGAM3=0.0d+00
+
+      call get_mpi_range(ntotints,nproc,rank,mpistart,mpiend)
+      if(rank.eq.(nproc-1)) mpiend=ntotints
+
+! Get appropriate ia_ji values for xGAM3
+
+      do ip=1,npbf
+      do jp=1,npbf
+         do ie3=1,nebf
+         do je3=1,nebf
+
+            reqscount=0
+
+            do ie1=1,nebf
+            do je1=1,nebf
+               do ie2=1,nebf
+               do je2=1,nebf
+
+             call index_GAM_3PK(nebf,npbf,
+     x                          ip,jp,ie1,je1,ie2,je2,ie3,je3,ia_12)
+             call index_GAM_3PK(nebf,npbf,
+     x                          ip,jp,ie2,je2,ie1,je1,ie3,je3,ia_21)
+
+       if ((ia_12.ge.mpistart).and.(ia_12.le.mpiend)) then
+
+         call get_mpi_proc(ntotints,nproc,ia_21,recvrank)
+
+         if (recvrank.eq.rank) then
+          xGAM3(ia_12-mpistart+1)=GAM3(ia_21-mpistart+1)
+         else
+          call pack_4D(nebf,nebf,nebf,
+     x                 je2,ie2,je1,ie1,ia)
+          tag=ia
+          reqscount=reqscount+1
+          call MPI_IRECV(xGAM3(ia_12-mpistart+1),1,
+     x                   MPI_DOUBLE_PRECISION,recvrank,tag,
+     x                   MPI_COMM_WORLD,reqs(reqscount),ierr)
+         end if
+
+       end if
+
+       if ((ia_21.ge.mpistart).and.(ia_21.le.mpiend)) then
+
+         call get_mpi_proc(ntotints,nproc,ia_12,sendrank)
+
+         if (sendrank.ne.rank) then
+          call pack_4D(nebf,nebf,nebf,
+     x                 je2,ie2,je1,ie1,ia)
+          tag=ia
+          reqscount=reqscount+1
+          call MPI_ISEND(GAM3(ia_21-mpistart+1),1,
+     x                   MPI_DOUBLE_PRECISION,sendrank,tag,
+     x                   MPI_COMM_WORLD,reqs(reqscount),ierr)
+         end if
+
+       end if
+
+               end do
+               end do
+            end do
+            end do
+
+            if(reqscount.eq.0) then
+             reqscount=1
+             reqs(1)=MPI_REQUEST_NULL
+            end if
+            call MPI_WAITALL(reqscount,reqs(1:reqscount),
+     x                       MPI_STATUSES_IGNORE,ierr)
+            if (ierr.ne.0) write(*,*) "Trouble with GAM3 waitall"
+C            if(reqscount.ne.1) then
+C             write(*,*) "Success with waitall:",
+C     x                  rank,ip,jp,ie3,je3,reqscount
+C            end if
+
+         end do
+         end do
+      end do
+      end do
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+! Symmetrize integrals locally
+      do i=1,nlocints
+        x12=GAM3(i)
+        x21=xGAM3(i)
+        GAM3(i)=(x12+x21)/2.0d+00
+      end do
+
+      return
+      end
+C=======================================================================
+      subroutine gam3_symm3(nproc,rank,
+     x                      nebf,npbf,ntotints,nlocints,GAM3)
+
+C=======================================================================
+      implicit none
+      include "mpif.h"
+
+! Input variables
+      integer nproc,rank
+      integer nebf,npbf
+      integer ntotints,nlocints
+
+! Input/output variables
+      double precision GAM3(nlocints)
+
+! Local variables
+      integer i
+      integer mpistart,mpiend
+      integer ip,jp,ie1,je1,ie2,je2,ie3,je3
+      integer ia_first,ia_last
+      integer ia,ia_12,ia_21
+      integer tag,reqscount,ierr
+      integer sendrank,recvrank
+      integer reqs(2*nlocints)
+      double precision x12,x21
+      double precision xGAM3(nlocints)
+
+      xGAM3=0.0d+00
+
+      call get_mpi_range(ntotints,nproc,rank,mpistart,mpiend)
+      if(rank.eq.(nproc-1)) mpiend=ntotints
+
+! Get appropriate ia_ji values for xGAM3
+
+      do ip=1,npbf
+      do jp=1,npbf
+         do ie2=1,nebf
+         do je2=1,nebf
+
+            reqscount=0
+
+            do ie1=1,nebf
+            do je1=1,nebf
+               do ie3=1,nebf
+               do je3=1,nebf
+
+             call index_GAM_3PK(nebf,npbf,
+     x                          ip,jp,ie1,je1,ie2,je2,ie3,je3,ia_12)
+             call index_GAM_3PK(nebf,npbf,
+     x                          ip,jp,ie3,je3,ie2,je2,ie1,je1,ia_21)
+
+       if ((ia_12.ge.mpistart).and.(ia_12.le.mpiend)) then
+
+         call get_mpi_proc(ntotints,nproc,ia_21,recvrank)
+
+         if (recvrank.eq.rank) then
+          xGAM3(ia_12-mpistart+1)=GAM3(ia_21-mpistart+1)
+         else
+          call pack_4D(nebf,nebf,nebf,
+     x                 je3,ie3,je1,ie1,ia)
+          tag=ia
+          reqscount=reqscount+1
+          call MPI_IRECV(xGAM3(ia_12-mpistart+1),1,
+     x                   MPI_DOUBLE_PRECISION,recvrank,tag,
+     x                   MPI_COMM_WORLD,reqs(reqscount),ierr)
+         end if
+
+       end if
+
+       if ((ia_21.ge.mpistart).and.(ia_21.le.mpiend)) then
+
+         call get_mpi_proc(ntotints,nproc,ia_12,sendrank)
+
+         if (sendrank.ne.rank) then
+          call pack_4D(nebf,nebf,nebf,
+     x                 je3,ie3,je1,ie1,ia)
+          tag=ia
+          reqscount=reqscount+1
+          call MPI_ISEND(GAM3(ia_21-mpistart+1),1,
+     x                   MPI_DOUBLE_PRECISION,sendrank,tag,
+     x                   MPI_COMM_WORLD,reqs(reqscount),ierr)
+         end if
+
+       end if
+
+               end do
+               end do
+            end do
+            end do
+
+            if(reqscount.eq.0) then
+             reqscount=1
+             reqs(1)=MPI_REQUEST_NULL
+            end if
+            call MPI_WAITALL(reqscount,reqs(1:reqscount),
+     x                       MPI_STATUSES_IGNORE,ierr)
+            if (ierr.ne.0) write(*,*) "Trouble with GAM3 waitall"
+C            if(reqscount.ne.1) then
+C             write(*,*) "Success with waitall:",
+C     x                  rank,ip,jp,ie2,je2,reqscount
+C            end if
+
+         end do
+         end do
+      end do
+      end do
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+! Symmetrize integrals locally
+      do i=1,nlocints
+        x12=GAM3(i)
+        x21=xGAM3(i)
+        GAM3(i)=(x12+x21)/2.0d+00
       end do
 
       return

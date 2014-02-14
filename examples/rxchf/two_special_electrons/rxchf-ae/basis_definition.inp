@@ -55,4 +55,6 @@
 .true.  =LSOSCF
 .true.  =LOCBSE
 1       =EXCHLEV
+1       =nblocks
+0       =blockrank
 

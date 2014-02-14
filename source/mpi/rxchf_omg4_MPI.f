@@ -43,7 +43,7 @@ C Local variables
       integer,allocatable :: loop_map(:,:)
 
       integer   mpistart,mpiend,arrstart
-      integer*4 ierr
+      integer ierr
 
 C Initialize
       XFAE      = 0.0d+00
@@ -190,7 +190,7 @@ C Local variables
       integer,allocatable :: loop_map(:,:)
 
       integer   mpistart,mpiend,arrstart
-      integer*4 ierr
+      integer ierr
 
 C Initialize
       XFE       = 0.0d+00

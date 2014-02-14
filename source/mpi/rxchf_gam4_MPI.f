@@ -9,7 +9,6 @@
 !======================================================================
       implicit none
       include 'mpif.h'
-      include 'omp_lib.h'
 
 ! Input Variables
       integer Nchunks
@@ -27,12 +26,11 @@
       double precision,allocatable :: GAM_ee(:)
 
       integer nproc,rank
-      integer*4 ierr
+      integer ierr
       integer mpistart,mpiend,arrstart
 
       double precision, allocatable :: TGM2s(:),TGM4(:)
-      integer*4 ng2loc4,ng4loc4
-      integer*4 ng2locarr(nproc),ng4locarr(nproc),displarr(nproc)
+      integer ng2locarr(nproc),ng4locarr(nproc),displarr(nproc)
 
       double precision zero
       parameter(zero=0.0d+00)
@@ -64,11 +62,9 @@
       allocate(TGM2s(ng2))
       TGM2s=zero
 
-      ng2loc4=int(ng2loc,kind=4)
-
 ! Get number of elements calculated by each proc
-      call MPI_ALLGATHER(ng2loc4,1,MPI_INTEGER,
-     x                   ng2locarr(1),1,MPI_INTEGER,
+      call MPI_ALLGATHER(ng2loc,1,MPI_INTEGER8,
+     x                   ng2locarr(1),1,MPI_INTEGER8,
      x                   MPI_COMM_WORLD,ierr)
 
 ! Get displacements for array storage
@@ -258,7 +254,6 @@
 !======================================================================
       implicit none
       include 'mpif.h'
-      include 'omp_lib.h'
 
 ! Input Variables
       integer Nchunks
@@ -276,12 +271,11 @@
       double precision,allocatable :: GAM_ee(:)
 
       integer nproc,rank
-      integer*4 ierr
+      integer ierr
       integer mpistart,mpiend,arrstart
 
       double precision, allocatable :: TGM2s(:),TGM4(:)
-      integer*4 ng2loc4,ng4loc4
-      integer*4 ng2locarr(nproc),ng4locarr(nproc),displarr(nproc)
+      integer ng2locarr(nproc),ng4locarr(nproc),displarr(nproc)
 
       double precision zero
       parameter(zero=0.0d+00)
@@ -313,11 +307,9 @@
       allocate(TGM2s(ng2))
       TGM2s=zero
 
-      ng2loc4=int(ng2loc,kind=4)
-
 ! Get number of elements calculated by each proc
-      call MPI_ALLGATHER(ng2loc4,1,MPI_INTEGER,
-     x                   ng2locarr(1),1,MPI_INTEGER,
+      call MPI_ALLGATHER(ng2loc,1,MPI_INTEGER8,
+     x                   ng2locarr(1),1,MPI_INTEGER8,
      x                   MPI_COMM_WORLD,ierr)
 
 ! Get displacements for array storage

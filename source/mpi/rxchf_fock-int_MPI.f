@@ -62,8 +62,6 @@ C Local variables
 
       double precision  Psi_HOMG_Psi
 
-      integer*4 ierr
-
       double precision  zero
       parameter(zero=0.0d+00)
 

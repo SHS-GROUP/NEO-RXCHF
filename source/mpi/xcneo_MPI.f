@@ -100,23 +100,19 @@
 
       integer junk
 
-      integer*4 nproc4,rank4,namelen,ierr
+      integer namelen,ierr
       integer nproc,rank
       character(len=25) :: procname
 
       double precision wtime,wtime1,wtime2
 
-C ARS( blocks
       integer nblocks
       integer blockrank
-C )
 
-      call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc4,ierr)
-      call MPI_COMM_RANK(MPI_COMM_WORLD,rank4,ierr)
+      call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
+      call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
       call MPI_GET_PROCESSOR_NAME(procname,namelen,ierr)
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      rank=int(rank4,kind=8)
-      nproc=int(nproc4,kind=8)
       write(*,7000) "Process with rank",rank,
      x              "running on host",trim(procname)
 
@@ -217,11 +213,8 @@ C )
          read(9,*) LSOSCF
          read(9,*) LOCBSE
          read(9,*) EXCHLEV ! 0=RXCHF-ne; 1=RXCHF-ae; 2=RXCHF-fe
-
-C ARS( blocks
          read(9,*) nblocks
          read(9,*) blockrank
-C )
 
          close(9)
 
@@ -268,11 +261,8 @@ C )
       call MPI_BCAST(LSOSCF,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(LOCBSE,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(EXCHLEV,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
-C ARS( blocks
       call MPI_BCAST(nblocks,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(blockrank,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
-C )
-
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
@@ -415,10 +405,8 @@ C )
        write(*,*)'LSOSCF  =',LSOSCF
        write(*,*)'LOCBSE  =',LOCBSE
        write(*,*)'EXCHLEV =',EXCHLEV,' (=2: fe; =1: ae; =0: ne)'
-C ARS( blocks
        write(*,*)'NBLOCKS =',nblocks
        write(*,*)'BLOCKRNK=',blockrank
-C )
        write(*,*) "Geminal parameters: k, b_k, gamm_k"
           do i=1,ngtg1
              write(*,*) i,bcoef1(i),gamma1(i)
@@ -553,9 +541,7 @@ C )
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
       call RXCHF_driver_MPI(nproc,rank,
-C ARS( blocks
      x                      nblocks,blockrank,
-C )
      x                      nelec,nae,nbe,nucst,
      x                      nebf,npebf,npbf,nat,ngtg1,
      x                      ng1,ng2,ng3,ng4,ngee,

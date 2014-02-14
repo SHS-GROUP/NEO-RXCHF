@@ -1,8 +1,6 @@
 C=======================================================================
       subroutine RXCHF_driver_MPI(nproc,rank,
-C ARS( blocks
      x                            nblocks,blockrank,
-C )
      x                            nelec,nae,nbe,nucst,
      x                            nebf,npebf,npbf,nat,ngtg1,
      x                            ng1,ng2,ng3,ng4,ngee,
@@ -33,12 +31,10 @@ C=======================================================================
 
 C Input variables
       integer nproc,rank               ! MPI variables
-C ARS( blocks
       integer nblocks
       integer blockrank
       integer ng3block
       integer blockstart,blockend
-C )
       integer nelec                    ! Total number of electrons
       integer nae                      ! Number of regular electrons
       integer nbe                      ! Number of special electrons
@@ -84,8 +80,7 @@ C )
 
 C Local variables
       integer      ierr
-      integer      unitno               ! File I/O variables
-      character*4  istring              !
+      character*4  istring              ! File I/O variables
       integer      nebf2,npbf2,nebflt   ! Convenient quantities
       integer      npra,nprb            ! Number of distinct electron pairs
       integer      dimXCHF2             !
@@ -179,13 +174,13 @@ C     => XCHF_GAM2 only needed if nbe >= 2
         write(*,*) "---------------------------"
         write(*,*) " Reading:         INT_GAM2 "
        end if
-       call RXCHFmult_readint(dimINT2,17,
+       call RXCHF_readint_mpi(nproc,rank,dimINT2,17,
      x                        "INT_GAM2-"//istring//".ufm",
      x                        INT_GAM2)
 
        if (LADDEXCH) then
         if(rank.eq.0) write(*,*) "                INT_GAM2ex "
-        call RXCHFmult_readint(dimINT2ex,19,
+        call RXCHF_readint_mpi(nproc,rank,dimINT2ex,19,
      x                         "INT_GAM2ex-"//istring//".ufm",
      x                         INT_GAM2ex)
        end if
@@ -195,10 +190,10 @@ C     => XCHF_GAM2 only needed if nbe >= 2
          write(*,*) "                 XCHF_GAM2 "
          write(*,*) "                XCHF_GAM2s "
         end if
-        call RXCHFmult_readint(dimXCHF2,18,
+        call RXCHF_readint_mpi(nproc,rank,dimXCHF2,18,
      x                         "XCHF_GAM2-"//istring//".ufm",
      x                         XCHF_GAM2)
-        call RXCHFmult_readint(dimXCHF2,19,
+        call RXCHF_readint_mpi(nproc,rank,dimXCHF2,19,
      x                         "XCHF_GAM2s-"//istring//".ufm",
      x                         XCHF_GAM2s)
        end if
@@ -225,9 +220,6 @@ C     => XCHF_GAM2 only needed if nbe >= 2
 
        if (LADDEXCH) then
         call RXCHF_GAM2ex_MPI(nproc,rank,
-C ARS( blocks
-     x                        nblocks,blockrank,
-C )
      x                        ng2chk,nebf,npebf,npbf,
      x                        ng2,dimINT2,ng2prm,nat,ngtg1,
      x                        pmass,cat,zan,bcoef1,gamma1,
@@ -245,21 +237,15 @@ C )
        end if
 
 ! Write integrals to disk (chunk calculated by each process)
-       unitno=110+rank
-       open(unit=unitno,
-     x      file="INT_GAM2-"//istring//".ufm",
-     x      form="unformatted")
-       write(unitno) INT_GAM2
-       close(unitno)
+       call RXCHF_writeint_mpi(nproc,rank,dimINT2,17,
+     x                         "INT_GAM2-"//istring//".ufm",
+     x                         INT_GAM2)
        if(rank.eq.0) write(*,*) "INT_GAM2 written to disk"
 
        if (LADDEXCH) then
-C        unitno=130+rank
-        open(unit=unitno,
-     x       file="INT_GAM2ex-"//istring//".ufm",
-     x       form="unformatted")
-        write(unitno) INT_GAM2ex
-        close(unitno)
+        call RXCHF_writeint_mpi(nproc,rank,dimINT2ex,19,
+     x                          "INT_GAM2ex-"//istring//".ufm",
+     x                          INT_GAM2ex)
         if(rank.eq.0) write(*,*) "INT_GAM2ex written to disk"
        end if
 
@@ -297,20 +283,14 @@ C        unitno=130+rank
 
 ! Write integrals to disk (chunk calculated by each process)
         if (.not.(read_GAM2)) then
-C         unitno=140+rank
-         open(unit=unitno,
-     x        file="XCHF_GAM2-"//istring//".ufm",
-     x        form="unformatted")
-         write(unitno) XCHF_GAM2
-         close(unitno)
+         call RXCHF_writeint_mpi(nproc,rank,dimXCHF2,18,
+     x                           "XCHF_GAM2-"//istring//".ufm",
+     x                           XCHF_GAM2)
          if(rank.eq.0) write(*,*) "XCHF_GAM2 written to disk"
 
-C         unitno=150+rank
-         open(unit=unitno,
-     x        file="XCHF_GAM2s-"//istring//".ufm",
-     x        form="unformatted")
-         write(unitno) XCHF_GAM2s
-         close(unitno)
+         call RXCHF_writeint_mpi(nproc,rank,dimXCHF2,19,
+     x                           "XCHF_GAM2s-"//istring//".ufm",
+     x                           XCHF_GAM2s)
          if(rank.eq.0) write(*,*) "XCHF_GAM2s written to disk"
         end if
 
@@ -350,7 +330,7 @@ C     => XCHF_GAM3 only needed if nbe >= 3
           write(*,*) "---------------------------"
           write(*,*) " Reading:         INT_GAM3 "
          end if
-         call RXCHFmult_readint(dimINT3,17,
+         call RXCHF_readint_mpi(nproc,rank,dimINT3,17,
      x                          "INT_GAM3-"//istring//".ufm",
      x                          INT_GAM3)
 
@@ -359,17 +339,17 @@ C     => XCHF_GAM3 only needed if nbe >= 3
            write(*,*) "               INT_GAM3ex1 "
            write(*,*) "               INT_GAM3ex2 "
           end if
-          call RXCHFmult_readint(dimINT3ex,20,
+          call RXCHF_readint_mpi(nproc,rank,dimINT3ex,20,
      x                           "INT_GAM3ex1-"//istring//".ufm",
      x                           INT_GAM3ex1)
-          call RXCHFmult_readint(dimINT3ex,20,
+          call RXCHF_readint_mpi(nproc,rank,dimINT3ex,20,
      x                           "INT_GAM3ex2-"//istring//".ufm",
      x                           INT_GAM3ex2)
          end if
 
          if (nbe.gt.2) then
           if(rank.eq.0) write(*,*) "                 XCHF_GAM3 "
-          call RXCHFmult_readint(dimXCHF3,18,
+          call RXCHF_readint_mpi(nproc,rank,dimXCHF3,18,
      x                           "XCHF_GAM3-"//istring//".ufm",
      x                           XCHF_GAM3)
          end if
@@ -394,7 +374,6 @@ C     => XCHF_GAM3 only needed if nbe >= 3
           write(*,*)
          end if
 
-C ARS( blocks
         call get_mpi_range(ng3,nblocks,blockrank,blockstart,blockend)
         if (blockrank.eq.(nblocks-1)) then
          ng3block=ng3/nblocks+mod(ng3,nblocks)
@@ -416,7 +395,6 @@ C ARS( blocks
          dimXCHF3=ng3block/nproc
          if (LADDEXCH) dimINT3ex=ng3block/nproc
         end if
-C )
 
 ! Only symmetrize XCHF_GAM3 if nbe > 2 (saves significant MPI comm)
          if (nbe.le.2) then
@@ -427,13 +405,10 @@ C )
 
          if (LADDEXCH) then
           call RXCHF_GAM3ex_MPI(nproc,rank,
-C ARS( blocks
      x                          nblocks,blockrank,
      x                          blockstart,blockend,
      x                          ng3chk,nebf,npebf,npbf,
-C     x                          ng3,dimINT3,ng3prm,nat,ngtg1,
      x                          ng3block,dimINT3,ng3prm,nat,ngtg1,
-C )
      x                          pmass,cat,zan,bcoef1,gamma1,
      x                          KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                          ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
@@ -441,8 +416,10 @@ C )
      x                          INT_GAM3ex1,INT_GAM3ex2)
          else
           call RXCHF_GAM3_MPI(nproc,rank,
+     x                        nblocks,blockrank,
+     x                        blockstart,blockend,
      x                        ng3chk,nebf,npebf,npbf,
-     x                        ng3,dimINT3,ng3prm,nat,ngtg1,
+     x                        ng3block,dimINT3,ng3prm,nat,ngtg1,
      x                        pmass,cat,zan,bcoef1,gamma1,
      x                        KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
@@ -450,29 +427,20 @@ C )
          end if
 
 ! Write integrals to disk (chunk calculated by each process)
-C         unitno=120+rank
-         open(unit=unitno,
-     x        file="INT_GAM3-"//istring//".ufm",
-     x        form="unformatted")
-         write(unitno) INT_GAM3
-         close(unitno)
+         call RXCHF_writeint_mpi(nproc,rank,dimINT3,17,
+     x                           "INT_GAM3-"//istring//".ufm",
+     x                           INT_GAM3)
          if(rank.eq.0) write(*,*) "INT_GAM3 written to disk"
 
          if (LADDEXCH) then
-C          unitno=130+rank
-          open(unit=unitno,
-     x        file="INT_GAM3ex1-"//istring//".ufm",
-     x        form="unformatted")
-          write(unitno) INT_GAM3ex1
-          close(unitno)
+          call RXCHF_writeint_mpi(nproc,rank,dimINT3ex,20,
+     x                            "INT_GAM3ex1-"//istring//".ufm",
+     x                            INT_GAM3ex1)
           if(rank.eq.0) write(*,*) "INT_GAM3ex1 written to disk"
 
-C          unitno=140+rank
-          open(unit=unitno,
-     x        file="INT_GAM3ex2-"//istring//".ufm",
-     x        form="unformatted")
-          write(unitno) INT_GAM3ex2
-          close(unitno)
+          call RXCHF_writeint_mpi(nproc,rank,dimINT3ex,20,
+     x                            "INT_GAM3ex2-"//istring//".ufm",
+     x                            INT_GAM3ex2)
           if(rank.eq.0) write(*,*) "INT_GAM3ex2 written to disk"
          end if
 
@@ -500,12 +468,9 @@ C          unitno=140+rank
 
 ! Write integrals to disk (chunk calculated by each process)
           if (.not.(read_GAM3)) then
-C           unitno=150+rank
-           open(unit=unitno,
-     x          file="XCHF_GAM3-"//istring//".ufm",
-     x          form="unformatted")
-           write(unitno) XCHF_GAM3
-           close(unitno)
+           call RXCHF_writeint_mpi(nproc,rank,dimXCHF3,18,
+     x                             "XCHF_GAM3-"//istring//".ufm",
+     x                             XCHF_GAM3)
            if(rank.eq.0) write(*,*) "XCHF_GAM3 written to disk"
           end if
 
@@ -537,7 +502,7 @@ C  - assume there is enough memory for each process to store GAM2s
             write(*,*)
            end if
 
-           call RXCHFmult_readint(dimINT4,17,
+           call RXCHF_readint_mpi(nproc,rank,dimINT4,17,
      x                            "INT_GAM4-"//istring//".ufm",
      x                            INT_GAM4)
 
@@ -557,12 +522,9 @@ C  - assume there is enough memory for each process to store GAM2s
      x                         XCHF_GAM2s,INT_GAM4)
 
 ! Write integrals to disk (chunk calculated by each process)
-C           unitno=120+rank
-           open(unit=unitno,
-     x          file="INT_GAM4-"//istring//".ufm",
-     x          form="unformatted")
-           write(unitno) INT_GAM4
-           close(unitno)
+           call RXCHF_writeint_mpi(nproc,rank,dimINT4,17,
+     x                             "INT_GAM4-"//istring//".ufm",
+     x                             INT_GAM4)
            if(rank.eq.0) write(*,*) "INT_GAM4 written to disk"
 
           end if
@@ -603,7 +565,7 @@ C  - assume there is enough memory for each process to store GAM2s
               write(*,*)
              end if
 
-             call RXCHFmult_readint(dimXCHF4,18,
+             call RXCHF_readint_mpi(nproc,rank,dimXCHF4,18,
      x                              "XCHF_GAM4-"//istring//".ufm",
      x                              XCHF_GAM4)
 
@@ -623,12 +585,9 @@ C  - assume there is enough memory for each process to store GAM2s
      x                          XCHF_GAM2s,XCHF_GAM4)
 
 ! Write integrals to disk (chunk calculated by each process)
-C             unitno=130+rank
-             open(unit=unitno,
-     x            file="XCHF_GAM4-"//istring//".ufm",
-     x            form="unformatted")
-             write(unitno) XCHF_GAM4
-             close(unitno)
+             call RXCHF_writeint_mpi(nproc,rank,dimXCHF4,18,
+     x                               "XCHF_GAM4-"//istring//".ufm",
+     x                               XCHF_GAM4)
              if(rank.eq.0) write(*,*) "XCHF_GAM4 written to disk"
 
             end if ! read GAM4
@@ -719,6 +678,79 @@ C Print timing summary
      x        8X,'  +--------------------------------------+',/,
      x        8X,'    TIME TO EVALUATE INTEGRALS:',1X,F12.4/
      x        8X,'                  TIME FOR SCF:',1X,F12.4/)
+
+      return
+      end
+C=======================================================================
+      subroutine RXCHF_readint_mpi(nproc,rank,n,namelen,fname,arr)
+
+C Reads integrals from file "fname" into an n-dimensional array [arr]
+C Integrals must be written to an unformatted file in chunks of size
+C nchunk 
+C=======================================================================
+      implicit none
+
+C Input variables
+      integer nproc,rank
+      integer namelen,n
+      character(len=namelen) fname
+C Output variables
+      double precision arr(n)
+C Local variables
+      integer i
+      integer unitno
+      integer nchunk
+      parameter(nchunk=100000000)
+
+      unitno=200+rank
+
+C Initialize
+      arr=0.0d+00
+
+C Read in from file
+      open(unit=unitno,file=fname,form="unformatted")
+      do i=1,n/nchunk
+        read(unitno) arr((i-1)*nchunk+1:i*nchunk)
+      end do
+      if(mod(n,nchunk).ne.0) then
+        read(unitno) arr((n/nchunk)*nchunk+1:n)
+      end if
+      close(unitno)
+
+      return
+      end
+
+C=======================================================================
+      subroutine RXCHF_writeint_mpi(nproc,rank,n,namelen,fname,arr)
+
+C Writes integrals from n-dimensional array [arr] to file "fname"
+C Integrals must be read from an unformatted file in chunks of size
+C nchunk 
+C=======================================================================
+      implicit none
+
+C Input variables
+      integer nproc,rank
+      integer namelen,n
+      character(len=namelen) fname
+      double precision arr(n)
+C Local variables
+      integer i
+      integer unitno
+      integer nchunk
+      parameter(nchunk=100000000)
+
+      unitno=200+rank
+
+C Write to file
+      open(unit=unitno,file=fname,form="unformatted")
+      do i=1,n/nchunk
+        write(unitno) arr((i-1)*nchunk+1:i*nchunk)
+      end do
+      if(mod(n,nchunk).ne.0) then
+        write(unitno) arr((n/nchunk)*nchunk+1:n)
+      end if
+      close(unitno)
 
       return
       end

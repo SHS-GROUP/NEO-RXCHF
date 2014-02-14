@@ -191,14 +191,12 @@ C     => XCHF_GAM2 only needed if nbe >= 2
      x                          XCHF_GAM2,INT_GAM2,XCHF_GAM2s)
        end if
 
-       open(unit=20,file="INT_GAM2.ufm",form="unformatted")
-       write(20) INT_GAM2
-       close(20)
+       call RXCHFmult_writeint(dimINT2,17,
+     x                         "INT_GAM2.ufm",INT_GAM2)
        write(*,*) "INT_GAM2 written to disk"
        if (LADDEXCH) then
-        open(unit=21,file="INT_GAM2ex.ufm",form="unformatted")
-        write(21) INT_GAM2ex
-        close(21)
+        call RXCHFmult_writeint(dimINT2ex,19,
+     x                          "INT_GAM2ex.ufm",INT_GAM2ex)
         write(*,*) "INT_GAM2ex written to disk"
        end if
 
@@ -233,13 +231,11 @@ C     => XCHF_GAM2 only needed if nbe >= 2
       else
 
         if (.not.(read_GAM2)) then
-         open(unit=22,file="XCHF_GAM2.ufm",form="unformatted")
-         write(22) XCHF_GAM2
-         close(22)
+         call RXCHFmult_writeint(dimXCHF2,18,
+     x                           "XCHF_GAM2.ufm",XCHF_GAM2)
          write(*,*) "XCHF_GAM2 written to disk"
-         open(unit=23,file="XCHF_GAM2s.ufm",form="unformatted")
-         write(23) XCHF_GAM2s
-         close(23)
+         call RXCHFmult_writeint(dimXCHF2,19,
+     x                           "XCHF_GAM2s.ufm",XCHF_GAM2s)
          write(*,*) "XCHF_GAM2s written to disk"
         end if
 
@@ -315,18 +311,15 @@ C     => XCHF_GAM3 only needed if nbe >= 3
      x                            XCHF_GAM3,INT_GAM3)
          end if
 
-         open(unit=24,file="INT_GAM3.ufm",form="unformatted")
-         write(24) INT_GAM3
-         close(24)
+         call RXCHFmult_writeint(dimINT3,17,
+     x                           "INT_GAM3.ufm",INT_GAM3)
          write(*,*) "INT_GAM3 written to disk"
          if (LADDEXCH) then
-          open(unit=25,file="INT_GAM3ex1.ufm",form="unformatted")
-          write(25) INT_GAM3ex1
-          close(25)
+          call RXCHFmult_writeint(dimINT3ex,20,
+     x                            "INT_GAM3ex1.ufm",INT_GAM3ex1)
           write(*,*) "INT_GAM3ex1 written to disk"
-          open(unit=26,file="INT_GAM3ex2.ufm",form="unformatted")
-          write(26) INT_GAM3ex2
-          close(26)
+          call RXCHFmult_writeint(dimINT3ex,20,
+     x                            "INT_GAM3ex2.ufm",INT_GAM3ex2)
           write(*,*) "INT_GAM3ex2 written to disk"
          end if
 
@@ -351,9 +344,8 @@ C     => XCHF_GAM3 only needed if nbe >= 3
         else
 
           if (.not.(read_GAM3)) then
-           open(unit=27,file="XCHF_GAM3.ufm",form="unformatted")
-           write(27) XCHF_GAM3
-           close(27)
+           call RXCHFmult_writeint(dimXCHF3,18,
+     x                             "XCHF_GAM3.ufm",XCHF_GAM3)
            write(*,*) "XCHF_GAM3 written to disk"
           end if
 
@@ -386,9 +378,8 @@ C     => INT_GAM4
            call RXCHFmult_GAM4_ICR(ng4chk,nebf,npbf,ngee,ng2,ng4,
      x                             XCHF_GAM2s,INT_GAM4)
 
-           open(unit=28,file="INT_GAM4.ufm",form="unformatted")
-           write(28) INT_GAM4
-           close(28)
+           call RXCHFmult_writeint(dimINT4,17,
+     x                             "INT_GAM4.ufm",INT_GAM4)
            write(*,*) "INT_GAM4 written to disk"
 
           end if
@@ -430,9 +421,8 @@ C     => XCHF_GAM4
              call GAM4_ICR(ng4chk,nebf,npbf,ngee,ng2,ng4,
      x                     XCHF_GAM2s,XCHF_GAM4)
 
-             open(unit=29,file="XCHF_GAM4.ufm",form="unformatted")
-             write(29) XCHF_GAM4
-             close(29)
+             call RXCHFmult_writeint(dimXCHF4,18,
+     x                               "XCHF_GAM4.ufm",XCHF_GAM4)
              write(*,*) "XCHF_GAM4 written to disk"
 
             end if ! read GAM4
@@ -519,13 +509,12 @@ C Print timing summary
 
       return
       end
-
-
 C=======================================================================
       subroutine RXCHFmult_readint(n,namelen,fname,arr)
 
 C Reads integrals from file "fname" into an n-dimensional array [arr]
-C Integrals must be written to an unformatted file as a one-array-write
+C Integrals must be written to an unformatted file in chunks of size
+C nchunk 
 C=======================================================================
       implicit none
 
@@ -536,14 +525,58 @@ C Output variables
       double precision arr(n)
 C Local variables
       integer i
+      integer unitno
+      integer nchunk
+      parameter(nchunk=100000000)
+
+      unitno=200
 
 C Initialize
       arr=0.0d+00
 
 C Read in from file
-      open(unit=20,file=fname,form="unformatted")
-      read(20) arr
-      close(20)
+      open(unit=unitno,file=fname,form="unformatted")
+      do i=1,n/nchunk
+        read(unitno) arr((i-1)*nchunk+1:i*nchunk)
+      end do
+      if(mod(n,nchunk).ne.0) then
+        read(unitno) arr((n/nchunk)*nchunk+1:n)
+      end if
+      close(unitno)
+
+      return
+      end
+
+C=======================================================================
+      subroutine RXCHFmult_writeint(n,namelen,fname,arr)
+
+C Writes integrals from n-dimensional array [arr] to file "fname"
+C Integrals must be read from an unformatted file in chunks of size
+C nchunk 
+C=======================================================================
+      implicit none
+
+C Input variables
+      integer namelen,n
+      character(len=namelen) fname
+      double precision arr(n)
+C Local variables
+      integer i
+      integer unitno
+      integer nchunk
+      parameter(nchunk=100000000)
+
+      unitno=200
+
+C Write to file
+      open(unit=unitno,file=fname,form="unformatted")
+      do i=1,n/nchunk
+        write(unitno) arr((i-1)*nchunk+1:i*nchunk)
+      end do
+      if(mod(n,nchunk).ne.0) then
+        write(unitno) arr((n/nchunk)*nchunk+1:n)
+      end if
+      close(unitno)
 
       return
       end
