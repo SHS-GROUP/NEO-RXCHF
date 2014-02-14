@@ -12,6 +12,7 @@
 !=======================================================================
       implicit none
       include 'mpif.h'
+      include 'omp_lib.h'
 
 ! Input Variables
       integer nblocks
@@ -351,6 +352,7 @@ C     x                          GM3_1)
 !=======================================================================
       implicit none
       include 'mpif.h'
+      include 'omp_lib.h'
 
 ! Input Variables
       integer nblocks

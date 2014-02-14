@@ -9,6 +9,7 @@
 !======================================================================
       implicit none
       include 'mpif.h'
+      include 'omp_lib.h'
 
 ! Input Variables
       integer Nchunks
@@ -254,6 +255,7 @@
 !======================================================================
       implicit none
       include 'mpif.h'
+      include 'omp_lib.h'
 
 ! Input Variables
       integer Nchunks
