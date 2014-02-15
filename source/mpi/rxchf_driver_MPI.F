@@ -79,7 +79,11 @@ C Input variables
       double precision AGNBFCC(npbf)   ! Nuclear contraction coeff
 
 C Local variables
+#if MPI32
+      integer*4    ierr
+#else
       integer      ierr
+#endif
       character*4  istring              ! File I/O variables
       integer      nebf2,npbf2,nebflt   ! Convenient quantities
       integer      npra,nprb            ! Number of distinct electron pairs

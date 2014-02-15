@@ -43,7 +43,11 @@ C Local variables
       integer,allocatable :: loop_map(:,:)
 
       integer   mpistart,mpiend,arrstart
-      integer ierr
+#if MPI32
+      integer*4 ierr,nebf2,npbf2
+#else
+      integer ierr,nebf2,npbf2
+#endif
 
 C Initialize
       XFAE      = 0.0d+00
@@ -54,6 +58,14 @@ C Initialize
       TFBE      = 0.0d+00
       TFP       = 0.0d+00
       TE_OMG3   = 0.0d+00
+
+#if MPI32
+      nebf2=int(nebf*nebf,kind=4)
+      npbf2=int(npbf*npbf,kind=4)
+#else
+      nebf2=nebf*nebf
+      npbf2=npbf*npbf
+#endif
 
 ! Each process has ng3/nproc integrals according to rank
 ! Last process also has ng3%nproc remaining integrals
@@ -124,13 +136,13 @@ C Nested loop compression for this chunk:
 
 C Update Fock matrix
 C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
-      call MPI_ALLREDUCE(TFAE(1,1),XFAE(1,1),nebf*nebf,
+      call MPI_ALLREDUCE(TFAE(1,1),XFAE(1,1),nebf2,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
-      call MPI_ALLREDUCE(TFBE(1,1),XFBE(1,1),nebf*nebf,
+      call MPI_ALLREDUCE(TFBE(1,1),XFBE(1,1),nebf2,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
-      call MPI_ALLREDUCE(TFP(1,1),XFP(1,1),npbf*npbf,
+      call MPI_ALLREDUCE(TFP(1,1),XFP(1,1),npbf2,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
       call MPI_ALLREDUCE(TE_OMG3,E_OMG3,1,
@@ -190,7 +202,11 @@ C Local variables
       integer,allocatable :: loop_map(:,:)
 
       integer   mpistart,mpiend,arrstart
-      integer ierr
+#if MPI32
+      integer*4 ierr,nebf2,npbf2
+#else
+      integer ierr,nebf2,npbf2
+#endif
 
 C Initialize
       XFAE      = 0.0d+00
@@ -201,6 +217,14 @@ C Initialize
       TFBE      = 0.0d+00
       TFP       = 0.0d+00
       TE_OMG3   = 0.0d+00
+
+#if MPI32
+      nebf2=int(nebf*nebf,kind=4)
+      npbf2=int(npbf*npbf,kind=4)
+#else
+      nebf2=nebf*nebf
+      npbf2=npbf*npbf
+#endif
 
 ! Each process has ng3/nproc integrals according to rank
 ! Last process also has ng3%nproc remaining integrals
@@ -271,13 +295,13 @@ C Nested loop compression for this chunk:
 
 C Update Fock matrix
 C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
-      call MPI_ALLREDUCE(TFAE(1,1),XFAE(1,1),nebf*nebf,
+      call MPI_ALLREDUCE(TFAE(1,1),XFAE(1,1),nebf2,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
-      call MPI_ALLREDUCE(TFBE(1,1),XFBE(1,1),nebf*nebf,
+      call MPI_ALLREDUCE(TFBE(1,1),XFBE(1,1),nebf2,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
-      call MPI_ALLREDUCE(TFP(1,1),XFP(1,1),npbf*npbf,
+      call MPI_ALLREDUCE(TFP(1,1),XFP(1,1),npbf2,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
       call MPI_ALLREDUCE(TE_OMG3,E_OMG3,1,
@@ -331,7 +355,11 @@ C Local variables
       integer,allocatable :: loop_map(:,:)
 
       integer   mpistart,mpiend,arrstart
-      integer ierr
+#if MPI32
+      integer*4 ierr,nebf2,npbf2
+#else
+      integer ierr,nebf2,npbf2
+#endif
 
 C Initialize
       XFE       = 0.0d+00
@@ -340,6 +368,14 @@ C Initialize
       TFE       = 0.0d+00
       TFP       = 0.0d+00
       TE_OMG3   = 0.0d+00
+
+#if MPI32
+      nebf2=int(nebf*nebf,kind=4)
+      npbf2=int(npbf*npbf,kind=4)
+#else
+      nebf2=nebf*nebf
+      npbf2=npbf*npbf
+#endif
 
 ! Each process has ng3/nproc integrals according to rank
 ! Last process also has ng3%nproc remaining integrals
@@ -410,10 +446,10 @@ C Nested loop compression for this chunk:
 
 C Update Fock matrix
 C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
-      call MPI_ALLREDUCE(TFE(1,1),XFE(1,1),nebf*nebf,
+      call MPI_ALLREDUCE(TFE(1,1),XFE(1,1),nebf2,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
-      call MPI_ALLREDUCE(TFP(1,1),XFP(1,1),npbf*npbf,
+      call MPI_ALLREDUCE(TFP(1,1),XFP(1,1),npbf2,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
       call MPI_ALLREDUCE(TE_OMG3,E_OMG3,1,

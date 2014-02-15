@@ -51,7 +51,11 @@
       integer,allocatable :: loop_map(:,:)
 
       integer nproc,rank
+#if MPI32
+      integer*4 ierr
+#else
       integer ierr
+#endif
       integer mpistart,mpiend,arrstart
 
       double precision zero,half,two
@@ -351,7 +355,11 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
       integer,allocatable :: loop_map(:,:)
 
       integer nproc,rank
+#if MPI32
+      integer*4 ierr
+#else
       integer ierr
+#endif
       integer mpistart,mpiend,arrstart
 
       double precision zero,half,two
@@ -878,11 +886,23 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
       integer ip,jp,ie1,je1,ie2,je2
       integer ia_first,ia_last
       integer ia,ia_12,ia_21
+#if MPI32
+      integer*4 tag,reqscount,ierr
+      integer*4 sendrank,recvrank,rank_
+      integer*4 reqs(2*nlocints)
+#else
       integer tag,reqscount,ierr
-      integer sendrank,recvrank
+      integer sendrank,recvrank,rank_
       integer reqs(2*nlocints)
+#endif
       double precision x12,x21
       double precision xGAM2(nlocints)
+
+#if MPI32
+      rank_=int(rank,kind=4)
+#else
+      rank_=rank
+#endif
 
       xGAM2=0.0d+00
 
@@ -910,12 +930,16 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
 
         call get_mpi_proc(ntotints,nproc,ia_21,recvrank)
 
-        if (recvrank.eq.rank) then
+        if (recvrank.eq.rank_) then
          xGAM2(ia_12-mpistart+1)=GAM2(ia_21-mpistart+1)
         else
          call pack_4D(nebf,nebf,nebf,
      x                je2,ie2,je1,ie1,ia)
+#if MPI32
+         tag=int(ia,kind=4)
+#else
          tag=ia
+#endif
          reqscount=reqscount+1
          call MPI_IRECV(xGAM2(ia_12-mpistart+1),1,
      x                  MPI_DOUBLE_PRECISION,recvrank,tag,
@@ -927,10 +951,15 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
        if ((ia_21.ge.mpistart).and.(ia_21.le.mpiend)) then
 
         call get_mpi_proc(ntotints,nproc,ia_12,sendrank)
-        if (sendrank.ne.rank) then
+
+        if (sendrank.ne.rank_) then
          call pack_4D(nebf,nebf,nebf,
      x                je2,ie2,je1,ie1,ia)
+#if MPI32
+         tag=int(ia,kind=4)
+#else
          tag=ia
+#endif
          reqscount=reqscount+1
          call MPI_ISEND(GAM2(ia_21-mpistart+1),1,
      x                  MPI_DOUBLE_PRECISION,sendrank,tag,

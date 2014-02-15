@@ -5,7 +5,11 @@
       implicit none
       include "mpif.h"
 
+#if MPI32
+      integer*4 ierr,req,prov
+#else
       integer ierr,req,prov
+#endif
       parameter (req=MPI_THREAD_FUNNELED)
 
       call MPI_INIT_THREAD(req,prov,ierr)
@@ -100,7 +104,13 @@
 
       integer junk
 
+#if MPI32
+      integer*4 nproc4,rank4,namelen,ierr
+      integer*4 ngtg1_,nat_,npebf_,npbf_,nebf_
+#else
       integer namelen,ierr
+      integer ngtg1_,nat_,npebf_,npbf_,nebf_
+#endif
       integer nproc,rank
       character(len=25) :: procname
 
@@ -109,8 +119,17 @@
       integer nblocks
       integer blockrank
 
+#if MPI32
+      call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc4,ierr)
+      call MPI_COMM_RANK(MPI_COMM_WORLD,rank4,ierr)
+      rank=int(rank4,kind=8)
+      nproc=int(nproc4,kind=8)
+      if(rank.eq.0) write(*,*) "Assuming 32-bit integer MPI library"
+#else
       call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
       call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
+      if(rank.eq.0) write(*,*) "Assuming 64-bit integer MPI library"
+#endif
       call MPI_GET_PROCESSOR_NAME(procname,namelen,ierr)
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
       write(*,7000) "Process with rank",rank,
@@ -303,35 +322,48 @@
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 ! Broadcast array data
-      call MPI_BCAST(bcoef1,ngtg1,MPI_DOUBLE_PRECISION,
+#if MPI32
+      ngtg1_=int(ngtg1,kind=4)
+      nat_=int(nat,kind=4)
+      npebf_=int(npebf,kind=4)
+      npbf_=int(npbf,kind=4)
+      nebf_=int(nebf,kind=4)
+#else
+      ngtg1_=ngtg1
+      nat_=nat
+      npebf_=npebf
+      npbf_=npbf
+      nebf_=nebf
+#endif
+      call MPI_BCAST(bcoef1,ngtg1_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(gamma1,ngtg1,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(gamma1,ngtg1_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(zan,nat,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(zan,nat_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(cat,3*nat,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(cat,3*nat_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(AMPEB2C,npebf,MPI_INTEGER8,
+      call MPI_BCAST(AMPEB2C,npebf_,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(ELCEX,npebf,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(ELCEX,npebf_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(AGEBFCC,npebf,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(AGEBFCC,npebf_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(ELCAM,3*npebf,MPI_INTEGER8,
+      call MPI_BCAST(ELCAM,3*npebf_,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(ELCBFC,3*npebf,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(ELCBFC,3*npebf_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(NUCEX,npbf,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(NUCEX,npbf_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(AGNBFCC,npbf,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(AGNBFCC,npbf_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(NUCAM,3*npbf,MPI_INTEGER8,
+      call MPI_BCAST(NUCAM,3*npbf_,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(NUCBFC,3*npbf,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(NUCBFC,3*npbf_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(KPESTR,nebf,MPI_INTEGER8,
+      call MPI_BCAST(KPESTR,nebf_,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(KPEEND,nebf,MPI_INTEGER8,
+      call MPI_BCAST(KPEEND,nebf_,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)

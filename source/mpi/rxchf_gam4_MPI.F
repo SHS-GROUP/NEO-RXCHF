@@ -27,11 +27,18 @@
       double precision,allocatable :: GAM_ee(:)
 
       integer nproc,rank
-      integer ierr
       integer mpistart,mpiend,arrstart
 
       double precision, allocatable :: TGM2s(:),TGM4(:)
+#if MPI32
+      integer*4 ierr
+      integer*4 ng2loc_,ng4loc_
+      integer*4 ng2locarr(nproc),ng4locarr(nproc),displarr(nproc)
+#else
+      integer ierr
+      integer ng2loc_,ng4loc_
       integer ng2locarr(nproc),ng4locarr(nproc),displarr(nproc)
+#endif
 
       double precision zero
       parameter(zero=0.0d+00)
@@ -64,9 +71,17 @@
       TGM2s=zero
 
 ! Get number of elements calculated by each proc
-      call MPI_ALLGATHER(ng2loc,1,MPI_INTEGER8,
+#if MPI32
+      ng2loc_=int(ng2loc,kind=4)
+      call MPI_ALLGATHER(ng2loc_,1,MPI_INTEGER,
+     x                   ng2locarr(1),1,MPI_INTEGER,
+     x                   MPI_COMM_WORLD,ierr)
+#else
+      ng2loc_=ng2loc
+      call MPI_ALLGATHER(ng2loc_,1,MPI_INTEGER8,
      x                   ng2locarr(1),1,MPI_INTEGER8,
      x                   MPI_COMM_WORLD,ierr)
+#endif
 
 ! Get displacements for array storage
       displarr(1)=0
@@ -77,7 +92,7 @@
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 ! Form global GM2s on each proc
-      call MPI_ALLGATHERV(GM2s(1),ng2loc,MPI_DOUBLE_PRECISION,
+      call MPI_ALLGATHERV(GM2s(1),ng2loc_,MPI_DOUBLE_PRECISION,
      x                    TGM2s(1),ng2locarr,displarr,
      x                    MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
 
@@ -273,11 +288,18 @@
       double precision,allocatable :: GAM_ee(:)
 
       integer nproc,rank
-      integer ierr
       integer mpistart,mpiend,arrstart
 
       double precision, allocatable :: TGM2s(:),TGM4(:)
+#if MPI32
+      integer*4 ierr
+      integer*4 ng2loc_,ng4loc_
+      integer*4 ng2locarr(nproc),ng4locarr(nproc),displarr(nproc)
+#else
+      integer ierr
+      integer ng2loc_,ng4loc_
       integer ng2locarr(nproc),ng4locarr(nproc),displarr(nproc)
+#endif
 
       double precision zero
       parameter(zero=0.0d+00)
@@ -310,9 +332,17 @@
       TGM2s=zero
 
 ! Get number of elements calculated by each proc
-      call MPI_ALLGATHER(ng2loc,1,MPI_INTEGER8,
+#if MPI32
+      ng2loc_=int(ng2loc,kind=4)
+      call MPI_ALLGATHER(ng2loc_,1,MPI_INTEGER,
+     x                   ng2locarr(1),1,MPI_INTEGER,
+     x                   MPI_COMM_WORLD,ierr)
+#else
+      ng2loc_=ng2loc
+      call MPI_ALLGATHER(ng2loc_,1,MPI_INTEGER8,
      x                   ng2locarr(1),1,MPI_INTEGER8,
      x                   MPI_COMM_WORLD,ierr)
+#endif
 
 ! Get displacements for array storage
       displarr(1)=0
@@ -323,7 +353,7 @@
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 ! Form global GM2s on each proc
-      call MPI_ALLGATHERV(GM2s(1),ng2loc,MPI_DOUBLE_PRECISION,
+      call MPI_ALLGATHERV(GM2s(1),ng2loc_,MPI_DOUBLE_PRECISION,
      x                    TGM2s(1),ng2locarr,displarr,
      x                    MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
 

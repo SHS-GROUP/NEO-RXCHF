@@ -56,7 +56,11 @@
       integer,allocatable :: loop_map(:,:)
 
       integer nproc,rank
+#if MPI32
+      integer*4 ierr
+#else
       integer ierr
+#endif
       integer mpistart,mpiend,arrstart
 
       character*4  istring              ! File I/O variables
@@ -398,7 +402,11 @@ C     x                          GM3_1)
       integer,allocatable :: loop_map(:,:)
 
       integer nproc,rank
+#if MPI32
+      integer*4 ierr
+#else
       integer ierr
+#endif
       integer mpistart,mpiend,arrstart
 
       character*4  istring              ! File I/O variables
@@ -987,11 +995,23 @@ C=======================================================================
       integer ip,jp,ie1,je1,ie2,je2,ie3,je3
       integer ia_first,ia_last
       integer ia,ia_12,ia_21
+#if MPI32
+      integer*4 tag,reqscount,ierr
+      integer*4 sendrank,recvrank,rank_
+      integer*4 reqs(2*nlocints)
+#else
       integer tag,reqscount,ierr
-      integer sendrank,recvrank
+      integer sendrank,recvrank,rank_
       integer reqs(2*nlocints)
+#endif
       double precision x12,x21
       double precision xGAM3(nlocints)
+
+#if MPI32
+      rank_=int(rank,kind=4)
+#else
+      rank_=rank
+#endif
 
       xGAM3=0.0d+00
 
@@ -1021,12 +1041,16 @@ C=======================================================================
 
          call get_mpi_proc(ntotints,nproc,ia_21,recvrank)
 
-         if (recvrank.eq.rank) then
+         if (recvrank.eq.rank_) then
           xGAM3(ia_12-mpistart+1)=GAM3(ia_21-mpistart+1)
          else
           call pack_4D(nebf,nebf,nebf,
      x                 je3,ie3,je2,ie2,ia)
+#if MPI32
+          tag=int(ia,kind=4)
+#else
           tag=ia
+#endif
           reqscount=reqscount+1
           call MPI_IRECV(xGAM3(ia_12-mpistart+1),1,
      x                   MPI_DOUBLE_PRECISION,recvrank,tag,
@@ -1039,10 +1063,14 @@ C=======================================================================
 
          call get_mpi_proc(ntotints,nproc,ia_12,sendrank)
 
-         if (sendrank.ne.rank) then
+         if (sendrank.ne.rank_) then
           call pack_4D(nebf,nebf,nebf,
      x                 je3,ie3,je2,ie2,ia)
+#if MPI32
+          tag=int(ia,kind=4)
+#else
           tag=ia
+#endif
           reqscount=reqscount+1
           call MPI_ISEND(GAM3(ia_21-mpistart+1),1,
      x                   MPI_DOUBLE_PRECISION,sendrank,tag,
@@ -1106,11 +1134,23 @@ C=======================================================================
       integer ip,jp,ie1,je1,ie2,je2,ie3,je3
       integer ia_first,ia_last
       integer ia,ia_12,ia_21
+#if MPI32
+      integer*4 tag,reqscount,ierr
+      integer*4 sendrank,recvrank,rank_
+      integer*4 reqs(2*nlocints)
+#else
       integer tag,reqscount,ierr
-      integer sendrank,recvrank
+      integer sendrank,recvrank,rank_
       integer reqs(2*nlocints)
+#endif
       double precision x12,x21
       double precision xGAM3(nlocints)
+
+#if MPI32
+      rank_=int(rank,kind=4)
+#else
+      rank_=rank
+#endif
 
       xGAM3=0.0d+00
 
@@ -1140,12 +1180,16 @@ C=======================================================================
 
          call get_mpi_proc(ntotints,nproc,ia_21,recvrank)
 
-         if (recvrank.eq.rank) then
+         if (recvrank.eq.rank_) then
           xGAM3(ia_12-mpistart+1)=GAM3(ia_21-mpistart+1)
          else
           call pack_4D(nebf,nebf,nebf,
      x                 je2,ie2,je1,ie1,ia)
+#if MPI32
+          tag=int(ia,kind=4)
+#else
           tag=ia
+#endif
           reqscount=reqscount+1
           call MPI_IRECV(xGAM3(ia_12-mpistart+1),1,
      x                   MPI_DOUBLE_PRECISION,recvrank,tag,
@@ -1158,10 +1202,14 @@ C=======================================================================
 
          call get_mpi_proc(ntotints,nproc,ia_12,sendrank)
 
-         if (sendrank.ne.rank) then
+         if (sendrank.ne.rank_) then
           call pack_4D(nebf,nebf,nebf,
      x                 je2,ie2,je1,ie1,ia)
+#if MPI32
+          tag=int(ia,kind=4)
+#else
           tag=ia
+#endif
           reqscount=reqscount+1
           call MPI_ISEND(GAM3(ia_21-mpistart+1),1,
      x                   MPI_DOUBLE_PRECISION,sendrank,tag,
@@ -1225,11 +1273,23 @@ C=======================================================================
       integer ip,jp,ie1,je1,ie2,je2,ie3,je3
       integer ia_first,ia_last
       integer ia,ia_12,ia_21
+#if MPI32
+      integer*4 tag,reqscount,ierr
+      integer*4 sendrank,recvrank,rank_
+      integer*4 reqs(2*nlocints)
+#else
       integer tag,reqscount,ierr
-      integer sendrank,recvrank
+      integer sendrank,recvrank,rank_
       integer reqs(2*nlocints)
+#endif
       double precision x12,x21
       double precision xGAM3(nlocints)
+
+#if MPI32
+      rank_=int(rank,kind=4)
+#else
+      rank_=rank
+#endif
 
       xGAM3=0.0d+00
 
@@ -1259,12 +1319,16 @@ C=======================================================================
 
          call get_mpi_proc(ntotints,nproc,ia_21,recvrank)
 
-         if (recvrank.eq.rank) then
+         if (recvrank.eq.rank_) then
           xGAM3(ia_12-mpistart+1)=GAM3(ia_21-mpistart+1)
          else
           call pack_4D(nebf,nebf,nebf,
      x                 je3,ie3,je1,ie1,ia)
+#if MPI32
+          tag=int(ia,kind=4)
+#else
           tag=ia
+#endif
           reqscount=reqscount+1
           call MPI_IRECV(xGAM3(ia_12-mpistart+1),1,
      x                   MPI_DOUBLE_PRECISION,recvrank,tag,
@@ -1277,10 +1341,14 @@ C=======================================================================
 
          call get_mpi_proc(ntotints,nproc,ia_12,sendrank)
 
-         if (sendrank.ne.rank) then
+         if (sendrank.ne.rank_) then
           call pack_4D(nebf,nebf,nebf,
      x                 je3,ie3,je1,ie1,ia)
+#if MPI32
+          tag=int(ia,kind=4)
+#else
           tag=ia
+#endif
           reqscount=reqscount+1
           call MPI_ISEND(GAM3(ia_21-mpistart+1),1,
      x                   MPI_DOUBLE_PRECISION,sendrank,tag,

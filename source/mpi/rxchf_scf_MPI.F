@@ -272,7 +272,13 @@ C ARS( testing variables
       double precision work1(nebf,nebf)
       double precision work2(nebf,nebf)
 C )
+#if MPI32
+      integer*4 ierr
+      integer*4 npbf_,npbf2_,nebf_,nebf2_,ng1_,ngee_
+#else
       integer ierr
+      integer npbf_,npbf2_,nebf_,nebf2_,ng1_,ngee_
+#endif
 
 !--------OUTPUT-FORMATTING---------------------------------------------(
  9000 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
@@ -341,6 +347,22 @@ C )
      x       1X,I3,1X,'MICROITERATIONS',/)
                                            
 !--------OUTPUT-FORMATTING---------------------------------------------)
+
+#if MPI32
+      npbf_=int(npbf,kind=4)
+      npbf2_=int(npbf2,kind=4)
+      nebf_=int(nebf,kind=4)
+      nebf2_=int(nebf2,kind=4)
+      ng1_=int(ng1,kind=4)
+      ngee_=int(ngee,kind=4)
+#else
+      npbf_=npbf
+      npbf2_=npbf2
+      nebf_=nebf
+      nebf2_=nebf2
+      ng1_=ng1
+      ngee_=ngee
+#endif
 
       LOCBSE2=LOCBSE
 C      LOCBSE2=.true. 
@@ -434,17 +456,17 @@ C )
        write(*,*)'READ IN GAM_EE'
        write(*,*)
       end if
-      call MPI_BCAST(xxsp,npbf2,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(xxsp,npbf2_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(xxse,nebf2,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(xxse,nebf2_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(GAM_ecore,nebf2,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(GAM_ecore,nebf2_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(GAM_pcore,npbf2,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(GAM_pcore,npbf2_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(GAM_ep,ng1,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(GAM_ep,ng1_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(GAM_ee,ngee,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(GAM_ee,ngee_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
