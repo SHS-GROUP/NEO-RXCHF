@@ -722,7 +722,8 @@ C Kick-off SCF
        nprb=(nebfBE-(nbe/2))*(nbe/2) ! occ-vir pairs for special elecs
       end if
 
-      call RXCHFmult_scf(nelec,nae,nbe,npra,nprb,nucst,
+C      call RXCHFmult_scf(nelec,nae,nbe,npra,nprb,nucst,
+      call RXCHFmult_scf_nomicro(nelec,nae,nbe,npra,nprb,nucst,
      x                   npebf,nebf,nebf2,nebflt,
      x                   npebfBE,nebfBE,nebfBE2,nebfBElt,elindBE,
      x                   npbf,npbf2,npbflt,

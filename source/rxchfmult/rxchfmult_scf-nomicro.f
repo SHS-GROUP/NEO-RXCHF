@@ -1,5 +1,5 @@
 !======================================================================
-      subroutine RXCHFmult_scf(nelec,NAE,NBE,NPRA,NPRB,NUCST,
+      subroutine RXCHFmult_scf_nomicro(nelec,NAE,NBE,NPRA,NPRB,NUCST,
      x                         npebf,nebf,nebf2,nebflt,
      x                         npebfBE,nebfBE,nebfBE2,nebfBElt,elindBE,
      x                         npbf,npbf2,npbflt,
@@ -149,7 +149,7 @@
 !     integer noccP ! Number of occupied nuc orbs
       integer maxit,maxmicroit
 
-      integer i,ielec
+      integer i
       integer j
       integer k
       integer l
@@ -372,9 +372,9 @@ C )
                                            
 !--------OUTPUT-FORMATTING---------------------------------------------)
 
-C      LOCBSE2=LOCBSE
-      LOCBSE3=LOCBSE
-      LOCBSE2=.false.
+      LOCBSE2=LOCBSE
+C      LOCBSE3=LOCBSE
+      LOCBSE3=.false.
       LOCBSE=.false.
 
       if((LOCBSE2).or.(LOCBSE3)) then
@@ -663,7 +663,6 @@ C )
       TOLE = 1.0D-06
       TOLP = 1.0D-04
       maxit=100
-      maxmicroit=200
       if(LOCBSE) maxit=400
 !
 !     ZERO OUT 'OLD' DENSITY MATRICES
@@ -678,14 +677,14 @@ C )
 !
       E_total_old=0.0d+00
 
-      DO I=1,MAXIT
+         if(LSOSCFA) ITSOA=0
+         if(LSOSCFB) ITSOB=0
+         ORBGRDA=0.0d+00
+         ORBGRDB=0.0d+00
+         if(allocated(PGRADA)) PGRADA=0.0D+00
+         if(allocated(PGRADB)) PGRADB=0.0D+00
 
-!--------------FORM-FOCK-MATRICES-AND-CALC-ENERGY-COMPONENTS-----------(
-!     write(*,*)
-!     write(*,*)'IN: xcuscf '
-!     write(*,*)'Before call to UHF_FOCK, GAM_EE='
-!     write(*,*)GAM_ee
-!     write(*,*)
+      DO I=1,MAXIT
 
 C Call HF Fock build for NAE regular electrons
          call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
@@ -759,6 +758,16 @@ C )
      x  E_int_OMG2,E_int_OMG3,E_int_OMG4,E_int,
      x  S_total,E_total
 
+         if((LSOSCFA).and.(LSOSCFB)) then 
+          WRITE(*,9052)
+         else if ((LSOSCFA).and.(.not.(LSOSCFB))) then
+          WRITE(*,9050)
+         else if ((LSOSCFB).and.(.not.(LSOSCFA))) then
+          WRITE(*,9051)
+         else
+          WRITE(*,9000)
+         end if
+
          end if
 
 !        Fockp diag
@@ -773,28 +782,8 @@ C ARS( microiterate
          CALL COPYDEN(DP0,DP,NPBF)
 C )
 
-         if(LSOSCFA) ITSOA=0
-         if(LSOSCFB) ITSOB=0
-         ORBGRDA=0.0d+00
-         ORBGRDB=0.0d+00
-         if(allocated(PGRADA)) PGRADA=0.0D+00
-         if(allocated(PGRADB)) PGRADB=0.0D+00
 
-         write(*,2001) I
-
-         if((LSOSCFA).and.(LSOSCFB)) then 
-          WRITE(*,9052)
-         else if ((LSOSCFA).and.(.not.(LSOSCFB))) then
-          WRITE(*,9050)
-         else if ((LSOSCFB).and.(.not.(LSOSCFA))) then
-          WRITE(*,9051)
-         else
-          WRITE(*,9000)
-         end if
-
-         do ielec=1,maxmicroit
-
-       if((.not.(locbse.or.locbse2.or.locbse3)).or.(ielec.eq.1)) then
+       if((.not.(locbse.or.locbse2.or.locbse3)).or.(i.eq.1)) then
 C Call HF Fock build for NAE regular electrons
            call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
      x                            DAE,GAM_ecore,GAM_ee,
@@ -937,7 +926,7 @@ C )
 ! Regular electrons
 !-----------------------POSSIBLE-SOSCF-ALPHA---------------------------(
          if(LSOSCFA) THEN
-          ITER=IELEC
+          ITER=I
           EIGAVL = ITER.GT.1
          end if
          IF(LSOSCFA .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
@@ -991,7 +980,7 @@ C ARS( new stuff
            return
           end if
 
-          if((i.eq.1).and.(ielec.eq.1)) then
+          if((i.eq.1)) then
            write(*,*)
            write(*,*) "----------------------------------"
            write(*,*) " Dimension of intersection space:"
@@ -1004,7 +993,7 @@ C ARS( new stuff
           if(dimint.ne.dimint0) then
 
 ! Warn about changing dimension if not first iteration
-           if(.not.((i.eq.1).and.(ielec.eq.1))) then
+           if(.not.((i.eq.1))) then
             write(*,*)
             write(*,*) "----------------------------------"
             write(*,*) " Dimension of intersection space  "
@@ -1113,7 +1102,7 @@ C ARS( new stuff
 
 !-----------------------POSSIBLE-SOSCF-BETA----------------------------(
          if(LSOSCFB) THEN
-           ITER=IELEC
+           ITER=I
            EIGAVL = ITER.GT.1
 ! Turn off SOSCF if dimint changes (until stable again)
            if((LALTBAS).and.(dimint.ne.dimint0)) EIGAVL=.false.
@@ -1238,7 +1227,7 @@ C )
 
 !-----------------------POSSIBLE-SOSCF-BETA----------------------------(
         if(LSOSCFB) THEN
-         ITER=IELEC
+         ITER=I
          EIGAVL = ITER.GT.1
         end if
          IF(LSOSCFB .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
@@ -1328,7 +1317,7 @@ C New basis takes virt MOs from Csp and adds additional AOs with G-S
 
 !-----------------------POSSIBLE-SOSCF-ALPHA----------------------------(
          if(LSOSCFA) THEN
-           ITER=IELEC
+           ITER=I
            EIGAVL = ITER.GT.1
          end if
          IF(LSOSCFA .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
@@ -1444,7 +1433,7 @@ C )
 
 !-----------------------POSSIBLE-SOSCF-ALPHA---------------------------(
          if(LSOSCFA) THEN
-          ITER=IELEC
+          ITER=I
           EIGAVL = ITER.GT.1
          end if
          IF(LSOSCFA .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
@@ -1485,7 +1474,7 @@ C )
 
 !-----------------------POSSIBLE-SOSCF-BETA----------------------------(
         if(LSOSCFB) THEN
-         ITER=IELEC
+         ITER=I
          EIGAVL = ITER.GT.1
         end if
          IF(LSOSCFB .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
@@ -1539,16 +1528,16 @@ C )
 
 !        --> PRINT SUMMARY OF THIS ITERATION
          if((LSOSCFA).and.(LSOSCFB)) then
-            WRITE(*,9151) IELEC,E_total,Delta_E_tot,
+            WRITE(*,9151) I,E_total,Delta_E_tot,
      x                    DIFFAE,DIFFBE,DIFFP,ORBGRDA,ORBGRDB
          else if ((LSOSCFA).and.(.not.(LSOSCFB))) then
-            WRITE(*,9150) IELEC,E_total,Delta_E_tot,
+            WRITE(*,9150) I,E_total,Delta_E_tot,
      x                    DIFFAE,DIFFBE,DIFFP,ORBGRDA
          else if ((LSOSCFB).and.(.not.(LSOSCFA))) then
-            WRITE(*,9150) IELEC,E_total,Delta_E_tot,
+            WRITE(*,9150) I,E_total,Delta_E_tot,
      x                    DIFFAE,DIFFBE,DIFFP,ORBGRDB
          else
-            WRITE(*,9100) IELEC,E_total,Delta_E_tot,
+            WRITE(*,9100) I,E_total,Delta_E_tot,
      x                    DIFFAE,DIFFBE,DIFFP
          end if
 C ARS( debug: print out MOs here
@@ -1566,17 +1555,8 @@ C )
          call write_MOs(861,nebfBE,VECBE)
          call write_MOs(853,npbf,VECP)
 
-         LDIFFE=( (DIFFAE.LT.TOLE).and.(DIFFBE.LT.TOLE) )
-         IF(LDIFFE) GOTO 200
-         IF(IELEC.EQ.MAXIT) GOTO 10
-
-       END DO  ! microiterations
-
-  200 CONTINUE
-!      IF WE GET HERE - MICROITERATION CONVERGENCE ACHIEVED
-       write(*,2000) i,ielec
-
-       IF(DIFFP.LT.TOLP) GOTO 100
+       LDIFFE=( (DIFFAE.LT.TOLE).and.(DIFFBE.LT.TOLE) )
+       IF((LDIFFE).and.(DIFFP.LT.TOLP)) GOTO 100
        IF(I.EQ.MAXIT) GOTO 10
 
       END DO   ! iterations
@@ -1941,1262 +1921,3 @@ C )
 
       RETURN
       END
-!======================================================================
-      SUBROUTINE RXCHFmult_guess_A_elec(NAE,nebf,xxse,GAM_ecore,DAE,CAE)
- 
-!     Diagonalize the core electron Hamiltonian
-!     to construct initial regular electron guess density
-!======================================================================
-      implicit none
-! Input Variables
-      integer nebf
-      integer NAE
-      double precision xxse(nebf,nebf)
-      double precision GAM_ecore(nebf,nebf)
-! Variables Returned
-      double precision DAE(nebf,nebf)
-! Local variables
-      double precision CAE(nebf,nebf)
-      double precision EVF(nebf)
-
-
-      call UROOTHAN(CAE,EVF,xxse,GAM_ecore,nebf)
-
-      call RXCHFmult_construct_DE(NAE,nebf,CAE,DAE)
-
-
-      RETURN
-      END
-!======================================================================
-      subroutine RXCHFmult_guess_elec(LALTBAS,nae,nbe,nebf,nebfBE,
-     x                                xxse,xxseBE,
-     x                                GAM_ecore,GAM_ecoreBE,
-     x                                DAE,DBE,CAE,CBE)
- 
-!     Diagonalize the core electron Hamiltonian
-!     to construct initial regular and special electronic guess density
-!======================================================================
-      implicit none
-! Input Variables
-      logical LALTBAS
-      integer nebf,nebfBE
-      integer nae
-      integer nbe
-      double precision xxse(nebf,nebf)
-      double precision xxseBE(nebfBE,nebfBE)
-      double precision GAM_ecore(nebf,nebf)
-      double precision GAM_ecoreBE(nebfBE,nebfBE)
-! Variables Returned
-      double precision DAE(nebf,nebf)
-      double precision DBE(nebfBE,nebfBE)
-      double precision CAE(nebf,nebf)
-      double precision CBE(nebfBE,nebfBE)
-! Local variables
-      integer i,j,k,l
-      integer dimint
-      integer nocca,noccb
-      integer maxind,currind
-      logical debug
-      double precision ovlap,maxovlap
-      double precision C(nebf,nebf)
-      double precision C2(nebfBE,nebfBE)
-      double precision Ctemp(nebfBE,nebf)
-      double precision EVF(nebf)
-      double precision EVF2(nebfBE)
-
-      double precision,allocatable :: Cvirt(:,:),tempvec(:)
-      double precision,allocatable :: Cint(:,:),Cint_tr(:,:)
-
-      double precision, parameter   :: zero=0.0d+00
-      double precision, parameter   :: tol=1.0d-12
-
-      debug=.false.
-
-      if (nae.gt.1) then
-       nocca=nae/2
-      else
-       nocca=nae
-      end if
-      if (nbe.gt.1) then
-       noccb=nbe/2
-      else
-       noccb=nbe
-      end if
-
-      if(allocated(Cvirt)) deallocate(Cvirt)
-      allocate(Cvirt(nebf,nebf-nocca))
-
-      DAE=zero
-      DBE=zero
-      CAE=zero
-      CBE=zero
-
-      call UROOTHAN(C,EVF,xxse,GAM_ecore,nebf)
-
-! Store first nocca evectors as occ reg elec vectors
-      do i=1,nocca
-        do j=1,nebf
-          CAE(j,i)=C(j,i)
-        end do
-      end do
-
-! Store nebf-nocca remaining evectors as virt elec vectors
-      do i=nocca+1,nebf
-        do j=1,nebf
-          Cvirt(j,i-nocca)=C(j,i)
-        end do
-      end do
-
-      if (LALTBAS) then
-! Find intersection of restricted basis set and virt elec vectors
-       call RXCHFmult_intersection(nebf,nebf-nocca,Cvirt,nebfBE,xxseBE,
-     x                             dimint,Ctemp)
-       if (dimint.le.noccb) then
-        write(*,*) "dim of intersection <= # occ special orbitals"
-        write(*,*) "dimint:",dimint
-        write(*,*) "noccb:",noccb
-        return
-       end if
-
-       write(*,*)
-       write(*,*) "----------------------------------"
-       write(*,*) " Dimension of intersection space:"
-       write(*,'(2X,A,1X,I3)') "Max possible (nebfBE)      =",nebfBE
-       write(*,'(2X,A,1X,I3)') "Actual (after computation) =",dimint
-       write(*,*) "----------------------------------"
-       write(*,*)
-
-       if(allocated(Cint)) deallocate(Cint)
-       allocate(Cint(nebfBE,dimint))
-       do i=1,dimint
-         do j=1,nebfBE
-           Cint(j,i)=Ctemp(j,i)
-         end do
-       end do
-
-! Debug: All CBE vectors should be orthogonal to occ CAE vectors
-       do i=1,nocca
-       do j=1,dimint
-         ovlap=zero
-         do k=1,nebf
-         do l=1,nebfBE
-           ovlap=ovlap+CAE(k,i)*Cint(l,j)*xxse(k,l)
-         end do
-         end do
-         if (abs(ovlap).gt.tol) then
-          write(*,*)
-          write(*,*) "******* ERROR *******"
-          write(*,*) "Calculated intersection basis is not orthogonal"
-          write(*,*) "to occupied regular vectors"
-          write(*,*) "reg occ index, int index, ovlap:",i,j,ovlap
-          write(*,*)
-         end if
-       end do
-       end do
-
-! Check orthonormality of new basis
-       if(debug) then
-        write(*,*) "Overlaps amongst Cint bfs (should be onormal):"
-        do i=1,dimint
-        do j=1,dimint
-          ovlap=zero
-          do k=1,nebfBE
-          do l=1,nebfBE
-            ovlap=ovlap+Cint(k,i)*Cint(l,j)*xxseBE(k,l)
-          end do
-          end do
-          write(*,*) "i,j,ovlap:",i,j,ovlap
-        end do
-        end do
-       end if
-
-! Fill in regular virtuals with new intersection basis
-       do i=1,min(nebf-nocca,dimint)
-         do j=1,nebfBE
-           CAE(j,i+nocca)=Cint(j,i)
-         end do
-       end do
-
-! Find how "similar" the original Cvirt are as compared to the new basis
-! and fill special electronic vectors with those with greatest overlap
-       currind=0
-       do i=1,nebf-nocca
-         maxovlap=zero
-         maxind=0
-         do j=1,dimint
-           ovlap=zero
-           do k=1,nebf
-           do l=1,nebfBE
-             ovlap=ovlap+Cvirt(k,i)*Cint(l,j)*xxse(k,l)
-           end do
-           end do
-           if(abs(ovlap).gt.maxovlap) then
-            maxovlap=abs(ovlap)
-            maxind=j
-           end if
-         end do
-         if ((i.le.nebfBE).and.(maxind.ne.0)) then
-          currind=currind+1
-          do j=1,nebfBE
-            CBE(j,currind)=Cint(j,maxind)
-          end do
-         end if
-       end do
-
-C! Special occ guess is obtained by diagonalizing truncated overlap
-C! matrix and projecting onto intersection space
-C       call UROOTHAN(C2,EVF2,xxseBE,GAM_ecoreBE,nebfBE)
-C
-C       if(allocated(Cint_tr)) deallocate(Cint_tr)
-C       allocate(Cint_tr(dimint,nebfBE))
-C       do i=1,dimint
-C         do j=1,nebfBE
-C           Cint_tr(i,j)=Cint(j,i)
-C         end do
-C       end do
-C
-C       if(allocated(tempvec)) deallocate(tempvec)
-C       allocate(tempvec(dimint))
-C
-C       do i=1,nebfBE
-C         call RXCHF_matmult(dimint,nebfBE,nebfBE,1,
-C     x                      Cint_tr,C2(:,i),tempvec)
-C         do j=1,nebfBE
-C           do k=1,dimint
-C             CBE(j,i)=CBE(j,i)+tempvec(k)*Cint(j,k)
-C           end do
-C         end do
-C       end do
-C
-C       if(allocated(tempvec)) deallocate(tempvec)
-
-       if(allocated(Cint)) deallocate(Cint)
-
-      else
-! Store virt evectors as occ and virt spec elec vectors
-        do i=1,nebf-nocca
-          do j=1,nebf
-            CBE(j,i)=Cvirt(j,i)
-          end do
-        end do
-
-      end if
-
-      call RXCHFmult_construct_DE(NAE,nebf,CAE,DAE)
-      call RXCHFmult_construct_DE(NBE,nebfBE,CBE,DBE)
-
-C      if(allocated(Cint_tr)) deallocate(Cint_tr)
-      if(allocated(Cvirt)) deallocate(Cvirt)
-
-      return
-      end
-!======================================================================
-      subroutine RXCHFmult_guess_elec_ocbse3(nae,nbe,nebf,nebfBE,
-     x                                       xxse,xxseBE,
-     x                                       GAM_ecore,GAM_ecoreBE,
-     x                                       DAE,DBE,CAE,CBE)
- 
-!     Diagonalize the core electron Hamiltonian
-!     to construct initial regular and special electronic guess density
-!======================================================================
-      implicit none
-! Input Variables
-      integer nebf,nebfBE
-      integer nae
-      integer nbe
-      double precision xxse(nebf,nebf)
-      double precision xxseBE(nebfBE,nebfBE)
-      double precision GAM_ecore(nebf,nebf)
-      double precision GAM_ecoreBE(nebfBE,nebfBE)
-! Variables Returned
-      double precision DAE(nebf,nebf)
-      double precision DBE(nebfBE,nebfBE)
-      double precision CAE(nebf,nebf)
-      double precision CBE(nebfBE,nebfBE)
-! Local variables
-      integer i,j,k,l
-      integer dimint
-      integer nocca,noccb
-      integer maxind,currind
-      logical debug
-      double precision ovlap,maxovlap
-      double precision C(nebf,nebf)
-      double precision C2(nebfBE,nebfBE)
-      double precision Ctemp(nebf,nebf)
-      double precision EVF(nebf)
-      double precision EVF2(nebfBE)
-
-      double precision,allocatable :: Cvirt(:,:),tempvec(:)
-      double precision,allocatable :: Cint(:,:),Cint_tr(:,:)
-
-      double precision, parameter   :: zero=0.0d+00
-      double precision, parameter   :: tol=1.0d-12
-
-      debug=.false.
-
-      if (nae.gt.1) then
-       nocca=nae/2
-      else
-       nocca=nae
-      end if
-      if (nbe.gt.1) then
-       noccb=nbe/2
-      else
-       noccb=nbe
-      end if
-
-      DAE=zero
-      DBE=zero
-      CAE=zero
-      CBE=zero
-
-      call UROOTHAN(C2,EVF2,xxseBE,GAM_ecoreBE,nebfBE)
-
-      Ctemp=zero
-      do i=1,nebfBE
-        do k=1,nebfBE
-          Ctemp(k,i)=C2(k,i)
-        end do
-      end do
-
-      call UROOTHAN(C,EVF,xxse,GAM_ecore,nebf)
-
-C Replace nebfBE regular virtual MOs with closest overlapping
-C special electron MOs to ensure linear independence
-      do i=1,nebfBE
-        maxovlap=zero
-        do j=nocca+1,nebf
-          call moovlap(nebf,C(:,j),Ctemp(:,i),xxse,ovlap)
-          if (abs(ovlap).ge.maxovlap) then
-           maxind=j
-           maxovlap=abs(ovlap)
-          end if
-        end do
-        C(:,maxind)=zero
-        do k=1,nebfBE
-          C(k,maxind)=Ctemp(k,i)
-        end do
-      end do
-
-C G-S orthogonalize
-      do i=2,nebf
-        do j=i,1,-1
-          call moovlap(nebf,C(:,i),C(:,j),xxse,ovlap)
-          do k=1,nebf
-            C(k,i)=C(k,i)-ovlap*C(k,j)
-          end do
-        end do
-        call moovlap(nebf,C(:,i),C(:,i),xxse,ovlap)
-        do k=1,nebf
-          C(k,i)=C(k,i)/dsqrt(ovlap)
-        end do
-      end do
-
-! Check orthogonality
-      do i=1,nebf
-        do j=1,nebf
-          call moovlap(nebf,C(:,i),C(:,j),xxse,ovlap)
-          if ((abs(ovlap).gt.tol).and.(i.ne.j)) then
-           write(*,*) "G-S procedure yielded MOs:",i,j,
-     x                "that are not orthogonal:",ovlap
-          end if
-        end do
-      end do
-
-      CAE=C
-      CBE=C2
-
-      call RXCHFmult_construct_DE(NAE,nebf,CAE,DAE)
-      call RXCHFmult_construct_DE(NBE,nebfBE,CBE,DBE)
-
-      return
-      end
-!======================================================================
-      subroutine RXCHFmult_OCBSE(nebf,nae,nbe,vecAE0,vecBE0,FAE,FBE,
-     x                       Selec,vecAE,vecBE,AEen,BEen)
-! 
-!     Perform OCBSE procedure
-!       vecAE0: Regular electron coefficients from previous iteration
-!       vecBE0: Special electron coefficients from previous iteration
-!       vecAE:  Regular electron coefficients from current iteration
-!       vecBE:  Special electron coefficients from current iteration
-!======================================================================
-      implicit none
-! Input Variables
-      integer nebf
-      integer nae,nbe
-      double precision vecAE0(nebf,nebf),vecBE0(nebf,nebf)
-      double precision FAE(nebf,nebf),FBE(nebf,nebf)
-      double precision Selec(nebf,nebf)
-! Variables Returned
-      double precision vecAE(nebf,nebf),vecBE(nebf,nebf)
-      double precision AEen(nebf),BEen(nebf)
-! Local variables
-      integer nocca,noccb,nvirt 
-      integer noccvirta,noccvirtb
-      double precision zero
-      parameter(zero=0.0d+00)
-
-      if (nae.gt.1) then
-       nocca=nae/2
-      else
-       nocca=nae
-      end if
-      if (nbe.gt.1) then
-       noccb=nbe/2
-      else
-       noccb=nbe
-      end if
-      nvirt=nebf-nocca-noccb
-      noccvirta=nebf-noccb
-      noccvirtb=nebf-nocca
-
-      vecAE=zero
-      vecBE=zero
-      AEen=zero
-      BEen=zero
-
-      call RXCHF_OCBSE_driver(nebf,nae,nbe,nocca,noccb,
-     x                        nvirt,noccvirta,noccvirtb,
-     x                        vecAE0,vecBE0,FAE,FBE,Selec,
-     x                        vecAE,vecBE,AEen,BEen)
-
-      return
-      end
-!======================================================================
-      subroutine RXCHFmult_OCBSE2(nebf,npebf,nae,nbe,vecAE,vecBE0,FBE,
-     x                        Selec,elcam,elcbfc,elcex,
-     x                        ampeb2c,agebfcc,kpestr,kpeend,
-     x                        vecBE,BEen)
-! 
-!     Perform OCBSE procedure for special electrons only
-!       vecBE0: Special electron coefficients from previous iteration
-!       vecAE:  Regular electron coefficients from current iteration
-!       vecBE:  Special electron coefficients from current iteration
-!
-!======================================================================
-      implicit none
-! Input Variables
-      integer nebf,npebf
-      integer nae,nbe
-      double precision vecAE(nebf,nebf),vecBE0(nebf,nebf)
-      double precision FBE(nebf,nebf)
-      double precision Selec(nebf,nebf)
-      integer ampeb2c(npebf)               ! Map prim index to contr index
-      integer kpestr(nebf)                 ! Map contr index to prim start
-      integer kpeend(nebf)                 ! Map contr index to prim end
-      integer elcam(npebf,3)               ! Angular mom for electrons
-      double precision agebfcc(npebf)      ! Map prim index to contr coeff
-      double precision elcex(npebf)        ! Exponents: elec basis
-      double precision elcbfc(npebf,3)     ! Basis centers: elec basis
-! Variables Returned
-      double precision vecBE(nebf,nebf)
-      double precision BEen(nebf)
-! Local variables
-      integer nocca,noccb,nvirt 
-      integer noccvirta,noccvirtb
-      double precision zero
-      parameter(zero=0.0d+00)
-
-      if (nae.gt.1) then
-       nocca=nae/2
-      else
-       nocca=nae
-      end if
-      if (nbe.gt.1) then
-       noccb=nbe/2
-      else
-       noccb=nbe
-      end if
-      nvirt=nebf-nocca-noccb
-      noccvirta=nebf-noccb
-      noccvirtb=nebf-nocca
-
-      vecBE=zero
-      BEen=zero
-
-      call RXCHFmult_OCBSE_driver2(nebf,npebf,nae,nbe,nocca,noccb,
-     x                         nvirt,noccvirta,noccvirtb,
-     x                         vecAE,vecBE0,FBE,Selec,
-     x                         elcam,elcbfc,elcex,
-     x                         ampeb2c,agebfcc,kpestr,kpeend,
-     x                         vecBE,BEen)
-
-      return
-      end
-!======================================================================
-      subroutine RXCHFmult_OCBSE_driver2(nebf,npebf,nae,nbe,nocca,noccb,
-     x                               nvirt,noccvirta,noccvirtb,
-     x                               vecAE,vecBE0,FBE,Selec,
-     x                               elcam,elcbfc,elcex,
-     x                               ampeb2c,agebfcc,kpestr,kpeend,
-     x                               vecBE,BEen)
-!
-!     OCBSE Procedure:
-!       - Construct transformation matrix for special electrons
-!       - Transform FBE and diagonalize to obtain vecBE
-!
-!  Switching to virtual space (no remnant of occupied in proj basis)
-!
-!======================================================================
-      implicit none
-! Input Variables
-      integer nebf,npebf
-      integer nae,nbe
-      integer nocca,noccb,nvirt
-      integer noccvirta,noccvirtb
-      double precision vecAE(nebf,nebf),vecBE0(nebf,nebf)
-      double precision FBE(nebf,nebf)
-      double precision Selec(nebf,nebf)
-      integer ampeb2c(npebf)               ! Map prim index to contr index
-      integer kpestr(nebf)                 ! Map contr index to prim start
-      integer kpeend(nebf)                 ! Map contr index to prim end
-      integer elcam(npebf,3)               ! Angular mom for electrons
-      double precision agebfcc(npebf)      ! Map prim index to contr coeff
-      double precision elcex(npebf)        ! Exponents: elec basis
-      double precision elcbfc(npebf,3)     ! Basis centers: elec basis
-! Variables Returned
-      double precision vecBE(nebf,nebf)
-      double precision BEen(nebf)
-! Local variables
-      integer i,j
-      integer ie1,je1
-      integer iec1,jec1
-      integer ie1_start,je1_start
-      integer ie1_end,je1_end
-      integer mo1,mo2,motodiscard
-      integer i1,j1,k1
-      integer l1,m1,n1
-      double precision a1,b1
-      double precision cof_ie1,cof_je1
-      double precision ans,ovlap,ovlapcheck,maxovlap
-      double precision Amat1(3), Bmat1(3)
-      double precision ovlaparr(nebf),projorb(nebf) ! fix2
-      double precision WB(nebf,noccvirtb)
-      double precision WBtrans(noccvirtb,nebf)
-      double precision wFBEw(noccvirtb,noccvirtb)
-      double precision wSBw(noccvirtb,noccvirtb)
-      double precision AUXB(nebf,noccvirtb)
-      double precision xAEen(noccvirta)
-      double precision xBEen(noccvirtb)
-      double precision xvecBE(noccvirtb,noccvirtb)
-      double precision blockvecBE(nebf,noccvirtb)
-      double precision zero
-      parameter(zero=0.0d+00)
-
-      logical debug
-      debug=.false.
-
-! Initialize
-      WB=zero
-      WBtrans=zero
-      wFBEw=zero
-      wSBw=zero
-      AUXB=zero
-      xBEen=zero
-      xvecBE=zero
-      blockvecBE=zero
-
-      if (debug) then
-      write(*,*) "nae,nbe:",nae,nbe
-      write(*,*) "nocca,noccb:",nocca,noccb
-      write(*,*) "MATRIX vecAE:"
-      call PREVNU(vecAE,BEen,nebf,nebf,nebf)
-      write(*,*) "MATRIX Previous vecBE:"
-      call PREVNU(vecBE0,BEen,nebf,nebf,nebf)
-      write(*,*) "MATRIX Previous S:"
-      call PREVNU(Selec,BEen,nebf,nebf,nebf)
-      end if
-
-!!!!!!!!!!!!!!!! Solve for special electronic solution !!!!!!!!!!!!!!!!
-
-! Form special electronic transformation matrix
-      do i=1,noccvirtb
-        do j=1,nebf
-          WB(j,i)=vecAE(j,nocca+i)
-        end do
-      end do
-
-      if (debug) then
-      write(*,*) "MATRIX WB:"
-      call PREVNU(WB,xBEen,noccvirtb,nebf,nebf)
-      end if
-
-! Form transpose
-      do i=1,noccvirtb
-        do j=1,nebf
-          WBtrans(i,j)=WB(j,i)
-        end do
-      end do
-
-! Transform FBE as Wtrans * FBE * W
-      call RXCHF_matmult(nebf,nebf,nebf,noccvirtb,
-     x                   FBE,WB,AUXB)
-      call RXCHF_matmult(noccvirtb,nebf,nebf,noccvirtb,
-     x                   WBtrans,AUXB,wFBEw)
-
-! Transform AO overlap matrix as Wtrans * S * W
-      call RXCHF_matmult(nebf,nebf,nebf,noccvirtb,
-     x                   Selec,WB,AUXB)
-      call RXCHF_matmult(noccvirtb,nebf,nebf,noccvirtb,
-     x                   WBtrans,AUXB,wSBw)
-
-      if (debug) then
-      write(*,*) "MATRIX wSBw:"
-      call PREVNU(wSBw,xBEen,noccvirtb,noccvirtb,noccvirtb)
-      end if
-
-! Diagonalize transformed FBE to obtain solutions in new basis
-      call UROOTHAN(xvecBE,xBEen,wSBw,wFBEw,noccvirtb)
-
-      if (debug) then
-      WRITE(*,*) "MATRIX xvecBE:"
-      call PREVNU(xvecBE,xBEen,noccvirtb,noccvirtb,noccvirtb)
-      end if
-
-! Transform evectors to AO basis as vecBE = W * xvecBE
-      call RXCHF_matmult(nebf,noccvirtb,noccvirtb,noccvirtb,
-     x                   WB,xvecBE,blockvecBE)
-
-! Pass evectors to output variables (zeros for unfilled noccb part)
-      do i=1,noccvirtb
-        BEen(i)=xBEen(i)
-        do j=1,nebf
-          vecBE(j,i)=blockvecBE(j,i)
-        end do
-      end do
-
-      if (debug) then
-      WRITE(*,*) "MATRIX New vecBE:"
-      call PREVNU(vecBE,BEen,nebf,nebf,nebf)
-      end if
-
-      return
-      end
-
-
-      subroutine invertEXPmat(nbf,A,Ainv)
-! Works only for exponential matrix exp(A) where A has zero diagonal
-      implicit none
-! Input variables
-      integer nbf
-      double precision A(nbf,nbf)
-! Output variables
-      double precision Ainv(nbf,nbf)
-! Local variables
-      integer i,j
-
-      do i=1,nbf
-        do j=1,nbf
-          if (i.ne.j) then
-           Ainv(j,i)=-A(j,i)
-          else
-           Ainv(j,i)=A(j,i)
-          end if
-        end do
-      end do
-
-      return
-      end
-
-
-      subroutine fock2mobasis(nbf,F,C,Fmo)
-      implicit none
-! Input variables
-      integer nbf
-      double precision F(nbf,nbf)
-      double precision C(nbf,nbf)
-! Output variables
-      double precision Fmo(nbf,nbf)
-! Local variables
-      integer i,j
-      double precision Ctrans(nbf,nbf)
-      double precision aux(nbf,nbf)
-
-      do i=1,nbf
-        do j=1,nbf
-          Ctrans(j,i)=C(i,j)
-        end do
-      end do
-
-      call RXCHF_matmult(nbf,nbf,nbf,nbf,F,C,aux)
-      call RXCHF_matmult(nbf,nbf,nbf,nbf,Ctrans,aux,Fmo)
-
-      return
-      end
-
-!======================================================================
-      subroutine RXCHFmult_OCBSE_transF(nebf,nwbf,
-     x                                  vecAE,FBE,WB,wFBEw)
-!
-!     OCBSE Procedure:
-!       - Construct transformation matrix for special electrons (WB)
-!       - Transform FBE (wFBEw)
-!
-!  Transformation to virtual space of regular electrons (in vecAE)
-!  vecAE on input are the virtuals only (no occupied) to facilitate
-!  portability to restricted basis set formulation
-!
-!======================================================================
-      implicit none
-! Input Variables
-      integer nebf
-      integer nwbf
-      double precision vecAE(nebf,nwbf)
-      double precision FBE(nebf,nebf)
-! Variables Returned
-      double precision WB(nebf,nwbf)
-      double precision wFBEw(nwbf,nwbf)
-! Local variables
-      integer i,j
-      double precision WBtrans(nwbf,nebf)
-      double precision AUXB(nebf,nwbf)
-      double precision zero1(nebf),zero2(nwbf)
-      double precision zero
-      parameter(zero=0.0d+00)
-
-      logical debug
-      debug=.false.
-
-! Initialize
-      WB=zero
-      WBtrans=zero
-      wFBEw=zero
-      zero1=zero
-      zero2=zero
-
-      if (debug) then
-       write(*,*) "nwbf:",nwbf
-       write(*,*) "MATRIX vecAE:"
-       call PREVNU(vecAE,zero1,nwbf,nebf,nebf)
-      end if
-
-! Form special electronic transformation matrix
-      do i=1,nwbf
-        do j=1,nebf
-          WB(j,i)=vecAE(j,i)
-        end do
-      end do
-
-      if (debug) then
-       write(*,*) "MATRIX WB:"
-       call PREVNU(WB,zero2,nwbf,nebf,nebf)
-      end if
-
-! Form transpose
-      do i=1,nwbf
-        do j=1,nebf
-          WBtrans(i,j)=WB(j,i)
-        end do
-      end do
-
-! Transform FBE as Wtrans * FBE * W
-      call RXCHF_matmult(nebf,nebf,nebf,nwbf,
-     x                   FBE,WB,AUXB)
-      call RXCHF_matmult(nwbf,nebf,nebf,nwbf,
-     x                   WBtrans,AUXB,wFBEw)
-
-      if (debug) then
-       write(*,*) "MATRIX wFBEw:"
-       call PREVNU(wFBEw,zero2,nwbf,nwbf,nwbf)
-      end if
-
-      return
-      end
-
-!======================================================================
-      subroutine RXCHFmult_OCBSE_diag(nebf,nwbf,WB,wFBEw,
-     x                                wvecBEw,wBEenw,vecBE,BEen)
-!
-!     OCBSE Procedure:
-!       - Read in transformation (WB) 
-!       - Read in transformed Fock matrix (wFBEw)
-!       - Diagonalize Fock matrix (wvecBEw,wBEenw)
-!       - Transform eigenvectors (vecBE,BEen)
-!
-!======================================================================
-      implicit none
-! Input Variables
-      integer nebf
-      integer nwbf
-      double precision WB(nebf,nwbf)
-      double precision wFBEw(nwbf,nwbf)
-! Variables Returned
-      double precision BEen(nebf)
-      double precision wBEenw(nwbf)
-      double precision vecBE(nebf,nebf)
-      double precision wvecBEw(nwbf,nwbf)
-! Local variables
-      integer i,j
-      integer ierr
-      double precision work1(nwbf),work2(nwbf)
-      double precision zero
-      parameter(zero=0.0d+00)
-
-      logical debug
-      debug=.false.
-
-! Initialize
-      wBEenw=zero
-      wvecBEw=zero
-      work1=zero
-      work2=zero
-
-! Diagonalize transformed FBE to obtain solutions in new basis
-      call RS(nwbf,nwbf,wFBEw,wBEenw,2,wvecBEw,work1,work2,ierr)
-
-      if (debug) then
-       WRITE(*,*) "MATRIX wvecBEw:"
-       call PREVNU(wvecBEw,wBEenw,nwbf,nwbf,nwbf)
-      end if
-
-      call RXCHFmult_OCBSE_transV(nebf,nwbf,WB,wvecBEw,wBEenw,
-     x                            vecBE,BEen)
-
-      return
-      end
-
-!======================================================================
-      subroutine RXCHFmult_OCBSE_transV(nebf,nwbf,WB,wvecBEw,wBEenw,
-     x                                  vecBE,BEen)
-!
-!     OCBSE Procedure:
-!       - Transform eigenvectors (wvecBEw,wBEenw) -> (vecBE,BEen)
-!       - Fill in extra parts of transformed solutions with zeros
-!
-!======================================================================
-      implicit none
-! Input Variables
-      integer nebf
-      integer nwbf
-      double precision WB(nebf,nwbf)
-      double precision wBEenw(nwbf)
-      double precision wvecBEw(nwbf,nwbf)
-! Variables Returned
-      double precision vecBE(nebf,nebf)
-      double precision BEen(nebf)
-! Local variables
-      integer i,j
-      double precision blockvecBE(nebf,nwbf)
-      double precision zero
-      parameter(zero=0.0d+00)
-
-      logical debug
-      debug=.false.
-
-! Initialize
-      blockvecBE=zero
-      vecBE=zero
-      BEen=zero
-
-! Transform evectors to AO basis as vecBE = W * xvecBE
-      call RXCHF_matmult(nebf,nwbf,nwbf,nwbf,WB,wvecBEw,blockvecBE)
-
-! Pass evectors to output variables (zeros for unfilled part)
-      do i=1,nwbf
-        BEen(i)=wBEenw(i)
-        do j=1,nebf
-          vecBE(j,i)=blockvecBE(j,i)
-        end do
-      end do
-
-      if (debug) then
-       WRITE(*,*) "MATRIX New vecBE:"
-       call PREVNU(vecBE,BEen,nebf,nebf,nebf)
-      end if
-
-      return
-      end
-
-!======================================================================
-      subroutine RXCHFmult_OCBSE_transVt(nebf,nwbf,WB,
-     x                                   Selec,vecBE,wvecBEw)
-!
-!     OCBSE Procedure:
-!       - Transform vectors from AO basis to W basis vecBE -> wvecBEw
-!
-!======================================================================
-      implicit none
-! Input Variables
-      integer nebf
-      integer nwbf
-      double precision WB(nebf,nwbf)
-      double precision vecBE(nebf,nebf)
-      double precision Selec(nebf,nebf)
-! Variables Returned
-      double precision wvecBEw(nwbf,nwbf)
-! Local variables
-      integer i,j
-      double precision WBtrans(nwbf,nebf)
-      double precision WBinv(nwbf,nebf)
-      double precision blockvecBE(nwbf,nebf)
-      double precision wSBw(nwbf,nwbf)
-      double precision zero1(nwbf),zero2(nebf)
-      double precision zero
-      parameter(zero=0.0d+00)
-      integer k,l
-      double precision ovlap
-
-      logical debug
-      debug=.false.
-
-! Initialize
-      WBtrans=zero
-      WBinv=zero
-      blockvecBE=zero
-      wvecBEw=zero
-      zero1=zero
-      zero2=zero
-
-      if (debug) then
-       WRITE(*,*) "MATRIX Pretransformed vecBE:"
-       call PREVNU(vecBE,zero2,nebf,nebf,nebf)
-      end if
-
-      if (debug) then
-       WRITE(*,*) "MATRIX Pretransformed WB:"
-       call PREVNU(WB,zero1,nwbf,nebf,nebf)
-      end if
-
-! Form transpose
-      do i=1,nwbf
-        do j=1,nebf
-          WBtrans(i,j)=WB(j,i)
-        end do
-      end do
-
-      call RXCHF_matmult(nwbf,nebf,nebf,nebf,
-     x                   WBtrans,Selec,WBinv)
-      call RXCHF_matmult(nwbf,nebf,nebf,nwbf,
-     x                   WBinv,WB,wSBw)
-
-      if (debug) then
-      write(*,*) "MATRIX wSBw:"
-      call PREVNU(wSBw,zero1,nwbf,nwbf,nwbf)
-      end if
-
-! Transform evectors to W basis as xvecBE = (W^t * S_AO) * vecBE
-      call RXCHF_matmult(nwbf,nebf,nebf,nebf,WBinv,vecBE,blockvecBE)
-
-! Pass evectors to output variables (unpassed part should be zero)
-      do i=1,nwbf
-        do j=1,nwbf
-          wvecBEw(j,i)=blockvecBE(j,i)
-        end do
-      end do
-
-      if (debug) then
-       WRITE(*,*) "MATRIX Transformed wvecBEw:"
-       call PREVNU(wvecBEw,zero1,nwbf,nwbf,nwbf)
-      end if
-
-      return
-      end
-
-!======================================================================
-      subroutine RXCHFmult_contr_mat(nebf,nebfBE,mat,matBE)
-!
-! Store restricted basis subset of matrix 
-!            mat(nebf,nebf) : matrix over all bfs
-!      matBE(nebfBE,nebfBE) : matrix over restricted bfs
-! where each dim of mat is ordered as
-!      1,...,nebfBE,nebfBE+1,...,nebf
-!======================================================================
-      implicit none
-! Input Variables
-      integer nebf
-      integer nebfBE
-      double precision mat(nebf,nebf)
-! Variables Returned
-      double precision matBE(nebfBE,nebfBE)
-! Local variables
-      integer i,j
-
-      matBE=0.0d+00
-      do i=1,nebfBE
-      do j=1,nebfBE
-        matBE(j,i)=mat(j,i)
-      end do
-      end do
-
-      return
-      end
-
-!======================================================================
-      subroutine RXCHFmult_intersection(dimtot,nvec,vecA,ncanon,Sao,
-     x                                  dimint,basint)
-!
-! Calculates an orthonormal basis for the intersection A \cap B where
-!     A is spanned by the nvec columns of vecA
-! and
-!     B is spanned by the first ncanon canonical vectors of dim dimtot
-!
-! The intersection is calculated by forming a matrix [ vecA | {e_i} ]
-! and calculating the null space using singular value decomposition
-! (right singular vectors corresponding to zero singular values
-! form an o-normal basis of the null space / intersection space)
-!
-! dimtot : dimension of basis in which vecA / canonical vectors are given
-!   nvec : number of columns in vecA
-! vecA   : (dimtot x nvec) matrix with columns corresponding to vectors
-! ncanon : number of canonical vectors of dimension dimtot
-!    Sao : overlap matrix in special electron AO basis
-! dimint : dimension of intersection
-! basint : orthonormal basis of intersection flattened to dim ncanon
-!           - dimtot vectors are output
-!           - the first dimint vectors are relevant
-! 
-!======================================================================
-      implicit none
-! Input Variables
-      integer          dimtot
-      integer          nvec
-      integer          ncanon
-      double precision vecA(dimtot,nvec)
-      double precision Sao(ncanon,ncanon)
-! Variables Returned
-      integer          dimint
-      double precision basint(ncanon,dimtot) ! adjust on exit to dimint
-! Local variables
-      logical debug
-      integer i,j,k
-      integer m,n
-      integer currind
-      integer istat
-      integer work2(8*min(dimtot,nvec+ncanon))
-      double precision ovlap
-      double precision svals(max(dimtot,nvec+ncanon)),workq(1)
-      double precision mat(dimtot,nvec+ncanon)
-      double precision aux(dimtot,nvec+ncanon)
-      double precision u(dimtot,dimtot)
-      double precision s(dimtot,nvec+ncanon)
-      double precision vt(nvec+ncanon,nvec+ncanon)
-      double precision nullbas(nvec+ncanon,nvec+ncanon)
-      double precision testvec(dimtot)
-      double precision testmat(dimtot,nvec+ncanon)
-      double precision, allocatable :: work(:)
-      double precision, parameter   :: zero=0.0d+00, one=1.0d+00
-      double precision, parameter   :: tol=1.0d-12
-
-      debug=.false.
-
-! Initialize
-      svals=zero
-      u=zero
-      s=zero
-      vt=zero
-      workq=zero
-
-! Fill first nvec columns of mat with vecA
-      do i=1,nvec
-        do j=1,dimtot
-          mat(j,i)=vecA(j,i)
-        end do
-      end do
-
-! Fill next ncanon columns of mat with canonical vectors
-      do i=1,ncanon
-        do j=1,dimtot
-          if (j.eq.i) then
-           mat(j,i+nvec)=one
-          else
-           mat(j,i+nvec)=zero
-          end if
-        end do
-      end do
-
-C      do i=1,nvec+ncanon
-C        do j=1,dimtot
-C          write(*,*) mat(j,i)
-C        end do
-C      end do
-
-! Query work array size for SVD and allocate work array
-      aux=zero
-      m=dimtot
-      n=nvec+ncanon
-
-! GESVD
-      istat=0
-      call dgesvd("A","A",m,n,mat,m,svals,u,m,vt,n,workq,-1,istat)
-      if (istat.ne.0) then
-       write(*,*) "Error in dgesvd query"
-      end if
-      if(allocated(work)) deallocate(work)
-      allocate(work(int(workq(1))))
-
-! Compute SVD
-      aux(:,:)=mat(:,:)
-      istat=0
-      call dgesvd("A","A",m,n,aux,m,svals,u,m,vt,n,
-     x            work,int(workq(1)),istat)
-      if (istat.ne.0) then
-       write(*,*) "Error in dgesvd"
-      end if
-
-CC! GESDD
-CC      istat=0
-CC      call dgesdd("A",m,n,aux,m,svals,u,m,vt,n,workq,-1,work2,istat)
-CC      write(*,*) "query istat:",istat
-CC      write(*,*) "lwork:",workq(1)
-CC      if (istat.ne.0) then
-CC       write(*,*) "Error in dgesdd query"
-CC      end if
-CC      workq(1)=max(3*(min(m,n)+max(m,n)),5*min(m,n))
-C      workq(1)=1000
-C      if(allocated(work)) deallocate(work)
-C      allocate(work(int(workq(1))))
-C
-C! Compute SVD
-C      aux(:,:)=mat(:,:)
-C      write(*,*) "dgesdd args:",m,n,int(workq(1))
-C      istat=0
-C      call dgesdd("A",m,n,aux,m,svals,u,m,vt,n,
-C     x            work,1000,work2,istat)
-C      write(*,*) "istat:",istat
-C      if (istat.ne.0) then
-C       write(*,*) "Error in dgesdd"
-C      end if
-
-      do i=1,min(m,n)
-        s(i,i)=svals(i)
-      end do
-
-      if (debug) then
-       write(*,*)
-       write(*,*) "Input matrix:"
-       write(*,*)
-       call printmat(mat,m,n)
-
-       write(*,*)
-       write(*,*) "U matrix:"
-       write(*,*)
-       call printmat(u,m,m)
-
-       write(*,*)
-       write(*,*) "Sigma matrix:"
-       write(*,*)
-       call printmat(s,m,n)
-
-       write(*,*)
-       write(*,*) "V^t matrix:"
-       write(*,*)
-       call printmat(vt,n,n)
-      end if
-
-! Find zero singular values and store corresponding rows of vt 
-! in temporary array containing nullspace basis
-      dimint=0
-      nullbas=zero
-      do i=1,max(dimtot,nvec+ncanon)
-        if(abs(svals(i)).lt.tol) then
-         dimint=dimint+1
-         do j=1,nvec+ncanon
-           nullbas(j,dimint)=vt(i,j)
-         end do
-        end if
-      end do
-
-      if (debug) then
-       write(*,*)
-       write(*,*) "Product matrix:"
-       call RXCHF_matmult(m,n,n,n,s,vt,testmat)
-       call RXCHF_matmult(m,m,m,n,u,testmat,aux)
-       call printmat(aux,m,n)
-       write(*,*)
-      end if
-
-      if (debug) then
-       write(*,*)
-       write(*,*) "----------------------------------"
-       write(*,*) " Dimension of intersection space:"
-       write(*,'(2X,A,1X,I3)') "Max possible (nebfBE)      =",ncanon
-       write(*,'(2X,A,1X,I3)') "Actual (after computation) =",dimint
-       write(*,*) "----------------------------------"
-       write(*,*)
-      end if
-
-      do i=1,dimint
-        call RXCHF_matmult(m,n,n,1,mat,nullbas(:,i),testvec)
-        do j=1,m
-          if (abs(testvec(j)).gt.tol) then
-           write(*,*)
-           write(*,*) " ***** WARNING ***** "
-           write(*,*) "Computed null space vector is not correct!"
-           write(*,*) "i:",i
-           write(*,*) "x_i:",nullbas(:,i)
-           write(*,*) "Ax_i",testvec
-           write(*,*)
-          end if
-        end do
-      end do
-
-! GS-orthogonalize basis
-      basint(:,1)=nullbas(nvec+1:n,1)
-      call moovlap(ncanon,basint(:,1),basint(:,1),Sao,ovlap)
-      do k=1,ncanon
-        basint(k,1)=basint(k,1)/dsqrt(ovlap)
-      end do
-
-      do i=2,dimint
-        basint(:,i)=nullbas(nvec+1:n,i)
-        do j=i-1,1,-1
-          call moovlap(ncanon,basint(:,i),basint(:,j),Sao,ovlap)
-          do k=1,ncanon
-            basint(k,i)=basint(k,i)-ovlap*basint(k,j)
-          end do
-        end do
-        call moovlap(ncanon,basint(:,i),basint(:,i),Sao,ovlap)
-        do k=1,ncanon
-          basint(k,i)=basint(k,i)/dsqrt(ovlap)
-        end do
-      end do
-
-      if(allocated(work)) deallocate(work)
-
-      return
-      end
-
-
-      subroutine moovlap(nbf,coeffs1,coeffs2,Sao,ovlap)
-      implicit none
-
-      integer, intent(in)  :: nbf
-      real*8,  intent(in)  :: coeffs1(nbf),coeffs2(nbf)
-      real*8,  intent(in)  :: Sao(nbf,nbf)
-
-      real*8,  intent(out) :: ovlap
-
-      integer              :: i,j
-      real*8, parameter    :: zero=0.0d+00
-
-      ovlap=zero
-
-      do i=1,nbf
-      do j=1,nbf
-        ovlap=ovlap+coeffs1(i)*coeffs2(j)*Sao(i,j)
-      end do
-      end do
-
-      return
-      end
-
-
-C ARS( testing
-      subroutine printmat(mat,dim1,dim2)
-      implicit none
-
-      integer, intent(in)    :: dim1,dim2
-      real*8,  intent(in)    :: mat(dim1,dim2)
-
-      integer :: i,j
-
-      do i=1,dim1
-      write(*,9000) (mat(i,j),j=1,dim2)
-      end do
-
- 9000 format(20(2X,G15.6))
-
-      end subroutine printmat
-C )
-
