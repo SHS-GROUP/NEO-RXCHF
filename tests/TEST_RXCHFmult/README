@@ -125,7 +125,7 @@ Notes:       Comparing restricted basis set calculation with one where the trunc
              should not be used (in this case, px,py orbitals)
              Occupied orbitals identical up to digits in log file even though energy differs slightly
 
-RXCHF+rb  :  FINAL NEORXCHF ENERGY IS       -6.7352711886 AFTER   4 ITERATIONS
-RXCHF(+)  :  FINAL NEORXCHF ENERGY IS       -6.7352711870 AFTER   3 ITERATIONS
-RXCHF(++) :  FINAL NEORXCHF ENERGY IS       -6.7352711908 AFTER   3 ITERATIONS
+RXCHF+rb  :  FINAL NEORXCHF ENERGY IS       -7.9416633596 AFTER   7 ITERATIONS
+RXCHF(+)  :  FINAL NEORXCHF ENERGY IS       -7.9416633596 AFTER   7 ITERATIONS
+RXCHF(++) :  FINAL NEORXCHF ENERGY IS       -7.9416633601 AFTER   7 ITERATIONS
 

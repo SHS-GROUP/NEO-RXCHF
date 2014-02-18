@@ -1,11 +1,52 @@
-3 =NGTG
-0.500     1.0E-15
-4.3356    0.2503
-2.9950    2.7727
-1     =NAT
-3.0      0.0000000000   0.0000000000  -0.4454890217  Li
-8     =NEBF
-13    =NPEBF
+
+&SYSINFO
+ nat=1,
+ nebf=8,
+ npebf=13,
+ npbf=5,
+ ngtg=3,
+ pmass=1.836d+03,
+ nelec=4,
+ nucst=1/
+
+&CONTROL
+ lneohf=F,
+ lxcuhf=F,
+ lrxchf=T,
+ lrxcuhf=F/
+
+&GUESSMO
+ read_CE=F,
+ read_CP=F/
+
+&INTCTRL
+ read_GAM2=F,
+ read_GAM3=F,
+ read_GAM4=F,
+ NG2CHK=1,
+ NG3CHK=1,
+ NG4CHK=1/
+ 
+&GEMINAL
+ bgem(1)=0.5000, ggem(1)=1.0e-15,
+ bgem(2)=4.3356, ggem(2)=0.2503,
+ bgem(3)=2.9950, ggem(3)=2.7727/
+
+&RXCHF
+ nae=2,
+ nbe=2,
+ exchlev=0,
+ nebfBE=8/
+
+&SCFCTRL
+ LDBG=F,
+ LSOSCF=T,
+ LOCBSE=T/
+
+&ATOMS
+ 3.0      0.0000000000   0.0000000000  -0.4454890217  Li
+
+&EBASIS
 1     1      0 0 0     97.585000   0.0223580   0.0000000000   0.0000000000  -0.4454890217
 2     1      0 0 0     14.755000   0.1449900   0.0000000000   0.0000000000  -0.4454890217
 3     1      0 0 0      3.223300   0.3459400   0.0000000000   0.0000000000  -0.4454890217
@@ -19,49 +60,21 @@
 11    7      0 0 0      4.344800   0.0792990   0.0000000000   0.0000000000   1.1454890217
 12    7      0 0 0      0.660490   0.4242200   0.0000000000   0.0000000000   1.1454890217
 13    8      0 0 0      0.136690   1.0000000   0.0000000000   0.0000000000   1.1454890217
-5   =NPBF
+
+&PBASIS
 1   1   0   0   0       2.0915320            1.00   0.0000000000   0.0000000000   1.1454890217
 2   2   0   0   0       3.6225340            1.00   0.0000000000   0.0000000000   1.1454890217
 3   3   0   0   0       6.2745960            1.00   0.0000000000   0.0000000000   1.1454890217
 4   4   0   0   0      10.8676010            1.00   0.0000000000   0.0000000000   1.1454890217
 5   5   0   0   0      18.8237890            1.00   0.0000000000   0.0000000000   1.1454890217
-1.836d+00 =PMASS
-4        =nelec
-2       =NAE number of alpha electrons
-2       =NBE number of beta electrons
-1       =NUCST what nuclear state to use to form nuc density
-.false. =LNEOHF  only perform neo-hf calculation
-.false. =LXCUHF
-.false. =LXCROHF
-.true.  =LRXCHF
-.false. =LRXCUHF
-.false.  =read_CE optional read in elec vectors from guessCE.inp
-.false.  =read_CP optional read in nuc vectors from guessCP.inp
-.false. =read_GAM2  |
-.false. =read_GAM3  | Options to read integrals from file
-.false. =read_GAM4  |
-1       =NG4CHK Number of domains for 5-particle integrals
-.true.  =LGAM4 TRUE: Use 5-particle contributions
-.false. =LG4DSCF Direct SCF for 5-particle integrals
-.true.  =LG4IC in-core 5-particle integrals
-1       =NG3CHK Number of domains for 4-particle integrals
-.false. =LG3DSCF Direct SCF for 4-particle integrals
-.true.  =LG3IC1 in-core 4-particle integrals: loop over contracted BF
-.false. =LG3IC2 in-core 4-particle integrals: loop over primitive BF
-1       =NG2CHK Number of domains for 3-particle integrals
-.false. =LG2DSCF  Direct SCF for 3-particle integrals
-.true.  =LG2IC1 in-core 3-particle integrals: loop over contracted BF
-.false. =LCMF Activates on-the-fly Fock matrix checking
-.true.  =LSOSCF
-.true.  =LOCBSE
-0       =EXCHLEV
-8       =nebfBE
-1       =list of contracted indices to include in sp elec basis set
-2
-3
-4
-5
-6
-7
-8
+
+&ALTBAS
+ elindBE(1)=1,
+ elindBE(2)=2,
+ elindBE(3)=3,
+ elindBE(4)=4,
+ elindBE(5)=5,
+ elindBE(6)=6,
+ elindBE(7)=7,
+ elindBE(8)=8/
 
