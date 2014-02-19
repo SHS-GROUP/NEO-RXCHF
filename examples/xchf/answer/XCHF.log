@@ -1,132 +1,125 @@
+
+ ============================================================
+        ______     _ _   _ _____ ___            ______       
+       / / / /    |   \ | | ____/ _ \           \ \ \ \      
+      / / / /     | |  \| |  _|| | | |_____      \ \ \ \     
+      \ \ \ \     | | |\  | |__| |_|  _____|     / / / /     
+       \_\_\_\    |  _| \_|_____\___/           /_/_/_/      
+                  |_|                                        
+                                                             
+ ============================================================
+
+ Running executable: 
+    /home/asirjoos/codes/RXCHF/NEO-RXCHF/bin/runRXCHF.exe
+ Input file: 
+    exam_xchf
  
- nat   =                     2
- npebf =                    12
- nebf  =                     6
- npbf  =                     1
- ngtg1 =                     3
- ngee  =                  1296
- ng1   =                    36
- ng2   =                  1296
- ng3   =                 46656
- ng4   =               1679616
- ng1prm=                   144
- ng2prm=                 20736
- ng3prm=               2985984
  
- PMASS   =   1836.00000000000     
- nelec   =                     4
- NAE     =                     2
- NBE     =                     2
+ &SYSINFO
+ NAT     =                     2,
+ NEBF    =                     6,
+ NPEBF   =                    12,
+ NPBF    =                     1,
+ NGTG    =                     3,
+ PMASS   =   1836.00000000000     ,
+ NELEC   =                     4,
  NUCST   =                     1
- LNEOHF  = F
- LXCUHF  = F
- LXCROHF = F
- LRXCHF  = F
- LRXCUHF  = F
- read_CE = T
- read_CP = F
- READ_GAM2= F
- READ_GAM3= F
- READ_GAM4= F
+ /
+ 
+ 
+ &CONTROL
+ LNEOHF  = F,
+ LXCUHF  = F,
+ LXCROHF = F,
+ LRXCHF  = F,
+ LRXCUHF = F
+ /
+ 
+ 
+ &GUESSMO
+ READ_CE = T,
+ READ_CP = F
+ /
+ 
+ 
+ &INTCTRL
+ READ_GAM2       = F,
+ READ_GAM3       = F,
+ READ_GAM4       = F,
+ NG2CHK  =                     1,
+ NG3CHK  =                    10,
  NG4CHK  =                    10
- LGAM4   = T
- LG4DSCF = F
- LG4IC   = T
- NG3CHK  =                    10
- LG3DSCF = F
- LG3IC1  = T
- LG3IC2  = F
- NG2CHK  =                     1
- LG2DSCF = F
- LG2IC1  = T
- LCMF    = F
- LSOSCF  = T
+ /
+ 
+ 
+ &SCFCTRL
+ LDBG    = F,
+ LSOSCF  = T,
  LOCBSE  = F
- EXCHLEV =                     0  (=2: fe; =1: ae; =0: ne)
- Geminal parameters: k, b_k, gamm_k
-                     1   3.46700000000000        8.27500000000000     
-                     2   5.40700000000000        1.23660000000000     
-                     3   5.04600000000000       0.192800000000000     
+ /
+ 
+ 
+ GEMINAL PARAMETERS
+   k          b_k                 gamma_k
+   1       3.4670000           8.2750000    
+   2       5.4070000           1.2366000    
+   3       5.0460000          0.19280000    
+ 
+ 
+ ATOMIC COORDINATES (BOHR)
+ 
+ CHARGE -X COORDINATE- -Y COORDINATE- -Z COORDINATE-
+   2.0     0.00000000     0.00000000    -1.75250354
+   2.0     0.00000000     0.00000000     1.75250354
  
  
   CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS 
  CONT INDEX    KPESTR     KPEEND
-
    1     1    3
-
    2     4    4
-
    3     5    7
-
    4     8    8
-
    5     9   11
-
    6    12   12
  
  ELECTRONIC BASIS FUNCTIONS:
  
  PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
  INDEX INDEX   MOM                  COEF
-
    1     1    0  0  0   38.360000  0.023809  0.000000  0.000000 -1.752504
-
    2     1    0  0  0    5.770000  0.154891  0.000000  0.000000 -1.752504
-
    3     1    0  0  0    1.240000  0.469987  0.000000  0.000000 -1.752504
-
    4     2    0  0  0    0.297600  1.000000  0.000000  0.000000 -1.752504
-
    5     3    0  0  0   38.360000  0.023809  0.000000  0.000000  1.752504
-
    6     3    0  0  0    5.770000  0.154891  0.000000  0.000000  1.752504
-
    7     3    0  0  0    1.240000  0.469987  0.000000  0.000000  1.752504
-
    8     4    0  0  0    0.297600  1.000000  0.000000  0.000000  1.752504
-
    9     5    0  0  0   13.010000  0.019685  0.000000  0.000000  0.000000
-
   10     5    0  0  0    1.962000  0.137977  0.000000  0.000000  0.000000
-
   11     5    0  0  0    0.444600  0.478148  0.000000  0.000000  0.000000
-
   12     6    0  0  0    0.122000  1.000000  0.000000  0.000000  0.000000
  ELECTRONIC BASIS FUNCTIONS:
  CONTRACT COEFF HAVE BEEN NORMALIZED
  
  PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
  INDEX INDEX   MOM                  COEF
-
    1     1    0  0  0   38.360000  0.441353  0.000000  0.000000 -1.752504
-
    2     1    0  0  0    5.770000  0.693497  0.000000  0.000000 -1.752504
-
    3     1    0  0  0    1.240000  0.664184  0.000000  0.000000 -1.752504
-
    4     2    0  0  0    0.297600  0.287167  0.000000  0.000000 -1.752504
-
    5     3    0  0  0   38.360000  0.441353  0.000000  0.000000  1.752504
-
    6     3    0  0  0    5.770000  0.693497  0.000000  0.000000  1.752504
-
    7     3    0  0  0    1.240000  0.664184  0.000000  0.000000  1.752504
-
    8     4    0  0  0    0.297600  0.287167  0.000000  0.000000  1.752504
-
    9     5    0  0  0   13.010000  0.163548  0.000000  0.000000  0.000000
-
   10     5    0  0  0    1.962000  0.277418  0.000000  0.000000  0.000000
-
   11     5    0  0  0    0.444600  0.315749  0.000000  0.000000  0.000000
-
   12     6    0  0  0    0.122000  0.147123  0.000000  0.000000  0.000000
  
  NUCLEAR BASIS FUNCTIONS:
  
  PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
  INDEX INDEX   MOM                  COEF
-
    1     1    0  0  0    4.164300  1.000000  0.000000  0.000000  0.000000
  
  NUCLEAR BASIS FUNCTIONS:
@@ -134,7 +127,6 @@
  
  PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
  INDEX INDEX   MOM                  COEF
-
    1     1    0  0  0    4.164300  2.077622  0.000000  0.000000  0.000000
  
  CONTRACTED ELECTRONIC OVERLAP MATRIX
@@ -198,22 +190,22 @@
  
   Hello from process                      2
   Hello from process                      8
-  Hello from process                      5
-  Hello from process                      1
-  Hello from process                     15
-  Hello from process                      9
+  Hello from process                     11
+  Hello from process                      0
   Hello from process                     10
+  Hello from process                     12
+  Hello from process                      5
+  Hello from process                     13
+  Hello from process                      9
+  Hello from process                      7
+  Hello from process                      3
   Hello from process                      4
   Hello from process                      6
-  Hello from process                      0
+  Hello from process                     15
  Threads in use          16
-  Hello from process                     11
-  Hello from process                      3
-  Hello from process                      7
   Hello from process                     14
-  Hello from process                     13
-  Hello from process                     12
- TIME TO CALCULATE GAM_1 INTEGRALS:   7.837796211242676E-002
+  Hello from process                      1
+ TIME TO CALCULATE GAM_1 INTEGRALS:   3.869700431823730E-002
 
       +---------------------------------------------+
       |     CALCULATING 3-PARTICLE INTEGRALS        |
@@ -229,11 +221,11 @@
                   AVAILABLE:  16
             NUMBER OF NODES:   1
 
-            TIME TO EVALUATE BLOCK     1       4.68
+            TIME TO EVALUATE BLOCK     1       4.79
 
           TIMING SUMMARY FOR 3-PARTICLE INTEGRALS:
           ----------------------------------------
-            TIME TO EVALUATE ALL INTEGRALS:       4.6761
+            TIME TO EVALUATE ALL INTEGRALS:       4.7888
               TIME TO SYMMETRIZE INTEGRALS:       0.0000
 
 
@@ -251,21 +243,21 @@
                   AVAILABLE:  16
             NUMBER OF NODES:   1
 
-            TIME TO EVALUATE BLOCK     1       4.07
-            TIME TO EVALUATE BLOCK     2       3.70
-            TIME TO EVALUATE BLOCK     3       1.31
-            TIME TO EVALUATE BLOCK     4       3.12
-            TIME TO EVALUATE BLOCK     5       3.51
-            TIME TO EVALUATE BLOCK     6       1.56
-            TIME TO EVALUATE BLOCK     7       2.44
-            TIME TO EVALUATE BLOCK     8       3.67
-            TIME TO EVALUATE BLOCK     9       1.70
-            TIME TO EVALUATE BLOCK    10       1.19
+            TIME TO EVALUATE BLOCK     1       3.93
+            TIME TO EVALUATE BLOCK     2       3.24
+            TIME TO EVALUATE BLOCK     3       1.23
+            TIME TO EVALUATE BLOCK     4       2.88
+            TIME TO EVALUATE BLOCK     5       3.48
+            TIME TO EVALUATE BLOCK     6       1.34
+            TIME TO EVALUATE BLOCK     7       2.45
+            TIME TO EVALUATE BLOCK     8       3.66
+            TIME TO EVALUATE BLOCK     9       1.68
+            TIME TO EVALUATE BLOCK    10       1.18
 
           TIMING SUMMARY FOR 4-PARTICLE INTEGRALS:
           ----------------------------------------
-            TIME TO EVALUATE ALL INTEGRALS:      26.2663
-              TIME TO SYMMETRIZE INTEGRALS:       0.0035
+            TIME TO EVALUATE ALL INTEGRALS:      25.0610
+              TIME TO SYMMETRIZE INTEGRALS:       0.0018
 
 
       +---------------------------------------------+
@@ -286,16 +278,16 @@
             TIME TO EVALUATE BLOCK     2       0.03
             TIME TO EVALUATE BLOCK     3       0.03
             TIME TO EVALUATE BLOCK     4       0.03
-            TIME TO EVALUATE BLOCK     5       0.03
+            TIME TO EVALUATE BLOCK     5       0.02
             TIME TO EVALUATE BLOCK     6       0.03
-            TIME TO EVALUATE BLOCK     7       0.03
-            TIME TO EVALUATE BLOCK     8       0.03
-            TIME TO EVALUATE BLOCK     9       0.03
-            TIME TO EVALUATE BLOCK    10       0.03
+            TIME TO EVALUATE BLOCK     7       0.02
+            TIME TO EVALUATE BLOCK     8       0.02
+            TIME TO EVALUATE BLOCK     9       0.02
+            TIME TO EVALUATE BLOCK    10       0.02
 
           TIMING SUMMARY FOR 5-PARTICLE INTEGRALS:
           ----------------------------------------
-            TIME TO EVALUATE ALL INTEGRALS:       0.2961
+            TIME TO EVALUATE ALL INTEGRALS:       0.2592
  READ IN NUC REPULSION
  
  READ IN NUC OVLAP
@@ -393,6 +385,6 @@
           +--------------------------------------+
           |    TIMING SUMMARY FOR CALCULATION    |
           +--------------------------------------+
-            TIME TO EVALUATE INTEGRALS:      31.3491
-                          TIME FOR SCF:       1.3855
+            TIME TO EVALUATE INTEGRALS:      30.1753
+                          TIME FOR SCF:       1.2586
 
