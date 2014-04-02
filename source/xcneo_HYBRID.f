@@ -88,8 +88,11 @@
       logical LGAM4
       logical LDBG
       logical LSOSCF
+      logical LDIIS
+      logical LSORXCHF
       logical LRXCHF
       logical LRXCUHF
+      integer OCBSETYP
       logical LOCBSE
 
       double precision a2bohr,bohr2a
@@ -122,7 +125,7 @@
       namelist /guessmo/ read_ce,read_cp
       namelist /intctrl/ read_gam2,read_gam3,read_gam4,
      x                   ng2chk,ng3chk,ng4chk
-      namelist /scfctrl/ ldbg,lsoscf,locbse
+      namelist /scfctrl/ ldbg,lsoscf,ldiis,lsorxchf,ocbsetyp
       namelist /geminal/ bgem,ggem
       namelist /xcuhf  / nae,nbe
       namelist /rxchf  / nae,nbe,exchlev,nebfbe
@@ -164,8 +167,10 @@
       LG2DSCF=.false.
       LG2IC1=.true.
       LDBG=.false.
-      LSOSCF=.true.
-      LOCBSE=.true.
+      LSOSCF=.false.
+      LDIIS=.false.
+      LSORXCHF=.false.
+      OCBSETYP=2
       CATOMS='&ATOMS'
       CEBASIS='&EBASIS'
       CPBASIS='&PBASIS'
@@ -232,6 +237,22 @@
       write(*,*)
       write(*,nml=scfctrl)
       write(*,*)
+
+      if(LSOSCF.and.LDIIS) then
+       write(*,*) "Cannot have both SOSCF and DIIS"
+       write(*,*) "Proceeding with DIIS..."
+       LSOSCF=.false.
+      end if
+      if(LSOSCF.and.LSORXCHF) then
+       write(*,*) "Cannot have both SOSCF and SORXCHF"
+       write(*,*) "Proceeding with SORXCHF..."
+       LSOSCF=.false.
+      end if
+      if(LDIIS.and.LSORXCHF) then
+       write(*,*) "Cannot have both DIIS and SORXCHF"
+       write(*,*) "Proceeding with SORXCHF..."
+       LDIIS=.false.
+      end if
 
 !!!!!!!!!!!!!!! Read in geminal info !!!!!!!!!!!!!! 
       if(allocated(bgem)) deallocate(bgem)
@@ -334,6 +355,17 @@
       if((LRXCHF).and.(nebfBE.gt.nebf)) then
        write(*,*) "Size of special electronic basis set cannot"
        write(*,*) "exceed size of all atom basis set."
+       write(*,*) "Exiting..."
+       return
+      end if
+
+      if((LRXCHF.or.LRXCUHF).and.((OCBSETYP.lt.0).or.(OCBSETYP.gt.3)))
+     x then
+       write(*,*) "OCBSETYP must be one of:"
+       write(*,*) " = 0 : OCBSE off"
+       write(*,*) " = 1 : OCBSE"
+       write(*,*) " = 2 : OCBSE2"
+       write(*,*) " = 3 : OCBSE3"
        write(*,*) "Exiting..."
        return
       end if
@@ -532,6 +564,15 @@ C       write(*,*)'NAalpE =',NAalpE,'= number of alpha regular electrons'
 C       write(*,*)'NAbetE =',NAbetE,'= number of beta regular electrons'
 C      end if
 C      write(*,*)
+
+! Set logical OCBSE variable to true for OCBSETYP > 0
+! since OCBSE type overriden in 1-electron RXCHF routines
+      if(OCBSETYP.eq.0) then
+       LOCBSE=.false.
+      else
+       LOCBSE=.true.
+      end if
+
 
       if ((LRXCHF).and.(NBE.ge.2)) then
        write(*,*)
@@ -742,7 +783,8 @@ C Call separate routine for RXCHF(nbe>1) integral calculations
      x                            read_GAM2,read_GAM3,read_GAM4,
      x                            LG2IC1,LG3IC1,LG4IC,
      x                            LG2DSCF,LG3DSCF,LG4DSCF,
-     x                            LSOSCF,LOCBSE,LDBG,EXCHLEV)
+     x                            LSOSCF,LDIIS,LSORXCHF,OCBSETYP,
+     x                            LDBG,EXCHLEV)
            else
             write(*,*) "RXCUHF with more than one special electron"
             write(*,*) "still needs to be coded."

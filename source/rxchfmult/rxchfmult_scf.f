@@ -1,5 +1,5 @@
 !======================================================================
-      subroutine RXCHFmult_scf(nelec,NAE,NBE,NPRA,NPRB,NUCST,
+      subroutine RXCHFmult_scf(nelec,NAE,NBE,NUCST,
      x                         npebf,nebf,nebf2,nebflt,
      x                         npebfBE,nebfBE,nebfBE2,nebfBElt,elindBE,
      x                         npbf,npbf2,npbflt,
@@ -7,7 +7,8 @@
      x                         NG2CHK,NG3CHK,NG4CHK,
      x                         read_CE,read_CP,
      x                         LG4DSCF,LG3DSCF,LG2DSCF,
-     x                         LSOSCF,LOCBSE,LCMF,LALTBAS,LADDEXCH,
+     x                         LSOSCF,LDIIS,LSORXCHF,
+     x                         OCBSETYP,LCMF,LALTBAS,LADDEXCH,
      x                         nat,pmass,cat,zan,
      x                         bcoef1,gamma1,
      x                         KPESTR,KPEEND,
@@ -57,6 +58,7 @@
       implicit none
 ! Input Variables
       logical LNEOHF
+      integer OCBSETYP ! =1 : OCBSE ; =2 : OCBSE2 ; =3 : OCBSE3
       logical LOCBSE   ! Use OCBSE scheme as is (restricted variational freedom for reg/sp elecs)
       logical LOCBSE2  ! Use modified OCBSE scheme (complete variational freedom for reg elecs)
       logical LALTBAS  ! Flag to denote distinct special electron basis
@@ -227,22 +229,23 @@
       integer ITSOB ! SOSCF iteration counter
       integer L0,L1
       integer L0b,L1b
-      integer L0w,L1w
+      integer L0wA,L1wA
+      integer L0wB,L1wB
       integer NFT15
       integer NFT16
       double precision FLT(NEBFLT) !FLT: Lower triangle FAE
       double precision FLTB(NEBFBELT) !FLTB: Lower triangle FBE
-      double precision HSTARTA(NPRA)
-      double precision GRADA(NPRA)
-      double precision PGRADA(NPRA)
-      double precision DISPLIA(NPRA)
-      double precision DGRADA(NPRA)  ! WRK1
-      double precision DISPLA(NPRA)  ! WRK2
-      double precision UPDTA(NPRA)   ! WRK3
-      double precision DISPLNA(NPRA) ! WRK1+NPR
-      double precision DGRADIA(NPRA) ! WRK2+NPR
-      double precision UPDTIA(NPRA)  ! WRK3+NPR
-      double precision XA(NPRA)
+      double precision, allocatable :: HSTARTA(:)
+      double precision, allocatable :: GRADA(:)
+      double precision, allocatable :: PGRADA(:)
+      double precision, allocatable :: DISPLIA(:)
+      double precision, allocatable :: DGRADA(:)  ! WRK1
+      double precision, allocatable :: DISPLA(:)  ! WRK2
+      double precision, allocatable :: UPDTA(:)   ! WRK3
+      double precision, allocatable :: DISPLNA(:) ! WRK1+NPR
+      double precision, allocatable :: DGRADIA(:) ! WRK2+NPR
+      double precision, allocatable :: UPDTIA(:)  ! WRK3+NPR
+      double precision, allocatable :: XA(:)
       double precision ORBGRDA
       double precision GA(nebf,nebf) !G(L0,L0)
       double precision WRK(nebf) !WRK(L0)
@@ -267,15 +270,42 @@
 !--------SOSCF-RELATED-VARIABLES------------)
 C ARS( OCBSE variables
       integer nocca,noccb
-      integer nwbf                                    ! # bf in W basis (nebf-nocca)
-      integer nwbflt                                  ! one-dimensional size
-      double precision, allocatable :: WB(:,:)        ! transformation matrix
-      double precision, allocatable :: wFBEw(:,:)     ! Fock matrix in W basis
-      double precision, allocatable :: wvecBEw(:,:)   ! eigenvectors in W basis from curr it
-      double precision, allocatable :: wBEenw(:)      ! eigenvalues
-      double precision, allocatable :: wFLTw(:)       ! flattened wFBEw
-      double precision, allocatable :: wGBw(:,:)      ! exponential transformation
-      double precision, allocatable :: wWRKw(:)       ! work array (L0w)
+      integer nwbfA,nwbfB                                          ! # bf in W basis
+      integer nwbfltA,nwbfltB                                      ! one-dimensional size
+      double precision, allocatable :: tempvecA(:,:),tempvecB(:,:) ! transformation matrix
+      double precision, allocatable :: WA(:,:),WB(:,:)             ! transformation matrix
+      double precision, allocatable :: wFAEw(:,:),wFBEw(:,:)       ! Fock matrix in W basis
+      double precision, allocatable :: wvecAEw(:,:),wvecBEw(:,:)   ! eigenvectors in W basis from curr it
+      double precision, allocatable :: wAEenw(:),wBEenw(:)         ! eigenvalues
+      double precision, allocatable :: wFLTAw(:),wFLTBw(:)         ! flattened wFBEw
+      double precision, allocatable :: wGAw(:,:),wGBw(:,:)         ! exponential transformation
+      double precision, allocatable :: wWRKAw(:),wWRKBw(:)         ! work array (L0wB)
+C )
+C ARS( DIIS variables
+      logical LDIIS
+      integer itDIIS
+      integer nstore
+      parameter(nstore=4)
+      double precision errDIIS,threshDIIS
+      double precision, allocatable ::  errvec(:,:,:)   ! stored as (AO ind,MO ind,iter) where
+      double precision vecDIIS(nebf,nebf,nstore)        ! MOs stored in order {occA,occB,virt}
+C )
+C ARS( SORXCHF variables
+      logical LSORXCHF
+      double precision, allocatable :: HESSA(:,:)       ! Hessian at current iteration
+      double precision, allocatable :: HESSB(:,:)
+      double precision, allocatable :: HESSA0(:,:)      ! Hessian at previous iteration
+      double precision, allocatable :: HESSB0(:,:)
+!     double precision, allocatable :: GRADA(:)         ! Gradient at current iteration
+!     double precision, allocatable :: GRADB(:)
+      double precision, allocatable :: GRADA0(:)        ! Gradient at previous iteration
+      double precision, allocatable :: GRADB0(:)
+!     double precision, allocatable :: DISPLIA(:)       ! Displ vec at current iteration
+!     double precision, allocatable :: DISPLIB(:)
+      double precision, allocatable :: DISPLIA0(:)      ! Displ vec at previous iteration
+      double precision, allocatable :: DISPLIB0(:)
+      double precision, allocatable :: WA0(:,:)         ! W bases at previous iteration
+      double precision, allocatable :: WB0(:,:)
 C )
 C ARS( alt basis variables
       integer ialt,jalt,kalt,lalt
@@ -308,6 +338,10 @@ C )
  9052 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
      * 'ALPHA DENS       BETA DENS        QMP DENS         ',
      * 'ORBGRAD_A        ORBGRAD_B ')
+
+ 9053 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
+     * 'ALPHA DENS       BETA DENS        QMP DENS         ',
+     * 'DIIS ERR  ')
 
  9100 FORMAT(1X,I3,F20.10,F17.10,3F17.10)
 
@@ -354,6 +388,8 @@ C )
 
  9800 FORMAT(10X,15(1H-),'START SECOND ORDER SCF',15(1H-))
 
+ 9801 FORMAT(10X,15(1H-),' START DIIS PROCEDURE ',15(1H-))
+
  2001 FORMAT(/1X,'STARTING MICROITERATIONS FOR ITERATION',1X,I3)
 
  2000 FORMAT(1X,'CONVERGED ITERATION',1X,I3,1X,'IN',
@@ -361,55 +397,151 @@ C )
                                            
 !--------OUTPUT-FORMATTING---------------------------------------------)
 
-      LOCBSE2=LOCBSE
-C      LOCBSE2=.true. 
+      LOCBSE=.false.
+      LOCBSE2=.false.
+      if(OCBSETYP.eq.1) then
+       LOCBSE=.true.
+      else if (OCBSETYP.eq.2) then
+       LOCBSE2=.true.
+      end if
 
-      if(LOCBSE2) then
+      if (nae.gt.1) then
+       nocca=nae/2
+      else
+       nocca=nae
+      end if
+      if (nbe.gt.1) then
+       noccb=nbe/2
+      else
+       noccb=nbe
+      end if
 
-       LOCBSE=.false.
-       write(*,*) "Using LOCBSE2"
+      if(LDIIS) then
+       if(allocated(errvec)) deallocate(errvec)
+       allocate(errvec(nebf,nebf,nstore))
+       threshDIIS=0.5d+00
+      end if
 
-       if (nae.gt.1) then
-        nocca=nae/2
-       else
-        nocca=nae
-       end if
-       if (nbe.gt.1) then
-        noccb=nbe/2
-       else
-        noccb=nbe
-       end if
-
-C       noccvirta=nebf-noccb
-C       noccvirtb=nebf-nocca
+      if(LOCBSE.or.LOCBSE2) then
 
        if(.not.LALTBAS) then ! distinct sp elec bas => alloc at each it
-
-        nwbf=nebf-nocca
-        nwbflt=nwbf*(nwbf+1)/2
-        L0w=nwbf
-        L1w=nwbf
+        nwbfB=nebf-nocca
+        nwbfltB=nwbfB*(nwbfB+1)/2
+        L0wB=nwbfB
+        L1wB=nwbfB
+        if(allocated(tempvecB)) deallocate(tempvecB)
+        allocate(tempvecB(nebf,nwbfB))
         if(allocated(WB)) deallocate(WB)
-        allocate(WB(nebf,nwbf))
+        allocate(WB(nebf,nwbfB))
         if(allocated(wFBEw)) deallocate(wFBEw)
-        allocate(wFBEw(nwbf,nwbf))
+        allocate(wFBEw(nwbfB,nwbfB))
         if(allocated(wvecBEw)) deallocate(wvecBEw)
-        allocate(wvecBEw(nwbf,nwbf))
+        allocate(wvecBEw(nwbfB,nwbfB))
         if(allocated(wBEenw)) deallocate(wBEenw)
-        allocate(wBEenw(nwbf))
-        if(allocated(wFLTw)) deallocate(wFLTw)
-        allocate(wFLTw(nwbflt))
+        allocate(wBEenw(nwbfB))
+        if(allocated(wFLTBw)) deallocate(wFLTBw)
+        allocate(wFLTBw(nwbfltB))
         if(allocated(wGBw)) deallocate(wGBw)
-        allocate(wGBw(nwbf,nwbf))
-        if(allocated(wWRKw)) deallocate(wWRKw)
-        allocate(wWRKw(nwbf))
+        allocate(wGBw(nwbfB,nwbfB))
+        if(allocated(wWRKBw)) deallocate(wWRKBw)
+        allocate(wWRKBw(nwbfB))
        else
         dimint0=0    ! Initialize so != dimint for control statement later
+        if(.not.(LOCBSE2)) then
+         write(*,*) "Special electron basis must be used with OCBSE2"
+         write(*,*) "Exiting..."
+         return
+        end if
+       end if
+
+       if(LOCBSE2) then
+        write(*,*) "Using LOCBSE2"
+        if(LSORXCHF) then
+         SOGTOL=0.40d+00
+         npra=(nebf-nocca)*nocca ! occ-vir pairs for regular elecs
+         NA=nocca
+         L0=nebf
+         L1=nebf
+         if(allocated(HSTARTA))  deallocate(HSTARTA)
+         if(allocated(HESSA))    deallocate(HESSA)
+         if(allocated(HESSA0))   deallocate(HESSA0)
+         if(allocated(GRADA))    deallocate(GRADA)
+         if(allocated(GRADA0))   deallocate(GRADA0)
+         if(allocated(DISPLIA))  deallocate(DISPLIA)
+         if(allocated(DISPLIA0)) deallocate(DISPLIA0)
+         allocate(HSTARTA(NPRA))
+         allocate(HESSA(NPRA,NPRA))
+         allocate(HESSA0(NPRA,NPRA))
+         allocate(GRADA(NPRA))
+         allocate(GRADA0(NPRA))
+         allocate(DISPLIA(NPRA))
+         allocate(DISPLIA0(NPRA))
+        end if
+       else
+        write(*,*) "Using LOCBSE"
+        nwbfA=nebf-noccb
+        nwbfltA=nwbfA*(nwbfA+1)/2
+        L0wA=nwbfA
+        L1wA=nwbfA
+        if(allocated(tempvecA)) deallocate(tempvecA)
+        allocate(tempvecA(nebf,nwbfA))
+        if(allocated(WA)) deallocate(WA)
+        allocate(WA(nebf,nwbfA))
+        if(allocated(wFAEw)) deallocate(wFAEw)
+        allocate(wFAEw(nwbfA,nwbfA))
+        if(allocated(wvecAEw)) deallocate(wvecAEw)
+        allocate(wvecAEw(nwbfA,nwbfA))
+        if(allocated(wAEenw)) deallocate(wAEenw)
+        allocate(wAEenw(nwbfA))
+        if(allocated(wFLTAw)) deallocate(wFLTAw)
+        allocate(wFLTAw(nwbfltA))
+        if(allocated(wGAw)) deallocate(wGAw)
+        allocate(wGAw(nwbfA,nwbfA))
+        if(allocated(wWRKAw)) deallocate(wWRKAw)
+        allocate(wWRKAw(nwbfA))
+        if(LSORXCHF) then
+         SOGTOL=0.40d+00
+         npra=(nebf-nocca-noccb)*nocca ! occ-vir pairs for regular elecs
+         nprb=(nebf-noccb-nocca)*noccb ! occ-vir pairs for special elecs
+         NA=nocca
+         NB=noccb
+         if(allocated(WA0))      deallocate(WA0)
+         if(allocated(WB0))      deallocate(WB0)
+         if(allocated(HSTARTA))  deallocate(HSTARTA)
+         if(allocated(HSTARTB))  deallocate(HSTARTB)
+         if(allocated(HESSA))    deallocate(HESSA)
+         if(allocated(HESSB))    deallocate(HESSB)
+         if(allocated(HESSA0))   deallocate(HESSA0)
+         if(allocated(HESSB0))   deallocate(HESSB0)
+         if(allocated(GRADA))    deallocate(GRADA)
+         if(allocated(GRADB))    deallocate(GRADB)
+         if(allocated(GRADA0))   deallocate(GRADA0)
+         if(allocated(GRADB0))   deallocate(GRADB0)
+         if(allocated(DISPLIA))  deallocate(DISPLIA)
+         if(allocated(DISPLIB))  deallocate(DISPLIB)
+         if(allocated(DISPLIA0)) deallocate(DISPLIA0)
+         if(allocated(DISPLIB0)) deallocate(DISPLIB0)
+         allocate(WA0(nebf,nwbfA))
+         allocate(WB0(nebf,nwbfB))
+         allocate(HSTARTA(NPRA))
+         allocate(HSTARTB(NPRB))
+         allocate(HESSA(NPRA,NPRA))
+         allocate(HESSB(NPRB,NPRB))
+         allocate(HESSA0(NPRA,NPRA))
+         allocate(HESSB0(NPRB,NPRB))
+         allocate(GRADA(NPRA))
+         allocate(GRADB(NPRB))
+         allocate(GRADA0(NPRA))
+         allocate(GRADB0(NPRB))
+         allocate(DISPLIA(NPRA))
+         allocate(DISPLIB(NPRB))
+         allocate(DISPLIA0(NPRA))
+         allocate(DISPLIB0(NPRB))
+        end if
        end if
 
       end if
 
-      if(LOCBSE) write(*,*) "Using LOCBSE"
       LGAM4=.true. ! Always calculate five-particle integrals
 C ARS( no interaction
       LNOINT=.false.
@@ -510,6 +642,8 @@ C store quantities over special electron basis
       end if
 
 C ARS( debug: print out initial guess MOs here
+      AEe=0.0d+00
+      BEe=0.0d+00
       if (LCMF) then
        write(*,*)
        write(*,*) "------------------"
@@ -538,8 +672,8 @@ C )
          L1b=nebfBE
          LSOSCFA=.true.
          LSOSCFB=.true.
-         if((nae.eq.1).or.LOCBSE) LSOSCFA=.FALSE.
-         if((nbe.eq.1).or.LOCBSE) LSOSCFB=.FALSE.
+         if(nae.eq.1) LSOSCFA=.FALSE.
+         if(nbe.eq.1) LSOSCFB=.FALSE.
       else
          LSOSCFA=.false.
          LSOSCFB=.false.
@@ -548,13 +682,46 @@ C )
          NFT15=15
          OPEN(NFT15, FILE='WORK15', STATUS='UNKNOWN',
      *        ACCESS='SEQUENTIAL', FORM='UNFORMATTED')
-         NA=nae/2
+         NA=nocca
+         if(LOCBSE) then
+          npra=(nebf-nocca-noccb)*nocca ! occ-vir pairs for regular elecs
+         else
+          npra=(nebf-nocca)*nocca ! occ-vir pairs for regular elecs
+         end if
+! Allocate here (previously on stack)
+         if(allocated(XA))      deallocate(XA)
+         if(allocated(UPDTIA))  deallocate(UPDTIA)
+         if(allocated(DGRADIA)) deallocate(DGRADIA)
+         if(allocated(DISPLNA)) deallocate(DISPLNA)
+         if(allocated(UPDTA))   deallocate(UPDTA)
+         if(allocated(DISPLA))  deallocate(DISPLA)
+         if(allocated(DGRADA))  deallocate(DGRADA)
+         if(allocated(DISPLIA)) deallocate(DISPLIA)
+         if(allocated(PGRADA))  deallocate(PGRADA)
+         if(allocated(GRADA))   deallocate(GRADA)
+         if(allocated(HSTARTA)) deallocate(HSTARTA)
+         allocate(HSTARTA(NPRA))
+         allocate(GRADA(NPRA))
+         allocate(PGRADA(NPRA))
+         allocate(DISPLIA(NPRA))
+         allocate(DGRADA(NPRA))
+         allocate(DISPLA(NPRA))
+         allocate(UPDTA(NPRA))
+         allocate(DISPLNA(NPRA))
+         allocate(DGRADIA(NPRA))
+         allocate(UPDTIA(NPRA))
+         allocate(XA(NPRA))
       end if
       if(LSOSCFB) THEN
          NFT16=16
          OPEN(NFT16, FILE='WORK16', STATUS='UNKNOWN',
      *        ACCESS='SEQUENTIAL', FORM='UNFORMATTED')
-         NB=nbe/2
+         NB=noccb
+         if(LOCBSE.or.LOCBSE2) then
+          nprb=(nebf-noccb-nocca)*noccb ! occ-vir pairs for special elecs
+         else
+          nprb=(nebf-noccb)*noccb ! occ-vir pairs for special elecs
+         end if
          if(.not.LALTBAS) then
 ! Allocate here (previously on stack)
            if(allocated(XB))      deallocate(XB)
@@ -588,9 +755,9 @@ C )
 !
       TOLE = 1.0D-06
       TOLP = 1.0D-04
-      maxit=100
+      maxit=30
       maxmicroit=200
-      if(LOCBSE) maxit=400
+      if(.not.(LSOSCF.or.LDIIS)) maxmicroit=200
 !
 !     ZERO OUT 'OLD' DENSITY MATRICES
 !
@@ -701,21 +868,38 @@ C )
 
          if(LSOSCFA) ITSOA=0
          if(LSOSCFB) ITSOB=0
+         if(LSORXCHF) then
+          ITSOA=0
+          ITSOB=0
+          if(allocated(HESSA0)) HESSA0=0.0d+00
+          if(allocated(HESSB0)) HESSB0=0.0d+00
+          if(allocated(GRADA0)) GRADA0=0.0d+00
+          if(allocated(GRADB0)) GRADB0=0.0d+00
+         end if
          ORBGRDA=0.0d+00
          ORBGRDB=0.0d+00
-         PGRADA=0.0d+00
+         if(allocated(PGRADA)) PGRADA=0.0D+00
          if(allocated(PGRADB)) PGRADB=0.0D+00
 
          write(*,2001) I
 
-         if((LSOSCFA).and.(LSOSCFB)) then 
+         if(((LSOSCFA).and.(LSOSCFB)).or.(LSORXCHF)) then 
           WRITE(*,9052)
          else if ((LSOSCFA).and.(.not.(LSOSCFB))) then
           WRITE(*,9050)
          else if ((LSOSCFB).and.(.not.(LSOSCFA))) then
           WRITE(*,9051)
+         else if (LDIIS) then
+          WRITE(*,9053)
          else
           WRITE(*,9000)
+         end if
+
+         if(LDIIS) then
+          errvec=zero
+          vecDIIS=zero
+          itDIIS=0
+          errDIIS=zero
          end if
 
          do ielec=1,maxmicroit
@@ -774,23 +958,242 @@ C )
       end if
 C )
 
-         if (LOCBSE) then  ! hardwired off in place of OCBSE2
+         if (LOCBSE) then
 ! Do OCBSE procedure (restricted solutions for regular and special electrons)
 
-           call RXCHFmult_OCBSE(nebf,nae,nbe,vecAE0,vecBE0,FAE,FBE,xxse,
-     x                          vecAE,vecBE,AEe,BEe)
+! Regular electrons
 
-! Form regular electronic density matrix and store stuff for next it
+! Transform FAE (calculated at end of previous iteration) to new WA basis
+!  - WA constructed from vecAE0 and vecBE0 (previous iteration MOs)
+!  - vecAE in AO basis from previous iteration is transformed to new WA basis
+!    (relevant for SOSCF only)
+           do j=1,nebf-nocca-noccb
+             tempvecA(:,j)=vecBE0(:,j+noccb)
+           end do
+           do j=1,nocca
+             tempvecA(:,j+nebf-nocca-noccb)=vecAE0(:,j)
+           end do
+CC ARS( check ovlap
+C      write(*,*) "regular tempvecA",ielec
+C      call checkovlap(nwbfA,nebf,tempvecA,xxse)
+CC )
+
+           call RXCHFmult_OCBSE_transF(nebf,nwbfA,tempvecA,
+     x                                 FAE,WA,wFAEw)
+
+!-----------------------POSSIBLE-SOSCF-ALPHA----------------------------(
+         if((LSORXCHF).or.(LSOSCFA)) THEN
+           ITER=IELEC
+           EIGAVL = ITER.GT.1
+         end if
+         IF((LSORXCHF.or.LSOSCFA) .AND. (EIGAVL)) THEN
+           call pack_LT(nwbfA,nwbfLTA,wFAEw,wFLTAw)
+           call RXCHFmult_OCBSE_transVt(nebf,nwbfA,WA,
+     x                                  xxse,vecAE,wvecAEw)
+           call SOGRAD(GRADA,wFLTAw,wvecAEw,wWRKAw,NPRA,NA,
+     x                 L0wA,L1wA,NwBFLTA,ORBGRDA)
+            IF(ORBGRDA.LT.SOGTOL  .OR.  ITSOA.GT.0) THEN
+              IF(ITSOA.EQ.0) THEN
+                 WRITE(*,9800)
+                 call SOHESS(HSTARTA,wAEenw,NPRA,L0wA,NA,NA)
+                 if(LSORXCHF) then
+                  do j=1,npra
+                    HESSA0(j,j)=HSTARTA(j)
+                    DISPLIA0(j)=-HSTARTA(j)*GRADA(j)
+                  end do
+                 end if
+              END IF
+              ITSOA = ITSOA+1
+              IF(LSORXCHF) then
+               call RXCHF_SOCHGBAS(NPRA,NA,nwbfA,nebf,WA0,WA,xxse,
+     x                             GRADA0,HESSA0,DISPLIA0)
+               call RXCHF_SONEWT(NPRA,ITSOA,HESSA0,HESSA,GRADA0,
+     x                           GRADA,DISPLIA0,DISPLIA)
+C      write(*,*) "grad:",GRADA
+C      write(*,*) "grad0:",GRADA0
+C      write(*,*) "displia:",DISPLIA
+              ELSE
+               call SONEWT(HSTARTA,GRADA,PGRADA,DISPLIA,DGRADA,
+     x                     DISPLA,UPDTA,DISPLNA,DGRADIA,UPDTIA,
+     x                     ORBGRDA,NPRA,ITSOA,NFT15)
+              END IF
+              call SOTRAN(DISPLIA,wvecAEw,wGAw,wWRKAw,NPRA,
+     x                    L0wA,L1wA,NA,NA,ORBGRDA)
+              IF(LSORXCHF) THEN
+                CALL DCOPY(NPRA,GRADA,1,GRADA0,1)
+                CALL DCOPY(NPRA,DISPLIA,1,DISPLIA0,1)
+                CALL COPYDEN(HESSA0,HESSA,NPRA)
+              ELSE
+                CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
+              END IF
+              call RXCHFmult_OCBSE_transV(nebf,nwbfA,WA,wvecAEw,wAEenw, ! eigenvalues useless
+     x                                    vecAE,AEe)
+CC ARS( check ovlap
+C        write(*,*) "regular SORXCHF vecAE"
+C        call checkovlap(nebf,nebf,vecAE,xxse)
+CC )
+              call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+              GO TO 650
+            END IF
+         END IF
+!-----------------------POSSIBLE-SOSCF-ALPHA----------------------------)
+
+! No SOSCF
+!  - Diagonalize Fock matrix in WA basis of this iteration
+!  - Obtain updated vecAE in WA basis of this iteration
+           call RXCHFmult_OCBSE_diag(nebf,nwbfA,WA,wFAEw,
+     x                               wvecAEw,wAEenw,vecAE,AEe)
+CC ARS( check ovlap
+C      write(*,*) "regular diag vecAE",ielec
+C      call checkovlap(nebf,nebf,vecAE,xxse)
+CC )
            call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
-           CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
-           CALL COPYDEN(DAE0,DAE,NEBF)
-           CALL COPYDEN(vecAE0,vecAE,NEBF)
 
-! Form special electronic density matrix and store stuff for next it
+  650 CONTINUE
+
+
+! Special electrons
+
+! Transform FBE (calculated at end of previous iteration) to new WB basis
+!  - WB constructed from vecAE and vecBE0 (current and previous iteration MOs)
+!  - vecBE in AO basis from previous iteration is transformed to new WB basis
+!    (relevant for SOSCF only)
+
+           do j=1,nebf-nocca-noccb
+             tempvecB(:,j)=vecAE(:,j+nocca)
+           end do
+           do j=1,noccb
+             tempvecB(:,j+nebf-nocca-noccb)=vecBE0(:,j)
+           end do
+CC ARS( check ovlap
+C      write(*,*) "special tempvecB",ielec
+C      call checkovlap(nwbfB,nebf,tempvecB,xxse)
+CC )
+
+           call RXCHFmult_OCBSE_transF(nebf,nwbfB,tempvecB,
+     x                                 FBE,WB,wFBEw)
+
+!-----------------------POSSIBLE-SOSCF-BETA----------------------------(
+         if((LSORXCHF).or.(LSOSCFB)) THEN
+           ITER=IELEC
+           EIGAVL = ITER.GT.1
+         end if
+         IF((LSORXCHF.or.LSOSCFB) .AND. (EIGAVL)) THEN
+           call pack_LT(nwbfB,nwbfLTB,wFBEw,wFLTBw)
+           call RXCHFmult_OCBSE_transVt(nebf,nwbfB,WB,
+     x                                  xxse,vecBE,wvecBEw)
+           call SOGRAD(GRADB,wFLTBw,wvecBEw,wWRKBw,NPRB,NB,
+     x                 L0wB,L1wB,NwBFLTB,ORBGRDB)
+            IF(ORBGRDB.LT.SOGTOL  .OR.  ITSOB.GT.0) THEN
+              IF(ITSOB.EQ.0) THEN
+                 WRITE(*,9800)
+                 call SOHESS(HSTARTB,wBEenw,NPRB,L0wB,NB,NB)
+                 if(LSORXCHF) then
+                  do j=1,nprb
+                    HESSB0(j,j)=HSTARTB(j)
+                    DISPLIB0(j)=-HSTARTB(j)*GRADB(j)
+                  end do
+                 end if
+              END IF
+              ITSOB = ITSOB+1
+              IF(LSORXCHF) then
+               call RXCHF_SOCHGBAS(NPRB,NB,nwbfB,nebf,WB0,WB,xxse,
+     x                             GRADB0,HESSB0,DISPLIB0)
+               call RXCHF_SONEWT(NPRB,ITSOB,HESSB0,HESSB,GRADB0,
+     x                           GRADB,DISPLIB0,DISPLIB)
+C      write(*,*) "grad:",GRADB
+C      write(*,*) "grad0:",GRADB0
+C      write(*,*) "displia:",DISPLIB
+              ELSE
+               call SONEWT(HSTARTB,GRADB,PGRADB,DISPLIB,DGRADB,
+     x                     DISPLB,UPDTB,DISPLNB,DGRADIB,UPDTIB,
+     x                     ORBGRDB,NPRB,ITSOB,NFT16)
+              END IF
+              call SOTRAN(DISPLIB,wvecBEw,wGBw,wWRKBw,NPRB,
+     x                    L0wB,L1wB,NB,NB,ORBGRDB)
+              IF(LSORXCHF) THEN
+                CALL DCOPY(NPRB,GRADB,1,GRADB0,1)
+                CALL DCOPY(NPRB,DISPLIB,1,DISPLIB0,1)
+                CALL COPYDEN(HESSB0,HESSB,NPRB)
+              ELSE
+                CALL DCOPY(NPRB,GRADB,1,PGRADB,1)
+              END IF
+              call RXCHFmult_OCBSE_transV(nebf,nwbfB,WB,wvecBEw,wBEenw, ! eigenvalues useless
+     x                                    vecBE,BEe)
+CC ARS( check ovlap
+C        write(*,*) "special SORXCHF vecBE"
+C        call checkovlap(nebf,nebf,vecBE,xxse)
+CC )
+              call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
+              GO TO 550
+            END IF
+         END IF
+!-----------------------POSSIBLE-SOSCF-BETA----------------------------)
+
+! No SOSCF
+!  - Diagonalize Fock matrix in WB basis of this iteration
+!  - Obtain updated vecBE in WB basis of this iteration
+           call RXCHFmult_OCBSE_diag(nebf,nwbfB,WB,wFBEw,
+     x                               wvecBEw,wBEenw,vecBE,BEe)
+CC ARS( check ovlap
+C      write(*,*) "special diag vecBE"
+C      call checkovlap(nebf,nebf,vecBE,xxse)
+CC )
            call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
-           CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
-           CALL COPYDEN(DBE0,DBE,NEBF)
-           CALL COPYDEN(vecBE0,vecBE,NEBF)
+
+  550 CONTINUE
+
+C --------------------------- POTENTIAL DIIS ---------------------------
+      if(LDIIS) then
+
+       CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
+       CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
+
+       if(itDIIS.eq.0) then ! If DIIS not intiated, check if it should be
+        if((DIFFAE.lt.threshDIIS).and.(DIFFBE.lt.threshDIIS)) then
+         write(*,9801)
+         itDIIS=itDIIS+1
+         do j=1,nocca
+           vecDIIS(:,j,nstore)=vecAE0(:,j)
+         end do
+         do j=1,noccb
+           vecDIIS(:,j+nocca,nstore)=vecBE0(:,j)
+         end do
+         do j=1,nebf-nocca-noccb
+           vecDIIS(:,j+nocca+noccb,nstore)=vecBE0(:,j+noccb)
+         end do
+        end if
+       end if
+
+       if(itDIIS.gt.0) then ! If DIIS already initiated, continue with DIIS
+        call DIIS_driver(nebf,nocca,noccb,nstore,itDIIS,
+     x                   vecAE,vecBE,xxse,
+     x                   errvec,vecDIIS,errDIIS)
+        itDIIS=itDIIS+1
+CC ARS( check ovlap
+C        write(*,*) "regular DIIS vecAE"
+C        call checkovlap(nebf,nebf,vecAE,xxse)
+C        write(*,*) "special DIIS vecBE"
+C        call checkovlap(nebf,nebf,vecBE,xxse)
+CC )
+        call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+        call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
+       end if
+
+      end if
+C ----------------------------------------------------------------------
+
+          CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
+          CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
+
+          CALL COPYDEN(DAE0,DAE,NEBF)
+          CALL COPYDEN(DBE0,DBE,NEBF)
+
+          CALL COPYDEN(vecAE0,vecAE,NEBF)
+          CALL COPYDEN(vecBE0,vecBE,NEBF)
+
+          WA0(:,:)=WA(:,:)
+          WB0(:,:)=WB(:,:)
 
 ! Calculate energy for this it and Fock matrices for next it
 
@@ -862,30 +1265,54 @@ C )
 
 ! Regular electrons
 !-----------------------POSSIBLE-SOSCF-ALPHA---------------------------(
-         if(LSOSCFA) THEN
+         if((LSORXCHF).or.(LSOSCFA)) THEN
           ITER=IELEC
           EIGAVL = ITER.GT.1
          end if
-         IF(LSOSCFA .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
-!!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
+         IF((LSORXCHF.or.LSOSCFA) .AND.  EIGAVL) THEN
            call pack_LT(nebf,nebfLT,FAE,FLT)
-          call SOGRAD(GRADA,FLT,vecAE,WRK,NPRA,NA,L0,L1,NEBFLT,ORBGRDA)
-!!!!!!      IF(ORBGRD.LT.SMALL) THEN
-!!!!!!         DIFF = ZERO
-!!!!!!         CVGING=.TRUE.
-!!!!!!         GO TO 900  ! Check on convergence behavior
-!!!!!!      END IF
+           call SOGRAD(GRADA,FLT,vecAE,WRK,NPRA,NA,L0,L1,NEBFLT,ORBGRDA)
             IF(ORBGRDA.LT.SOGTOL  .OR.  ITSOA.GT.0) THEN
-              IF(ITSOA.EQ.0) THEN   ! only on first SOSCF it. set up approx Hess
+              IF(ITSOA.EQ.0) THEN
               WRITE(*,9800)
                  call SOHESS(HSTARTA,AEE,NPRA,L0,NA,NA)
+                 if(LSORXCHF) then
+                  do j=1,npra
+                    HESSA0(j,j)=HSTARTA(j)
+                    DISPLIA0(j)=-HSTARTA(j)*GRADA(j)
+                  end do
+                 end if
               END IF
               ITSOA = ITSOA+1
+              IF(LSORXCHF) then
+               call RXCHF_SOCHGBAS(NPRA,NA,nebf,nebf,vecAE,vecAE,xxse,
+     x                             GRADA0,HESSA0,DISPLIA0)
+               call RXCHF_SONEWT(NPRA,ITSOA,HESSA0,HESSA,GRADA0,
+     x                           GRADA,DISPLIA0,DISPLIA)
+C      write(*,*) "grad:",GRADA
+C      write(*,*) "grad0:",GRADA0
+C      write(*,*) "displia:",DISPLIA
+              ELSE
+C      write(*,*) "hess:",HSTARTA
+C      write(*,*) "grad:",GRADA
+C      write(*,*) "pgrad:",PGRADA
            call SONEWT(HSTARTA,GRADA,PGRADA,DISPLIA,DGRADA,DISPLA,UPDTA,
      *                 DISPLNA,DGRADIA,UPDTIA,ORBGRDA,NPRA,ITSOA,NFT15)
+C      write(*,*) "displia:",DISPLIA
+              END IF
             call SOTRAN(DISPLIA,vecAE,GA,WRK,NPRA,L0,L1,NA,NA,ORBGRDA)
-             CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
+              IF(LSORXCHF) THEN
+                CALL DCOPY(NPRA,GRADA,1,GRADA0,1)
+                CALL DCOPY(NPRA,DISPLIA,1,DISPLIA0,1)
+                CALL COPYDEN(HESSA0,HESSA,NPRA)
+              ELSE
+                CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
+              END IF
               call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+CC ARS( check ovlap
+C        write(*,*) "regular SORXCHF vecAE"
+C        call checkovlap(nebf,nebf,vecAE,xxse)
+CC )
               GO TO 950  ! Use the new C's to form new density (change)
             END IF
          END IF
@@ -896,6 +1323,10 @@ C )
 !        call ROOTHAN(DAE,vecAE,AEE,xxse,FAE,nebf,nelec,1,NUCST)
          call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
          call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+CC ARS( check ovlap
+C      write(*,*) "regular diag vecAE",ielec
+C      call checkovlap(nebf,nebf,vecAE,xxse)
+CC )
 
   950 CONTINUE
 !        --> FIND LARGEST CHANGE IN Alpha E DENSITY
@@ -942,25 +1373,25 @@ C ARS( new stuff
            end if
 
 ! Allocate OCBSE variables
-           nwbf=dimint
-           nwbflt=nwbf*(nwbf+1)/2
-           L0w=nwbf
-           L1w=nwbf
+           nwbfB=dimint
+           nwbfltB=nwbfB*(nwbfB+1)/2
+           L0wB=nwbfB
+           L1wB=nwbfB
            if(allocated(Cint)) deallocate(Cint)
-           if(allocated(wWRKw)) deallocate(wWRKw)
+           if(allocated(wWRKBw)) deallocate(wWRKBw)
            if(allocated(wGBw)) deallocate(wGBw)
-           if(allocated(wFLTw)) deallocate(wFLTw)
+           if(allocated(wFLTBw)) deallocate(wFLTBw)
            if(allocated(wBEenw)) deallocate(wBEenw)
            if(allocated(wvecBEw)) deallocate(wvecBEw)
            if(allocated(wFBEw)) deallocate(wFBEw)
            if(allocated(WB)) deallocate(WB)
-           allocate(WB(nebf,nwbf))
-           allocate(wFBEw(nwbf,nwbf))
-           allocate(wvecBEw(nwbf,nwbf))
-           allocate(wBEenw(nwbf))
-           allocate(wFLTw(nwbflt))
-           allocate(wGBw(nwbf,nwbf))
-           allocate(wWRKw(nwbf))
+           allocate(WB(nebf,nwbfB))
+           allocate(wFBEw(nwbfB,nwbfB))
+           allocate(wvecBEw(nwbfB,nwbfB))
+           allocate(wBEenw(nwbfB))
+           allocate(wFLTBw(nwbfltB))
+           allocate(wGBw(nwbfB,nwbfB))
+           allocate(wWRKBw(nwbfB))
            allocate(Cint(nebfBE,dimint))
 
 ! Allocate SOSCF variables
@@ -1023,7 +1454,7 @@ C ARS( new stuff
           end do
           end do
 
-          call RXCHFmult_OCBSE_transF(nebfBE,nwbf,Cint,
+          call RXCHFmult_OCBSE_transF(nebfBE,nwbfB,Cint,
      x                                FBE,WB,wFBEw)
 
          else
@@ -1032,7 +1463,7 @@ C ARS( new stuff
 !  - W updated with new vecA from this iteration
 !  - vecBE in AO basis from previous iteration is transformed to new W basis
 !    (relevant for SOSCF only)
-          call RXCHFmult_OCBSE_transF(nebf,nwbf,vecAE(:,nocca+1:nebf),
+          call RXCHFmult_OCBSE_transF(nebf,nwbfB,vecAE(:,nocca+1:nebf),
      x                                FBE,WB,wFBEw)
 
          end if
@@ -1046,12 +1477,12 @@ C ARS( new stuff
          end if
          IF(LSOSCFB .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
 !!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
-           call pack_LT(nwbf,nwbfLT,wFBEw,wFLTw)
+           call pack_LT(nwbfB,nwbfLTB,wFBEw,wFLTBw)
 ! Transform vecBE that was used to build FBE into new W basis
-           call RXCHFmult_OCBSE_transVt(nebfBE,nwbf,WB,
+           call RXCHFmult_OCBSE_transVt(nebfBE,nwbfB,WB,
      x                                  xxseBE,vecBE,wvecBEw)
-           call SOGRAD(GRADB,wFLTw,wvecBEw,wWRKw,NPRB,NB,
-     x                 L0w,L1w,NwBFLT,ORBGRDB)
+           call SOGRAD(GRADB,wFLTBw,wvecBEw,wWRKBw,NPRB,NB,
+     x                 L0wB,L1wB,NwBFLTB,ORBGRDB)
 !!!!!!      IF(ORBGRD.LT.SMALL) THEN
 !!!!!!         DIFF = ZERO
 !!!!!!         CVGING=.TRUE.
@@ -1060,15 +1491,15 @@ C ARS( new stuff
             IF(ORBGRDB.LT.SOGTOL  .OR.  ITSOB.GT.0) THEN
               IF(ITSOB.EQ.0) THEN   ! only on first SOSCF it. set up approx Hess
                  WRITE(*,9800)
-                 call SOHESS(HSTARTB,wBEenw,NPRB,L0w,NB,NB)
+                 call SOHESS(HSTARTB,wBEenw,NPRB,L0wB,NB,NB)
               END IF
               ITSOB = ITSOB+1
            call SONEWT(HSTARTB,GRADB,PGRADB,DISPLIB,DGRADB,DISPLB,UPDTB,
      *                 DISPLNB,DGRADIB,UPDTIB,ORBGRDB,NPRB,ITSOB,NFT16)
-              call SOTRAN(DISPLIB,wvecBEw,wGBw,wWRKw,NPRB,
-     x                    L0w,L1w,NB,NB,ORBGRDB)
+              call SOTRAN(DISPLIB,wvecBEw,wGBw,wWRKBw,NPRB,
+     x                    L0wB,L1wB,NB,NB,ORBGRDB)
               CALL DCOPY(NPRB,GRADB,1,PGRADB,1)
-              call RXCHFmult_OCBSE_transV(nebfBE,nwbf,WB,wvecBEw,wBEenw,! eigenvalues useless
+             call RXCHFmult_OCBSE_transV(nebfBE,nwbfB,WB,wvecBEw,wBEenw,! eigenvalues useless
      x                                    vecBE,BEe)
               call RXCHFmult_construct_DE(NBE,nebfBE,vecBE,DBE)
               GO TO 450  ! Use the new C's to form new density (change)
@@ -1079,7 +1510,7 @@ C ARS( new stuff
 ! No SOSCF
 !  - Diagonalize Fock matrix in W basis of this iteration
 !  - Obtain updated vecBE in W basis of this iteration
-         call RXCHFmult_OCBSE_diag(nebfBE,nwbf,WB,wFBEw,
+         call RXCHFmult_OCBSE_diag(nebfBE,nwbfB,WB,wFBEw,
      x                             wvecBEw,wBEenw,vecBE,BEe)
          call RXCHFmult_construct_DE(NBE,nebfBE,vecBE,DBE)
 
@@ -1265,6 +1696,12 @@ C )
          else if ((LSOSCFB).and.(.not.(LSOSCFA))) then
             WRITE(*,9150) IELEC,E_total,Delta_E_tot,
      x                    DIFFAE,DIFFBE,DIFFP,ORBGRDB
+         else if (LSORXCHF) then
+            WRITE(*,9151) IELEC,E_total,Delta_E_tot,
+     x                    DIFFAE,DIFFBE,DIFFP,ORBGRDA,ORBGRDB
+         else if (LDIIS) then
+            WRITE(*,9150) IELEC,E_total,Delta_E_tot,
+     x                    DIFFAE,DIFFBE,DIFFP,errDIIS
          else
             WRITE(*,9100) IELEC,E_total,Delta_E_tot,
      x                    DIFFAE,DIFFBE,DIFFP
@@ -1286,7 +1723,7 @@ C )
 
          LDIFFE=( (DIFFAE.LT.TOLE).and.(DIFFBE.LT.TOLE) )
          IF(LDIFFE) GOTO 200
-         IF(IELEC.EQ.MAXIT) GOTO 10
+         IF(IELEC.EQ.MAXMICROIT) GOTO 10
 
        END DO  ! microiterations
 
@@ -1618,18 +2055,64 @@ C )
        if(allocated(HSTARTB)) deallocate(HSTARTB)
       end if
 
+      if(LSOSCFA) then
+       if(allocated(XA))      deallocate(XA)
+       if(allocated(UPDTIA))  deallocate(UPDTIA)
+       if(allocated(DGRADIA)) deallocate(DGRADIA)
+       if(allocated(DISPLNA)) deallocate(DISPLNA)
+       if(allocated(UPDTA))   deallocate(UPDTA)
+       if(allocated(DISPLA))  deallocate(DISPLA)
+       if(allocated(DGRADA))  deallocate(DGRADA)
+       if(allocated(DISPLIA)) deallocate(DISPLIA)
+       if(allocated(PGRADA))  deallocate(PGRADA)
+       if(allocated(GRADA))   deallocate(GRADA)
+       if(allocated(HSTARTA)) deallocate(HSTARTA)
+      end if
+
       if(LALTBAS) then
        if(allocated(Cint))    deallocate(Cint)
       end if
 
-      if(LOCBSE2) then
-       if(allocated(wWRKw))   deallocate(wWRKw)
-       if(allocated(wGBw))    deallocate(wGBw)
-       if(allocated(wFLTw))   deallocate(wFLTw)
-       if(allocated(wBEenw))  deallocate(wBEenw)
-       if(allocated(wvecBEw)) deallocate(wvecBEw)
-       if(allocated(wFBEw))   deallocate(wFBEw)
-       if(allocated(WB))      deallocate(WB)
+      if(LSORXCHF) then
+       if(allocated(DISPLIB0)) deallocate(DISPLIB0)
+       if(allocated(DISPLIA0)) deallocate(DISPLIA0)
+       if(allocated(DISPLIB))  deallocate(DISPLIB)
+       if(allocated(DISPLIA))  deallocate(DISPLIA)
+       if(allocated(GRADB0))   deallocate(GRADB0)
+       if(allocated(GRADA0))   deallocate(GRADA0)
+       if(allocated(GRADB))    deallocate(GRADB)
+       if(allocated(GRADA))    deallocate(GRADA)
+       if(allocated(HESSB0))   deallocate(HESSB0)
+       if(allocated(HESSA0))   deallocate(HESSA0)
+       if(allocated(HESSB))    deallocate(HESSB)
+       if(allocated(HESSA))    deallocate(HESSA)
+       if(allocated(WB0))      deallocate(WB0)
+       if(allocated(WA0))      deallocate(WA0)
+      end if
+
+      if(LOCBSE.or.LOCBSE2) then
+       if(allocated(wWRKBw))   deallocate(wWRKBw)
+       if(allocated(wGBw))     deallocate(wGBw)
+       if(allocated(wFLTBw))   deallocate(wFLTBw)
+       if(allocated(wBEenw))   deallocate(wBEenw)
+       if(allocated(wvecBEw))  deallocate(wvecBEw)
+       if(allocated(wFBEw))    deallocate(wFBEw)
+       if(allocated(WB))       deallocate(WB)
+       if(allocated(tempvecB)) deallocate(tempvecB)
+       if(LOCBSE) then
+        if(allocated(wWRKAw))   deallocate(wWRKAw)
+        if(allocated(wGAw))     deallocate(wGAw)
+        if(allocated(wFLTAw))   deallocate(wFLTAw)
+        if(allocated(wAEenw))   deallocate(wAEenw)
+        if(allocated(wvecAEw))  deallocate(wvecAEw)
+        if(allocated(wFAEw))    deallocate(wFAEw)
+        if(allocated(WA))       deallocate(WA)
+        if(allocated(tempvecA)) deallocate(tempvecA)
+       end if
+      end if
+
+      if(LDIIS) then
+       if(allocated(errvec)) deallocate(errvec)
       end if
 
       RETURN
@@ -2234,13 +2717,14 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       WB=zero
       WBtrans=zero
       wFBEw=zero
+      AUXB=zero
       zero1=zero
       zero2=zero
 
       if (debug) then
        write(*,*) "nwbf:",nwbf
-       write(*,*) "MATRIX vecAE:"
-       call PREVNU(vecAE,zero1,nwbf,nebf,nebf)
+C       write(*,*) "MATRIX vecAE:"
+C       call PREVNU(vecAE,zero1,nwbf,nebf,nebf)
       end if
 
 ! Form special electronic transformation matrix
@@ -2408,6 +2892,15 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       parameter(zero=0.0d+00)
       integer k,l
       double precision ovlap
+C ARS(
+      double precision vecBEt(nebf,nebf)
+      double precision wvecBEwt(nwbf,nwbf)
+      double precision blockvecBEtest(nebf,nwbf)
+      double precision vecBEtest(nebf,nebf)
+      double precision vecBEtestt(nebf,nebf)
+      double precision aux(nebf,nebf)
+      double precision aux2(nebf,nebf)
+C )
 
       logical debug
       debug=.false.
@@ -2424,6 +2917,25 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
        WRITE(*,*) "MATRIX Pretransformed vecBE:"
        call PREVNU(vecBE,zero2,nebf,nebf,nebf)
       end if
+
+C ARS(
+      if (debug) then
+       vecBEt=zero
+       do i=1,nebf
+       do j=1,nebf
+         vecBEt(j,i)=vecBE(i,j)
+       end do
+       end do
+
+       aux=zero
+       aux2=zero
+       call RXCHF_matmult(nebf,nebf,nebf,nebf,Selec,vecBE,aux)
+       call RXCHF_matmult(nebf,nebf,nebf,nebf,vecBEt,aux,aux2)
+       write(*,*) "Initial vecBE cSc:"
+       call PREVNU(aux2,zero2,nebf,nebf,nebf)
+
+      end if
+C )
 
       if (debug) then
        WRITE(*,*) "MATRIX Pretransformed WB:"
@@ -2461,6 +2973,51 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
        WRITE(*,*) "MATRIX Transformed wvecBEw:"
        call PREVNU(wvecBEw,zero1,nwbf,nwbf,nwbf)
       end if
+
+! Lowdin orthogonalize
+      call RXCHF_loworth(nwbf,nwbf,wvecBEw)
+
+      if (debug) then
+       WRITE(*,*) "MATRIX Lowdin-orth wvecBEw:"
+       call PREVNU(wvecBEw,zero1,nwbf,nwbf,nwbf)
+      end if
+
+C ARS(
+      if (debug) then
+       wvecBEwt=zero
+       do i=1,nwbf
+       do j=1,nwbf
+         wvecBEwt(j,i)=wvecBEw(i,j)
+       end do
+       end do
+
+       call RXCHF_matmult(nwbf,nwbf,nwbf,nwbf,wvecBEwt,wvecBEw,wSBw)
+       write(*,*) "wvecBEw^t * wvecBEw:"
+       call PREVNU(wSBw,zero1,nwbf,nwbf,nwbf)
+
+       call RXCHF_matmult(nwbf,nwbf,nwbf,nwbf,wvecBEw,wvecBEwt,wSBw)
+       write(*,*) "wvecBEw * wvecBEw^t:"
+       call PREVNU(wSBw,zero1,nwbf,nwbf,nwbf)
+
+       blockvecBEtest=zero
+       vecBEtest=zero
+       vecBEtestt=zero
+       call RXCHF_matmult(nebf,nwbf,nwbf,nwbf,WB,wvecBEw,blockvecBEtest)
+       do i=1,nebf
+       do j=1,nwbf
+         vecBEtest(i,j)=blockvecBEtest(i,j)
+         vecBEtestt(j,i)=blockvecBEtest(i,j)
+       end do
+       end do
+
+       aux=zero
+       aux2=zero
+       call RXCHF_matmult(nebf,nebf,nebf,nebf,Selec,vecBEtest,aux)
+       call RXCHF_matmult(nebf,nebf,nebf,nebf,vecBEtestt,aux,aux2)
+       write(*,*) "Final vecBE cSc:"
+       call PREVNU(aux2,zero2,nebf,nebf,nebf)
+      end if
+C )
 
       return
       end
@@ -2771,4 +3328,589 @@ C ARS( testing
 
       end subroutine printmat
 C )
+
+      subroutine checkovlap(m,n,c,S)
+      implicit none
+
+      integer m,n
+      double precision c(n,m),S(n,n)
+
+      integer i,j
+      double precision ct(m,n),aux(m,n),cSc(m,m)
+      double precision zero1(m)
+
+      zero1=0.0d+00
+      ct=0.0d+00
+      aux=0.0d+00
+
+      do i=1,n
+      do j=1,m
+        ct(j,i)=c(i,j)
+      end do
+      end do
+
+      call RXCHF_matmult(m,n,n,n,ct,S,aux)
+      call RXCHF_matmult(m,n,n,m,aux,c,cSc)
+
+      write(*,*) "MATRIX cSc:"
+      call PREVNU(cSc,zero1,m,m,m)
+
+      return
+      end
+
+!======================================================================
+      subroutine RXCHF_sochgbas(npr,nocc,nwbf,nebf,W0,W,Sao,G,H,D)
+
+! Overwrites gradient (G), Hessian (H) and displacement vector (D)
+! which have been calculated in the W0 basis with their corresponding
+! values in the W basis provided W0 and W share a common AO basis
+!
+!    npr : Number of rotation parameters
+!   nocc : Number of occupied MOs
+!   nwbf : Number of W basis functions
+!   nebf : Number of AO basis functions
+!     W0 : W basis of previous iteration
+!      W : W basis of current iteration
+!    Sao : Overlap matrix in AO basis
+!      G : Gradient of previous iteration to be transformed
+!          stored as (i-1)*nocc + j + 1
+!          for i=occ (outer index) and j=virt (inner index)
+!      H : Hessian of previous iteration to be transformed
+!          stored as 2-dim version of G
+!      D : Displacement of previous iteration to be transformed
+!          stored as G
+!======================================================================
+      implicit none
+
+! Input variables
+      integer          :: npr
+      integer          :: nocc
+      integer          :: nwbf
+      integer          :: nebf
+      double precision :: W0(nebf,nwbf)
+      double precision :: W(nebf,nwbf)
+      double precision :: Sao(nebf,nebf)
+
+! Input/Output variables
+      double precision :: G(npr)
+      double precision :: H(npr,npr)
+      double precision :: D(npr)
+
+! Local variables
+      integer          :: i,j,k,l
+      integer          :: ia,ib,ic,id
+      integer          :: ind1,ind2,ind3,ind4
+      integer          :: nvirt
+      double precision :: A(nwbf,nwbf)
+      double precision :: At(nwbf,nwbf)
+      double precision :: Wt(nwbf,nebf)
+      double precision :: aux(nebf,nwbf)
+      double precision :: aux2(nwbf,nwbf)
+      double precision :: G0(npr)
+      double precision :: H0(npr,npr)
+      double precision :: D0(npr)
+      double precision :: zero1(npr)
+      double precision :: zero2(nwbf)
+C ARS(
+      double precision :: W0t(nwbf,nebf)
+      double precision :: B(nwbf,nwbf)
+      double precision :: Bt(nwbf,nwbf)
+      double precision :: Gtest(npr)
+      double precision :: Htest(npr,npr)
+      double precision :: Dtest(npr)
+C )
+
+      logical          :: debug
+
+      double precision, parameter :: zero=0.0d+00
+      double precision, parameter :: one=1.0d+00
+
+      debug=.false.
+
+      A=zero
+      Wt=zero
+      aux=zero
+      aux2=zero
+      zero1=zero
+      zero2=zero
+      nvirt=nwbf-nocc
+      G0(:)=G(:)
+      H0(:,:)=H(:,:)
+      D0(:)=D(:)
+      G=zero
+      H=zero
+      D=zero
+C ARS(
+      W0t=zero
+      B=zero
+      Bt=zero
+      Gtest=zero
+      Htest=zero
+      Dtest=zero
+C )
+
+      if((nocc*nvirt).ne.npr) then
+       write(*,*) "nvirt != npr in RXCHF_sochbas"
+       write(*,*) "Exiting..."
+       call abrt
+      end if
+
+      if(debug) then
+       write(*,*) "Initial gradient:"
+       write(*,*) G0
+       write(*,*)
+       write(*,*) "Initial displacement:"
+       write(*,*) D0
+       write(*,*)
+       write(*,*) "Initial Hessian:"
+       call PREVNU(H0,zero1,npr,npr,npr)
+      end if
+
+! Form transformation matrix A from old W basis to new W basis
+      do i=1,nebf
+      do j=1,nwbf
+        Wt(j,i)=W(i,j)
+      end do
+      end do
+      call RXCHF_matmult(nebf,nebf,nebf,nwbf,Sao,W0,aux)
+      call RXCHF_matmult(nwbf,nebf,nebf,nwbf,Wt,aux,A)
+
+      if(debug) then
+       write(*,*) "W0 -> W transformation:"
+       call PREVNU(A,zero2,nwbf,nwbf,nwbf)
+      end if
+
+! Lowdin orthogonalize
+      call RXCHF_loworth(nwbf,nwbf,A)
+
+      if (debug) then
+       WRITE(*,*) "Lowdin-orth W0 -> W transformation:"
+       call PREVNU(A,zero2,nwbf,nwbf,nwbf)
+      end if
+
+! Check overlaps
+      if(debug) then
+
+       do i=1,nebf
+       do j=1,nwbf
+         W0t(j,i)=W0(i,j)
+       end do
+       end do
+
+       aux=zero
+       call RXCHF_matmult(nebf,nebf,nebf,nwbf,Sao,W0,aux)
+       call RXCHF_matmult(nwbf,nebf,nebf,nwbf,W0t,aux,aux2)
+       write(*,*) "W0^t S W0:"
+       call PREVNU(aux2,zero2,nwbf,nwbf,nwbf)
+
+       aux=zero
+       aux2=zero
+       call RXCHF_matmult(nebf,nebf,nebf,nwbf,Sao,W,aux)
+       call RXCHF_matmult(nwbf,nebf,nebf,nwbf,Wt,aux,aux2)
+       write(*,*) "W^t S W:"
+       call PREVNU(aux2,zero2,nwbf,nwbf,nwbf)
+
+       do i=1,nwbf
+       do j=1,nwbf
+         At(j,i)=A(i,j)
+       end do
+       end do
+
+       aux2=zero
+       call RXCHF_matmult(nwbf,nwbf,nwbf,nwbf,At,A,aux2)
+       write(*,*) "A^t A:"
+       call PREVNU(aux2,zero2,nwbf,nwbf,nwbf)
+
+       aux2=zero
+       call RXCHF_matmult(nwbf,nwbf,nwbf,nwbf,A,At,aux2)
+       write(*,*) "A A^t:"
+       call PREVNU(aux2,zero2,nwbf,nwbf,nwbf)
+
+      end if
+
+! Transform quantities
+      ind1=0
+      do i=1,nocc
+      do ia=nocc+1,nwbf
+        ind1=ind1+1                    ! ind1: (i,a)
+
+        ind2=0
+        do j=1,nocc
+        do ib=nocc+1,nwbf
+          ind2=ind2+1                  ! ind2: (j,b)
+
+          G(ind1)=G(ind1)+G0(ind2)*
+     x            (A(i,j)*A(ia,ib)+A(i,ib)*A(ia,j))
+!     x            (A(j,i)*A(ib,ia)+A(ib,i)*A(j,ia))
+          D(ind1)=D(ind1)+D0(ind2)*
+     x            (A(i,j)*A(ia,ib)+A(i,ib)*A(ia,j))
+!     x            (A(j,i)*A(ib,ia)+A(ib,i)*A(j,ia))
+
+          ind3=0
+          do k=1,nocc
+          do ic=nocc+1,nwbf
+            ind3=ind3+1                ! ind3: (k,c)
+
+            ind4=0
+            do l=1,nocc
+            do id=nocc+1,nwbf
+              ind4=ind4+1              ! ind4: (l,d)
+
+              H(ind1,ind2)=H(ind1,ind2)+H0(ind3,ind4)*
+     x                     (A(i,k)*A(ia,ic)*A(j,l)*A(ib,id)
+     x                     +A(i,ic)*A(ia,k)*A(j,id)*A(ib,l)
+     x                     +A(i,k)*A(ia,ic)*A(j,id)*A(ib,l)
+     x                     +A(i,ic)*A(ia,k)*A(j,l)*A(ib,id))
+!     x                     (A(k,i)*A(ic,ia)*A(l,j)*A(id,ib)
+!     x                     +A(ic,i)*A(k,ia)*A(id,j)*A(l,ib)
+!     x                     +A(k,i)*A(ic,ia)*A(id,j)*A(l,ib)
+!     x                     +A(ic,i)*A(k,ia)*A(l,j)*A(id,ib))
+
+            end do
+            end do
+
+          end do
+          end do
+
+        end do
+        end do
+
+      end do
+      end do
+
+      if(debug) then
+       write(*,*) "Final gradient:"
+       write(*,*) G
+       write(*,*)
+       write(*,*) "Final displacement:"
+       write(*,*) D
+       write(*,*)
+       write(*,*) "Final Hessian:"
+       call PREVNU(H,zero1,npr,npr,npr)
+      end if
+
+C ARS( check back transformation
+      if(debug) then
+       aux=zero
+       call RXCHF_matmult(nebf,nebf,nebf,nwbf,Sao,W,aux)
+       call RXCHF_matmult(nwbf,nebf,nebf,nwbf,W0t,aux,B)
+       write(*,*) "W -> W0 transformation:"
+       call PREVNU(B,zero2,nwbf,nwbf,nwbf)
+
+       call RXCHF_loworth(nwbf,nwbf,B)
+
+       if (debug) then
+        WRITE(*,*) "Lowdin-orth W -> W0 transformation:"
+        call PREVNU(B,zero2,nwbf,nwbf,nwbf)
+       end if
+
+       do i=1,nwbf
+       do j=1,nwbf
+         Bt(j,i)=B(i,j)
+       end do
+       end do
+
+       aux2=zero
+       call RXCHF_matmult(nwbf,nwbf,nwbf,nwbf,Bt,B,aux2)
+       write(*,*) "B^t B:"
+       call PREVNU(aux2,zero2,nwbf,nwbf,nwbf)
+
+       aux2=zero
+       call RXCHF_matmult(nwbf,nwbf,nwbf,nwbf,B,Bt,aux2)
+       write(*,*) "B B^t:"
+       call PREVNU(aux2,zero2,nwbf,nwbf,nwbf)
+
+       ind1=0
+       do i=1,nocc
+       do ia=nocc+1,nwbf
+         ind1=ind1+1                    ! ind1: (i,a)
+       
+         ind2=0
+         do j=1,nocc
+         do ib=nocc+1,nwbf
+           ind2=ind2+1                  ! ind2: (j,b)
+       
+           Gtest(ind1)=Gtest(ind1)+G(ind2)*
+     x             (A(i,j)*A(ia,ib)+A(i,ib)*A(ia,j))
+!     x            (A(j,i)*A(ib,ia)+A(ib,i)*A(j,ia))
+           Dtest(ind1)=Dtest(ind1)+D(ind2)*
+     x             (A(i,j)*A(ia,ib)+A(i,ib)*A(ia,j))
+!     x            (A(j,i)*A(ib,ia)+A(ib,i)*A(j,ia))
+       
+           ind3=0
+           do k=1,nocc
+           do ic=nocc+1,nwbf
+             ind3=ind3+1                ! ind3: (k,c)
+       
+             ind4=0
+             do l=1,nocc
+             do id=nocc+1,nwbf
+               ind4=ind4+1              ! ind4: (l,d)
+       
+               Htest(ind1,ind2)=Htest(ind1,ind2)+H(ind3,ind4)*
+     x                      (A(i,k)*A(ia,ic)*A(j,l)*A(ib,id)
+     x                      +A(i,ic)*A(ia,k)*A(j,id)*A(ib,l)
+     x                      +A(i,k)*A(ia,ic)*A(j,id)*A(ib,l)
+     x                      +A(i,ic)*A(ia,k)*A(j,l)*A(ib,id))
+!     x                     (A(k,i)*A(ic,ia)*A(l,j)*A(id,ib)
+!     x                     +A(ic,i)*A(k,ia)*A(id,j)*A(l,ib)
+!     x                     +A(k,i)*A(ic,ia)*A(id,j)*A(l,ib)
+!     x                     +A(ic,i)*A(k,ia)*A(l,j)*A(id,ib))
+       
+             end do
+             end do
+       
+           end do
+           end do
+       
+         end do
+         end do
+       
+       end do
+       end do
+       
+       if(debug) then
+        write(*,*) "Back-transformed gradient:"
+        write(*,*) Gtest
+        write(*,*)
+        write(*,*) "Back-transformed displacement:"
+        write(*,*) Dtest
+        write(*,*)
+        write(*,*) "Back-transformed Hessian:"
+        call PREVNU(Htest,zero1,npr,npr,npr)
+       end if
+      end if
+C )
+
+      return
+      end
+
+!======================================================================
+      subroutine RXCHF_sonewt(n,it,H0,H,G0,G,D0,D)
+
+! Determines Hessian and displacement vector at current iteration
+! from current gradient and previous iteration Hessian, displacement
+! and gradient using Fischer & Almlof 1992 JPC Eqs 1-3
+! Also resets SOSCF or scales displacement if too large and skips
+! Hessian update procedure if close to convergence using protocols
+! from GAMESS SOSCF routines
+!
+!      n : Number of rotation parameters
+!     it : Current iteration
+!     H0 : Hessian of previous iteration
+!      H : Hessian of current iteration
+!     G0 : Gradient of previous iteration
+!      G : Gradient of current iteration
+!     D0 : Displacement of previous iteration
+!      D : Displacement of current iteration
+!======================================================================
+      implicit none
+
+! Input variables
+      integer          :: n
+      integer          :: it
+      double precision :: H0(n,n)
+      double precision :: G0(n),G(n)
+      double precision :: D0(n)
+
+! Output variables
+      double precision :: H(n,n)
+      double precision :: D(n)
+
+! Local variables
+      integer          :: i,j
+      double precision :: maxG
+      double precision :: alp
+      double precision :: del(n),v(n)
+      double precision :: E
+      double precision :: c1,c2
+      double precision :: aux(n,n)
+      double precision :: sqcdf,scal
+      double precision :: ddot
+
+      double precision, parameter :: zero=0.0d+00
+      double precision, parameter :: one=1.0d+00
+      double precision, parameter :: toobig=1.0d+00
+      double precision, parameter :: bigrot=0.1d+00
+      double precision, parameter :: small=1.0d-08
+
+      H=zero
+      D=zero
+      aux=zero
+
+      maxG=zero
+      do i=1,n
+        if(abs(G(i)).gt.maxG) maxG=abs(G(i))
+      end do
+
+      if (it.eq.1) then
+
+       H(:,:)=H0(:,:)
+       D(:)=D0(:)
+
+      else if (maxG.lt.small) then
+
+       H(:,:)=H0(:,:)
+       call RXCHF_matmult(n,n,n,1,H0,G,D)
+       do i=1,n
+         D(i)=-D(i)
+       end do
+
+      else
+
+! Apply Eqs 1-3 from Fischer & Almlof
+       do i=1,n
+         del(i)=G(i)-G0(i)
+       end do
+
+       alp=ddot(n,D0,1,del,1)
+       alp=one/alp
+
+       call RXCHF_matmult(n,n,n,1,H0,del,v)
+
+       c1=ddot(n,del,1,v,1)
+       c1=alp*c1
+       c1=c1+one
+       c1=alp*c1
+       c2=-alp
+       do i=1,n
+       do j=1,n
+         E=c1*D0(j)*D0(i)
+         E=E+c2*(D0(j)*v(i)+v(j)*D0(i))
+         H(j,i)=H0(j,i)+E
+       end do
+       end do
+
+       call RXCHF_matmult(n,n,n,1,H,G,D)
+       do i=1,n
+         D(i)=-D(i)
+       end do
+
+      end if
+
+! Scale displacement in case value is too large (poached from GAMESS)
+      SQCDF = SQRT(DDOT(n,D,1,D,1)/n)
+      IF(SQCDF.GT.TOOBIG  .AND.  it.GT.5) THEN
+         WRITE(*,9011) SQCDF
+         it = 0
+      END IF
+      IF(SQCDF.GT.BIGROT) THEN
+         IF(it.GT.0) WRITE(*,9020) SQCDF
+         SCAL=SQRT(BIGROT/SQCDF)
+         CALL DSCAL(n,SCAL,D,1)
+      END IF
+
+ 9011 FORMAT(1X,'*** RESETTTING SOSCF, UPON ENCOUNTERING A HUGE',
+     *          ' TOTAL ROTATION=',1P,E12.3)
+ 9020 FORMAT(1X,'SOSCF IS SCALING ROTATION ANGLE MATRIX, SQCDF=',F12.6)
+
+      return
+      end
+
+!======================================================================
+      subroutine RXCHF_loworth(m,n,mat)
+
+! Performs Lowdin orthogonalization for mat (replaced by symmetric mat)
+! Computes SVD A = U * S * V^t and replaces A with U * V^t (uses GESVD)
+! Assumes A(m x n) where the m columns of A are vecs to be orth
+!
+!      m : rows of mat
+!      n : cols of mat
+!    mat : matrix whose columns will be orthogonalized
+!======================================================================
+      implicit none
+
+! Input variables
+      integer          :: m,n
+
+! Input/Output variables
+      double precision :: mat(m,n)
+
+! Local variables
+      integer          :: i,j
+      integer          :: istat
+      integer          :: matrank
+      double precision :: svals(max(m,n)),workq(1)
+      double precision :: u(m,m)
+      double precision :: vt(n,n)
+      double precision :: aux(m,n)
+
+      double precision, allocatable :: work(:),red(:,:)
+      double precision, parameter   :: zero=0.0d+00
+      double precision, parameter   :: tol=1.0d-10
+
+      svals=zero
+      u=zero
+      vt=zero
+      aux=zero
+      workq=zero
+
+! Query work array size for SVD and allocate work array
+      istat=0
+      call dgesvd("A","A",m,n,mat,m,svals,u,m,vt,n,workq,-1,istat)
+      if (istat.ne.0) then
+       write(*,*) "Error in dgesvd query"
+      end if
+      if(allocated(work)) deallocate(work)
+      allocate(work(int(workq(1))))
+
+! Compute SVD
+      aux(:,:)=mat(:,:)
+      istat=0
+      call dgesvd("A","A",m,n,aux,m,svals,u,m,vt,n,
+     x            work,int(workq(1)),istat)
+      if (istat.ne.0) then
+       write(*,*) "Error in dgesvd"
+      end if
+
+! Check that rank is n (since input columns should have been li)
+      matrank=0
+      do i=1,max(m,n)
+        if(abs(svals(i)).ge.tol) then
+         matrank=matrank+1
+        end if
+      end do
+      if(matrank.ne.n) then
+       write(*,*) "ERROR in RXCHF_loworth:"
+       write(*,*) "   Calculated rank from SVD = ",matrank
+       write(*,*) "       Number of input cols = ",n
+       write(*,*) "Columns are possibly linearly dependent!"
+       write(*,*) "svals:",svals
+       write(*,*) "Exiting..."
+       call abrt
+      end if
+
+! Form reduced form of either U or V^t and form orthogonalized mat
+      mat=zero
+
+      if (m.gt.n) then ! reduced form of U
+       if(allocated(red)) deallocate(red)
+       allocate(red(m,n))
+       red=zero
+       do i=1,n
+       do j=1,m
+         red(j,i)=u(j,i)
+       end do
+       end do
+       call RXCHF_matmult(m,n,n,n,red,vt,mat)
+       if(allocated(red)) deallocate(red)
+
+      else if(n.gt.m) then ! reduced form of V^t
+       if(allocated(red)) deallocate(red)
+       allocate(red(m,n))
+       red=zero
+       do i=1,n
+       do j=1,m
+         red(j,i)=vt(j,i)
+       end do
+       end do
+       call RXCHF_matmult(m,m,m,n,u,red,mat)
+       if(allocated(red)) deallocate(red)
+
+      else
+       call RXCHF_matmult(m,m,n,n,u,vt,mat)
+      end if
+
+      return
+      end
 

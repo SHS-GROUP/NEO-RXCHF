@@ -10,7 +10,8 @@ C=======================================================================
      x                            read_GAM2,read_GAM3,read_GAM4,
      x                            LG2IC,LG3IC,LG4IC,
      x                            LG2DSCF,LG3DSCF,LG4DSCF,
-     x                            LSOSCF,LOCBSE,LCMF,LADDEXCH)
+     x                            LSOSCF,LDIIS,LSORXCHF,OCBSETYP,
+     x                            LCMF,LADDEXCH)
 
 C Driver to calculate RXCHF integrals for nbe > 1
 C   XCHF_GAM* : integrals needed for XCHF contribution
@@ -54,7 +55,9 @@ C Input variables
       logical LG3DSCF                  ! Direct SCF for 4-particle integrals
       logical LG4DSCF                  ! Direct SCF for 5-particle integrals
       logical LSOSCF                   ! SOSCF where applicable
-      logical LOCBSE                   ! OCBSE2 procedure
+      logical LDIIS                    ! DIIS  where applicable
+      logical LSORXCHF                 ! SOSCF for RXCHF
+      integer OCBSETYP                 ! 1=OCBSE, 2=OCBSE2, 3=OCBSE3
       logical LCMF                     ! On-the-fly Fock matrix check and debugging
       logical LADDEXCH                 ! Flag to activate approximate exchange
       logical read_CE,read_CP          ! Read in orbitals
@@ -82,7 +85,6 @@ C Local variables
       integer nebf2,nebflt                  !
       integer nebfBE2,nebfBElt              ! Convenient quantities
       integer npbf2,npbflt                  !
-      integer npra,nprb                     ! Number of distinct electron pairs
       logical LALTBAS                       ! Flag to denote distinct special electron basis
       logical laddbasis                     ! Working variable
 
@@ -707,22 +709,7 @@ C Kick-off SCF
       npbf2=npbf*npbf
       npbflt=npbf*(npbf+1)/2
 
-      if(nae.gt.1) then
-       npra=(nebf-(nae/2))*(nae/2) ! occ-vir pairs for regular elecs
-      else
-       npra=nae*(nebf-nae)
-      end if
-      if (LOCBSE) then ! account for nocca less virtual orbitals
-       if (nae.gt.1) then
-        nprb=((nebfBE-nae/2)-(nbe/2))*(nbe/2)
-       else
-        nprb=((nebfBE-nae)-(nbe/2))*(nbe/2)
-       end if
-      else
-       nprb=(nebfBE-(nbe/2))*(nbe/2) ! occ-vir pairs for special elecs
-      end if
-
-      call RXCHFmult_scf(nelec,nae,nbe,npra,nprb,nucst,
+      call RXCHFmult_scf(nelec,nae,nbe,nucst,
      x                   npebf,nebf,nebf2,nebflt,
      x                   npebfBE,nebfBE,nebfBE2,nebfBElt,elindBE,
      x                   npbf,npbf2,npbflt,
@@ -730,7 +717,8 @@ C Kick-off SCF
      x                   NG2CHK,NG3CHK,NG4CHK,
      x                   read_CE,read_CP,
      x                   LG4DSCF,LG3DSCF,LG2DSCF,
-     x                   LSOSCF,LOCBSE,LCMF,LALTBAS,LADDEXCH,
+     x                   LSOSCF,LDIIS,LSORXCHF,
+     x                   OCBSETYP,LCMF,LALTBAS,LADDEXCH,
      x                   nat,pmass,cat,zan,
      x                   bcoef1,gamma1,
      x                   KPESTR,KPEEND,

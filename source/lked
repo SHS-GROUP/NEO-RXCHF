@@ -21,7 +21,7 @@ OPT='-O2 -openmp -integer-size 64 -fp-model strict -no-ftz -ipo'                
 #OPT='-O2 -openmp -openmp-link static -integer-size 64 -fp-model strict -no-ftz -xHOST -ipo'    # LionXF/PSU cluster options
 #OPT='-O2 -openmp -traceback -check all -integer-size 64 -fp-model strict -no-ftz -ipo'         # Debug options
 
-LIB="-L$LIBDIR -Wl,--start-group $LIBDIR/libmkl_intel_lp64.a $LIBDIR/libmkl_intel_thread.a $LIBDIR/libmkl_core.a -Wl,--end-group -liomp5 -lpthread -lm"
+LIB="-L$LIBDIR -Wl,--start-group $LIBDIR/libmkl_intel_ilp64.a $LIBDIR/libmkl_intel_thread.a $LIBDIR/libmkl_core.a -Wl,--end-group -liomp5 -lpthread -lm"
 
 FILS='../object/*.o'
 
