@@ -1,5 +1,5 @@
 !======================================================================
-      subroutine RXCHF_scf_MPI_nomicro_freezereg(nproc,rank,
+      subroutine RXCHF_scf_MPI_nomicro(nproc,rank,
      x                         nelec,NAE,NBE,NPRA,NPRB,NEBFLT,NUCST,
      x                         npebf,nebf,nebf2,npbf,npbf2,ngee,
      x                         ngtg1,ng1,ng2,ng3,ng4,
@@ -272,7 +272,13 @@ C ARS( testing variables
       double precision work1(nebf,nebf)
       double precision work2(nebf,nebf)
 C )
+#if MPI32
       integer*4 ierr
+      integer*4 npbf_,npbf2_,nebf_,nebf2_,ng1_,ngee_
+#else
+      integer ierr
+      integer npbf_,npbf2_,nebf_,nebf2_,ng1_,ngee_
+#endif
 
 !--------OUTPUT-FORMATTING---------------------------------------------(
  9000 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
@@ -336,6 +342,22 @@ C )
  9800 FORMAT(10X,15(1H-),'START SECOND ORDER SCF',15(1H-))
 
 !--------OUTPUT-FORMATTING---------------------------------------------)
+
+#if MPI32
+      npbf_=int(npbf,kind=4)
+      npbf2_=int(npbf2,kind=4)
+      nebf_=int(nebf,kind=4)
+      nebf2_=int(nebf2,kind=4)
+      ng1_=int(ng1,kind=4)
+      ngee_=int(ngee,kind=4)
+#else
+      npbf_=npbf
+      npbf2_=npbf2
+      nebf_=nebf
+      nebf2_=nebf2
+      ng1_=ng1
+      ngee_=ngee
+#endif
 
       LOCBSE2=LOCBSE
 C      LOCBSE2=.true. 
@@ -429,17 +451,17 @@ C )
        write(*,*)'READ IN GAM_EE'
        write(*,*)
       end if
-      call MPI_BCAST(xxsp,npbf2,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(xxsp,npbf2_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(xxse,nebf2,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(xxse,nebf2_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(GAM_ecore,nebf2,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(GAM_ecore,nebf2_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(GAM_pcore,npbf2,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(GAM_pcore,npbf2_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(GAM_ep,ng1,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(GAM_ep,ng1_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(GAM_ee,ngee,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(GAM_ee,ngee_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -596,7 +618,8 @@ C         if((nbe.eq.1).or.(LOCBSE).or.(LOCBSE2)) LSOSCFB=.FALSE.
       DO I=1,MAXIT
 
 C Call HF Fock build for NAE regular electrons
-         call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
+         call RXCHF_fock_hf_MPI(nproc,rank,
+     x                          LCMF,nebf,nebf2,NAE,ngee,
      x                          DAE,GAM_ecore,GAM_ee,
      x                          FAE,E_HF,E_HF_ecore,E_HF_ee)
 
@@ -688,7 +711,8 @@ C ARS( reform elec Fock matrices
 
        if((.not.((locbse).or.(locbse2))).or.(I.eq.1)) then
 C Call HF Fock build for NAE regular electrons
-           call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
+           call RXCHF_fock_hf_MPI(nproc,rank,
+     x                            LCMF,nebf,nebf2,NAE,ngee,
      x                            DAE,GAM_ecore,GAM_ee,
      x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
 
@@ -768,7 +792,8 @@ C )
 ! Calculate energy for this it and Fock matrices for next it
 
 C Call HF Fock build for NAE regular electrons
-           call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
+           call RXCHF_fock_hf_MPI(nproc,rank,
+     x                            LCMF,nebf,nebf2,NAE,ngee,
      x                            DAE,GAM_ecore,GAM_ee,
      x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
 
@@ -836,58 +861,57 @@ C )
 ! Do OCBSE2 procedure (restricted solutions for special electrons)
 
 ! Regular electrons
-C!-----------------------POSSIBLE-SOSCF-ALPHA---------------------------(
-C      if (rank.eq.0) then
-C         if(LSOSCFA) THEN
-C          ITER=I
-C          EIGAVL = ITER.GT.1
-C         end if
-C         IF(LSOSCFA .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
-C!!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
-C           call pack_LT(nebf,nebfLT,FAE,FLT)
-C          call SOGRAD(GRADA,FLT,vecAE,WRK,NPRA,NA,L0,L1,NEBFLT,ORBGRDA)
-C!!!!!!      IF(ORBGRD.LT.SMALL) THEN
-C!!!!!!         DIFF = ZERO
-C!!!!!!         CVGING=.TRUE.
-C!!!!!!         GO TO 900  ! Check on convergence behavior
-C!!!!!!      END IF
-C            IF(ORBGRDA.LT.SOGTOL  .OR.  ITSOA.GT.0) THEN
-C              IF(ITSOA.EQ.0) THEN   ! only on first SOSCF it. set up approx Hess
-C              WRITE(*,9800)
-C                 call SOHESS(HSTARTA,AEE,NPRA,L0,NA,NA)
-C              END IF
-C              ITSOA = ITSOA+1
-C           call SONEWT(HSTARTA,GRADA,PGRADA,DISPLIA,DGRADA,DISPLA,UPDTA,
-C     *                 DISPLNA,DGRADIA,UPDTIA,ORBGRDA,NPRA,ITSOA,NFT15)
-C            call SOTRAN(DISPLIA,vecAE,GA,WRK,NPRA,L0,L1,NA,NA,ORBGRDA)
-C             CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
-C              call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
-C              GO TO 950  ! Use the new C's to form new density (change)
-C            END IF
-C         END IF
-C!-----------------------POSSIBLE-SOSCF-ALPHA---------------------------)
+!-----------------------POSSIBLE-SOSCF-ALPHA---------------------------(
+      if (rank.eq.0) then
+         if(LSOSCFA) THEN
+          ITER=I
+          EIGAVL = ITER.GT.1
+         end if
+         IF(LSOSCFA .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
+!!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
+           call pack_LT(nebf,nebfLT,FAE,FLT)
+          call SOGRAD(GRADA,FLT,vecAE,WRK,NPRA,NA,L0,L1,NEBFLT,ORBGRDA)
+!!!!!!      IF(ORBGRD.LT.SMALL) THEN
+!!!!!!         DIFF = ZERO
+!!!!!!         CVGING=.TRUE.
+!!!!!!         GO TO 900  ! Check on convergence behavior
+!!!!!!      END IF
+            IF(ORBGRDA.LT.SOGTOL  .OR.  ITSOA.GT.0) THEN
+              IF(ITSOA.EQ.0) THEN   ! only on first SOSCF it. set up approx Hess
+              WRITE(*,9800)
+                 call SOHESS(HSTARTA,AEE,NPRA,L0,NA,NA)
+              END IF
+              ITSOA = ITSOA+1
+           call SONEWT(HSTARTA,GRADA,PGRADA,DISPLIA,DGRADA,DISPLA,UPDTA,
+     *                 DISPLNA,DGRADIA,UPDTIA,ORBGRDA,NPRA,ITSOA,NFT15)
+            call SOTRAN(DISPLIA,vecAE,GA,WRK,NPRA,L0,L1,NA,NA,ORBGRDA)
+             CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
+              call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+              GO TO 950  ! Use the new C's to form new density (change)
+            END IF
+         END IF
+!-----------------------POSSIBLE-SOSCF-ALPHA---------------------------)
 
-C  900 CONTINUE
-C!        Diagonalize Electronic Fock Matrices
-C!        call ROOTHAN(DAE,vecAE,AEE,xxse,FAE,nebf,nelec,1,NUCST)
-C         call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
-C         call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
-C
-C      end if ! rank 0
-C
-C  950 CONTINUE
-C
-C           call MPI_BCAST(VECAE,nebf2,MPI_DOUBLE_PRECISION,
-C     x                    0,MPI_COMM_WORLD,ierr)
-C           call MPI_BCAST(AEe,nebf,MPI_DOUBLE_PRECISION,
-C     x                    0,MPI_COMM_WORLD,ierr)
-C           call MPI_BCAST(DAE,nebf2,MPI_DOUBLE_PRECISION,
-C     x                    0,MPI_COMM_WORLD,ierr)
-C
+  900 CONTINUE
+!        Diagonalize Electronic Fock Matrices
+!        call ROOTHAN(DAE,vecAE,AEE,xxse,FAE,nebf,nelec,1,NUCST)
+         call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
+         call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+
+      end if ! rank 0
+
+  950 CONTINUE
+
+           call MPI_BCAST(VECAE,nebf2,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(AEe,nebf,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+           call MPI_BCAST(DAE,nebf2,MPI_DOUBLE_PRECISION,
+     x                    0,MPI_COMM_WORLD,ierr)
+
 !        --> FIND LARGEST CHANGE IN Alpha E DENSITY
          CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
          CALL COPYDEN(DAE0,DAE,NEBF)
-         CALL COPYDEN(vecAE,vecAE0,NEBF)
 
 C ARS( OCBSE/SOSCF
 
@@ -895,9 +919,10 @@ C ARS( OCBSE/SOSCF
 
 ! Transform FBE (calculated at end of previous iteration) to new W basis
 !  - W updated with new vecA from this iteration
-!  - vecBE in old W basis still from previous iteration
-         call RXCHFmult_OCBSE_transF(nebf,nocca,nwbf,
-     x                               vecAE,FBE,WB,wFBEw)
+!  - vecBE in AO basis from previous iteration is transformed to new W basis
+!    (relevant for SOSCF only)
+         call RXCHFmult_OCBSE_transF(nebf,nwbf,vecAE(:,nocca+1:nebf),
+     x                               FBE,WB,wFBEw)
 
 !-----------------------POSSIBLE-SOSCF-BETA----------------------------(
          if(LSOSCFB) THEN
@@ -907,6 +932,9 @@ C ARS( OCBSE/SOSCF
          IF(LSOSCFB .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
 !!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
            call pack_LT(nwbf,nwbfLT,wFBEw,wFLTw)
+! Transform vecBE that was used to build FBE into new W basis
+           call RXCHFmult_OCBSE_transVt(nebf,nwbf,WB,
+     x                                  xxse,vecBE,wvecBEw)
            call SOGRAD(GRADB,wFLTw,wvecBEw,wWRKw,NPRB,NB,
      x                 L0w,L1w,NwBFLT,ORBGRDB)
 !!!!!!      IF(ORBGRD.LT.SMALL) THEN
@@ -959,7 +987,8 @@ C )
 ! Calculate energy for this it and Fock matrices for next it
 
 C Call HF Fock build for NAE regular electrons
-           call RXCHFmult_fock_hf(LCMF,nebf,nebf2,NAE,ngee,
+           call RXCHF_fock_hf_MPI(nproc,rank,
+     x                            LCMF,nebf,nebf2,NAE,ngee,
      x                            DAE,GAM_ecore,GAM_ee,
      x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
 
@@ -1172,8 +1201,7 @@ C )
           call write_MOs(853,npbf,VECP)
          end if ! rank 0
 
-C         LDIFFE=( (DIFFAE.LT.TOLE).and.(DIFFBE.LT.TOLE) )
-         LDIFFE=( DIFFBE.LT.TOLE ) 
+         LDIFFE=( (DIFFAE.LT.TOLE).and.(DIFFBE.LT.TOLE) )
          IF((LDIFFE).and.(DIFFP.LT.TOLP)) GOTO 100
          IF(I.EQ.MAXIT) GOTO 10
 

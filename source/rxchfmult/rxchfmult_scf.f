@@ -1859,13 +1859,12 @@ C )
       WB=zero
       WBtrans=zero
       wFBEw=zero
+      AUXB=zero
       zero1=zero
       zero2=zero
 
       if (debug) then
        write(*,*) "nwbf:",nwbf
-       write(*,*) "MATRIX vecAE:"
-       call PREVNU(vecAE,zero1,nwbf,nebf,nebf)
       end if
 
 ! Form special electronic transformation matrix
@@ -2024,6 +2023,9 @@ C )
       double precision wvecBEw(nwbf,nwbf)
 ! Local variables
       integer i,j
+C ARS( check
+      double precision testvec(nebf,nebf)
+C )
       double precision WBtrans(nwbf,nebf)
       double precision WBinv(nwbf,nebf)
       double precision blockvecBE(nwbf,nebf)
@@ -2085,6 +2087,607 @@ C )
       if (debug) then
        WRITE(*,*) "MATRIX Transformed wvecBEw:"
        call PREVNU(wvecBEw,zero1,nwbf,nwbf,nwbf)
+      end if
+
+! Lowdin orthogonalize
+      call RXCHF_loworth(nwbf,nwbf,wvecBEw)
+
+      if (debug) then
+       WRITE(*,*) "MATRIX Lowdin-orth wvecBEw:"
+       call PREVNU(wvecBEw,zero1,nwbf,nwbf,nwbf)
+      end if
+
+C ARS( check
+      if (debug) then
+       call RXCHF_matmult(nebf,nwbf,nwbf,nebf,WB,blockvecBE,testvec)
+       WRITE(*,*) "MATRIX Pretransformed TEST vecBE:"
+       call PREVNU(testvec,zero2,nebf,nebf,nebf)
+      end if
+C )
+
+      return
+      end
+
+      subroutine checkovlap(m,n,c,S)
+      implicit none
+
+      integer m,n
+      double precision c(n,m),S(n,n)
+
+      integer i,j
+      double precision ct(m,n),aux(m,n),cSc(m,m)
+      double precision zero1(m)
+
+      zero1=0.0d+00
+      ct=0.0d+00
+      aux=0.0d+00
+
+      do i=1,n
+      do j=1,m
+        ct(j,i)=c(i,j)
+      end do
+      end do
+
+      call RXCHF_matmult(m,n,n,n,ct,S,aux)
+      call RXCHF_matmult(m,n,n,m,aux,c,cSc)
+
+      write(*,*) "MATRIX cSc:"
+      call PREVNU(cSc,zero1,m,m,m)
+
+      return
+      end
+
+!======================================================================
+      subroutine RXCHF_sochgbas(npr,nocc,nwbf,nebf,W0,W,Sao,G,H,D)
+
+! Overwrites gradient (G), Hessian (H) and displacement vector (D)
+! which have been calculated in the W0 basis with their corresponding
+! values in the W basis provided W0 and W share a common AO basis
+!
+!    npr : Number of rotation parameters
+!   nocc : Number of occupied MOs
+!   nwbf : Number of W basis functions
+!   nebf : Number of AO basis functions
+!     W0 : W basis of previous iteration
+!      W : W basis of current iteration
+!    Sao : Overlap matrix in AO basis
+!      G : Gradient of previous iteration to be transformed
+!          stored as (i-1)*nocc + j + 1
+!          for i=occ (outer index) and j=virt (inner index)
+!      H : Hessian of previous iteration to be transformed
+!          stored as 2-dim version of G
+!      D : Displacement of previous iteration to be transformed
+!          stored as G
+!======================================================================
+      implicit none
+
+! Input variables
+      integer          :: npr
+      integer          :: nocc
+      integer          :: nwbf
+      integer          :: nebf
+      double precision :: W0(nebf,nwbf)
+      double precision :: W(nebf,nwbf)
+      double precision :: Sao(nebf,nebf)
+
+! Input/Output variables
+      double precision :: G(npr)
+      double precision :: H(npr,npr)
+      double precision :: D(npr)
+
+! Local variables
+      integer          :: i,j,k,l
+      integer          :: ia,ib,ic,id
+      integer          :: ind1,ind2,ind3,ind4
+      integer          :: nvirt
+      double precision :: A(nwbf,nwbf)
+      double precision :: At(nwbf,nwbf)
+      double precision :: Wt(nwbf,nebf)
+      double precision :: aux(nebf,nwbf)
+      double precision :: aux2(nwbf,nwbf)
+      double precision :: G0(npr)
+      double precision :: H0(npr,npr)
+      double precision :: D0(npr)
+      double precision :: zero1(npr)
+      double precision :: zero2(nwbf)
+C ARS(
+      double precision :: W0t(nwbf,nebf)
+      double precision :: B(nwbf,nwbf)
+      double precision :: Bt(nwbf,nwbf)
+      double precision :: Gtest(npr)
+      double precision :: Htest(npr,npr)
+      double precision :: Dtest(npr)
+C )
+
+      logical          :: debug
+
+      double precision, parameter :: zero=0.0d+00
+      double precision, parameter :: one=1.0d+00
+
+      debug=.false.
+
+      A=zero
+      Wt=zero
+      aux=zero
+      aux2=zero
+      zero1=zero
+      zero2=zero
+      nvirt=nwbf-nocc
+      G0(:)=G(:)
+      H0(:,:)=H(:,:)
+      D0(:)=D(:)
+      G=zero
+      H=zero
+      D=zero
+C ARS(
+      W0t=zero
+      B=zero
+      Bt=zero
+      Gtest=zero
+      Htest=zero
+      Dtest=zero
+C )
+
+      if((nocc*nvirt).ne.npr) then
+       write(*,*) "nvirt != npr in RXCHF_sochbas"
+       write(*,*) "Exiting..."
+       call abrt
+      end if
+
+      if(debug) then
+       write(*,*) "Initial gradient:"
+       write(*,*) G0
+       write(*,*)
+       write(*,*) "Initial displacement:"
+       write(*,*) D0
+       write(*,*)
+       write(*,*) "Initial Hessian:"
+       call PREVNU(H0,zero1,npr,npr,npr)
+      end if
+
+! Form transformation matrix A from old W basis to new W basis
+      do i=1,nebf
+      do j=1,nwbf
+        Wt(j,i)=W(i,j)
+      end do
+      end do
+      call RXCHF_matmult(nebf,nebf,nebf,nwbf,Sao,W0,aux)
+      call RXCHF_matmult(nwbf,nebf,nebf,nwbf,Wt,aux,A)
+
+      if(debug) then
+       write(*,*) "W0 -> W transformation:"
+       call PREVNU(A,zero2,nwbf,nwbf,nwbf)
+      end if
+
+! Lowdin orthogonalize
+      call RXCHF_loworth(nwbf,nwbf,A)
+
+      if (debug) then
+       WRITE(*,*) "Lowdin-orth W0 -> W transformation:"
+       call PREVNU(A,zero2,nwbf,nwbf,nwbf)
+      end if
+
+! Check overlaps
+      if(debug) then
+
+       do i=1,nebf
+       do j=1,nwbf
+         W0t(j,i)=W0(i,j)
+       end do
+       end do
+
+       aux=zero
+       call RXCHF_matmult(nebf,nebf,nebf,nwbf,Sao,W0,aux)
+       call RXCHF_matmult(nwbf,nebf,nebf,nwbf,W0t,aux,aux2)
+       write(*,*) "W0^t S W0:"
+       call PREVNU(aux2,zero2,nwbf,nwbf,nwbf)
+
+       aux=zero
+       aux2=zero
+       call RXCHF_matmult(nebf,nebf,nebf,nwbf,Sao,W,aux)
+       call RXCHF_matmult(nwbf,nebf,nebf,nwbf,Wt,aux,aux2)
+       write(*,*) "W^t S W:"
+       call PREVNU(aux2,zero2,nwbf,nwbf,nwbf)
+
+       do i=1,nwbf
+       do j=1,nwbf
+         At(j,i)=A(i,j)
+       end do
+       end do
+
+       aux2=zero
+       call RXCHF_matmult(nwbf,nwbf,nwbf,nwbf,At,A,aux2)
+       write(*,*) "A^t A:"
+       call PREVNU(aux2,zero2,nwbf,nwbf,nwbf)
+
+       aux2=zero
+       call RXCHF_matmult(nwbf,nwbf,nwbf,nwbf,A,At,aux2)
+       write(*,*) "A A^t:"
+       call PREVNU(aux2,zero2,nwbf,nwbf,nwbf)
+
+      end if
+
+! Transform quantities
+      ind1=0
+      do i=1,nocc
+      do ia=nocc+1,nwbf
+        ind1=ind1+1                    ! ind1: (i,a)
+
+        ind2=0
+        do j=1,nocc
+        do ib=nocc+1,nwbf
+          ind2=ind2+1                  ! ind2: (j,b)
+
+          G(ind1)=G(ind1)+G0(ind2)*
+     x            (A(i,j)*A(ia,ib)+A(i,ib)*A(ia,j))
+!     x            (A(j,i)*A(ib,ia)+A(ib,i)*A(j,ia))
+          D(ind1)=D(ind1)+D0(ind2)*
+     x            (A(i,j)*A(ia,ib)+A(i,ib)*A(ia,j))
+!     x            (A(j,i)*A(ib,ia)+A(ib,i)*A(j,ia))
+
+          ind3=0
+          do k=1,nocc
+          do ic=nocc+1,nwbf
+            ind3=ind3+1                ! ind3: (k,c)
+
+            ind4=0
+            do l=1,nocc
+            do id=nocc+1,nwbf
+              ind4=ind4+1              ! ind4: (l,d)
+
+              H(ind1,ind2)=H(ind1,ind2)+H0(ind3,ind4)*
+     x                     (A(i,k)*A(ia,ic)*A(j,l)*A(ib,id)
+     x                     +A(i,ic)*A(ia,k)*A(j,id)*A(ib,l)
+     x                     +A(i,k)*A(ia,ic)*A(j,id)*A(ib,l)
+     x                     +A(i,ic)*A(ia,k)*A(j,l)*A(ib,id))
+!     x                     (A(k,i)*A(ic,ia)*A(l,j)*A(id,ib)
+!     x                     +A(ic,i)*A(k,ia)*A(id,j)*A(l,ib)
+!     x                     +A(k,i)*A(ic,ia)*A(id,j)*A(l,ib)
+!     x                     +A(ic,i)*A(k,ia)*A(l,j)*A(id,ib))
+
+            end do
+            end do
+
+          end do
+          end do
+
+        end do
+        end do
+
+      end do
+      end do
+
+      if(debug) then
+       write(*,*) "Final gradient:"
+       write(*,*) G
+       write(*,*)
+       write(*,*) "Final displacement:"
+       write(*,*) D
+       write(*,*)
+       write(*,*) "Final Hessian:"
+       call PREVNU(H,zero1,npr,npr,npr)
+      end if
+
+C ARS( check back transformation
+      if(debug) then
+       aux=zero
+       call RXCHF_matmult(nebf,nebf,nebf,nwbf,Sao,W,aux)
+       call RXCHF_matmult(nwbf,nebf,nebf,nwbf,W0t,aux,B)
+       write(*,*) "W -> W0 transformation:"
+       call PREVNU(B,zero2,nwbf,nwbf,nwbf)
+
+       call RXCHF_loworth(nwbf,nwbf,B)
+
+       if (debug) then
+        WRITE(*,*) "Lowdin-orth W -> W0 transformation:"
+        call PREVNU(B,zero2,nwbf,nwbf,nwbf)
+       end if
+
+       do i=1,nwbf
+       do j=1,nwbf
+         Bt(j,i)=B(i,j)
+       end do
+       end do
+
+       aux2=zero
+       call RXCHF_matmult(nwbf,nwbf,nwbf,nwbf,Bt,B,aux2)
+       write(*,*) "B^t B:"
+       call PREVNU(aux2,zero2,nwbf,nwbf,nwbf)
+
+       aux2=zero
+       call RXCHF_matmult(nwbf,nwbf,nwbf,nwbf,B,Bt,aux2)
+       write(*,*) "B B^t:"
+       call PREVNU(aux2,zero2,nwbf,nwbf,nwbf)
+
+       ind1=0
+       do i=1,nocc
+       do ia=nocc+1,nwbf
+         ind1=ind1+1                    ! ind1: (i,a)
+       
+         ind2=0
+         do j=1,nocc
+         do ib=nocc+1,nwbf
+           ind2=ind2+1                  ! ind2: (j,b)
+       
+           Gtest(ind1)=Gtest(ind1)+G(ind2)*
+     x             (A(i,j)*A(ia,ib)+A(i,ib)*A(ia,j))
+!     x            (A(j,i)*A(ib,ia)+A(ib,i)*A(j,ia))
+           Dtest(ind1)=Dtest(ind1)+D(ind2)*
+     x             (A(i,j)*A(ia,ib)+A(i,ib)*A(ia,j))
+!     x            (A(j,i)*A(ib,ia)+A(ib,i)*A(j,ia))
+       
+           ind3=0
+           do k=1,nocc
+           do ic=nocc+1,nwbf
+             ind3=ind3+1                ! ind3: (k,c)
+       
+             ind4=0
+             do l=1,nocc
+             do id=nocc+1,nwbf
+               ind4=ind4+1              ! ind4: (l,d)
+       
+               Htest(ind1,ind2)=Htest(ind1,ind2)+H(ind3,ind4)*
+     x                      (A(i,k)*A(ia,ic)*A(j,l)*A(ib,id)
+     x                      +A(i,ic)*A(ia,k)*A(j,id)*A(ib,l)
+     x                      +A(i,k)*A(ia,ic)*A(j,id)*A(ib,l)
+     x                      +A(i,ic)*A(ia,k)*A(j,l)*A(ib,id))
+!     x                     (A(k,i)*A(ic,ia)*A(l,j)*A(id,ib)
+!     x                     +A(ic,i)*A(k,ia)*A(id,j)*A(l,ib)
+!     x                     +A(k,i)*A(ic,ia)*A(id,j)*A(l,ib)
+!     x                     +A(ic,i)*A(k,ia)*A(l,j)*A(id,ib))
+       
+             end do
+             end do
+       
+           end do
+           end do
+       
+         end do
+         end do
+       
+       end do
+       end do
+       
+       if(debug) then
+        write(*,*) "Back-transformed gradient:"
+        write(*,*) Gtest
+        write(*,*)
+        write(*,*) "Back-transformed displacement:"
+        write(*,*) Dtest
+        write(*,*)
+        write(*,*) "Back-transformed Hessian:"
+        call PREVNU(Htest,zero1,npr,npr,npr)
+       end if
+      end if
+C )
+
+      return
+      end
+
+!======================================================================
+      subroutine RXCHF_sonewt(n,it,H0,H,G0,G,D0,D)
+
+! Determines Hessian and displacement vector at current iteration
+! from current gradient and previous iteration Hessian, displacement
+! and gradient using Fischer & Almlof 1992 JPC Eqs 1-3
+! Also resets SOSCF or scales displacement if too large and skips
+! Hessian update procedure if close to convergence using protocols
+! from GAMESS SOSCF routines
+!
+!      n : Number of rotation parameters
+!     it : Current iteration
+!     H0 : Hessian of previous iteration
+!      H : Hessian of current iteration
+!     G0 : Gradient of previous iteration
+!      G : Gradient of current iteration
+!     D0 : Displacement of previous iteration
+!      D : Displacement of current iteration
+!======================================================================
+      implicit none
+
+! Input variables
+      integer          :: n
+      integer          :: it
+      double precision :: H0(n,n)
+      double precision :: G0(n),G(n)
+      double precision :: D0(n)
+
+! Output variables
+      double precision :: H(n,n)
+      double precision :: D(n)
+
+! Local variables
+      integer          :: i,j
+      double precision :: maxG
+      double precision :: alp
+      double precision :: del(n),v(n)
+      double precision :: E
+      double precision :: c1,c2
+      double precision :: aux(n,n)
+      double precision :: sqcdf,scal
+      double precision :: ddot
+
+      double precision, parameter :: zero=0.0d+00
+      double precision, parameter :: one=1.0d+00
+      double precision, parameter :: toobig=1.0d+00
+      double precision, parameter :: bigrot=0.1d+00
+      double precision, parameter :: small=1.0d-08
+
+      H=zero
+      D=zero
+      aux=zero
+
+      maxG=zero
+      do i=1,n
+        if(abs(G(i)).gt.maxG) maxG=abs(G(i))
+      end do
+
+      if (it.eq.1) then
+
+       H(:,:)=H0(:,:)
+       D(:)=D0(:)
+
+      else if (maxG.lt.small) then
+
+       H(:,:)=H0(:,:)
+       call RXCHF_matmult(n,n,n,1,H0,G,D)
+       do i=1,n
+         D(i)=-D(i)
+       end do
+
+      else
+
+! Apply Eqs 1-3 from Fischer & Almlof
+       do i=1,n
+         del(i)=G(i)-G0(i)
+       end do
+
+       alp=ddot(n,D0,1,del,1)
+       alp=one/alp
+
+       call RXCHF_matmult(n,n,n,1,H0,del,v)
+
+       c1=ddot(n,del,1,v,1)
+       c1=alp*c1
+       c1=c1+one
+       c1=alp*c1
+       c2=-alp
+       do i=1,n
+       do j=1,n
+         E=c1*D0(j)*D0(i)
+         E=E+c2*(D0(j)*v(i)+v(j)*D0(i))
+         H(j,i)=H0(j,i)+E
+       end do
+       end do
+
+       call RXCHF_matmult(n,n,n,1,H,G,D)
+       do i=1,n
+         D(i)=-D(i)
+       end do
+
+      end if
+
+! Scale displacement in case value is too large (poached from GAMESS)
+      SQCDF = SQRT(DDOT(n,D,1,D,1)/n)
+      IF(SQCDF.GT.TOOBIG  .AND.  it.GT.5) THEN
+         WRITE(*,9011) SQCDF
+         it = 0
+      END IF
+      IF(SQCDF.GT.BIGROT) THEN
+         IF(it.GT.0) WRITE(*,9020) SQCDF
+         SCAL=SQRT(BIGROT/SQCDF)
+         CALL DSCAL(n,SCAL,D,1)
+      END IF
+
+ 9011 FORMAT(1X,'*** RESETTTING SOSCF, UPON ENCOUNTERING A HUGE',
+     *          ' TOTAL ROTATION=',1P,E12.3)
+ 9020 FORMAT(1X,'SOSCF IS SCALING ROTATION ANGLE MATRIX, SQCDF=',F12.6)
+
+      return
+      end
+
+!======================================================================
+      subroutine RXCHF_loworth(m,n,mat)
+
+! Performs Lowdin orthogonalization for mat (replaced by symmetric mat)
+! Computes SVD A = U * S * V^t and replaces A with U * V^t (uses GESVD)
+! Assumes A(m x n) where the m columns of A are vecs to be orth
+!
+!      m : rows of mat
+!      n : cols of mat
+!    mat : matrix whose columns will be orthogonalized
+!======================================================================
+      implicit none
+
+! Input variables
+      integer          :: m,n
+
+! Input/Output variables
+      double precision :: mat(m,n)
+
+! Local variables
+      integer          :: i,j
+      integer          :: istat
+      integer          :: matrank
+      double precision :: svals(max(m,n)),workq(1)
+      double precision :: u(m,m)
+      double precision :: vt(n,n)
+      double precision :: aux(m,n)
+
+      double precision, allocatable :: work(:),red(:,:)
+      double precision, parameter   :: zero=0.0d+00
+      double precision, parameter   :: tol=1.0d-10
+
+      svals=zero
+      u=zero
+      vt=zero
+      aux=zero
+      workq=zero
+
+! Query work array size for SVD and allocate work array
+      istat=0
+      call dgesvd("A","A",m,n,mat,m,svals,u,m,vt,n,workq,-1,istat)
+      if (istat.ne.0) then
+       write(*,*) "Error in dgesvd query"
+      end if
+      if(allocated(work)) deallocate(work)
+      allocate(work(int(workq(1))))
+
+! Compute SVD
+      aux(:,:)=mat(:,:)
+      istat=0
+      call dgesvd("A","A",m,n,aux,m,svals,u,m,vt,n,
+     x            work,int(workq(1)),istat)
+      if (istat.ne.0) then
+       write(*,*) "Error in dgesvd"
+      end if
+
+! Check that rank is n (since input columns should have been li)
+      matrank=0
+      do i=1,max(m,n)
+        if(abs(svals(i)).ge.tol) then
+         matrank=matrank+1
+        end if
+      end do
+      if(matrank.ne.n) then
+       write(*,*) "ERROR in RXCHF_loworth:"
+       write(*,*) "   Calculated rank from SVD = ",matrank
+       write(*,*) "       Number of input cols = ",n
+       write(*,*) "Columns are possibly linearly dependent!"
+       write(*,*) "svals:",svals
+       write(*,*) "Exiting..."
+       call abrt
+      end if
+
+! Form reduced form of either U or V^t and form orthogonalized mat
+      mat=zero
+
+      if (m.gt.n) then ! reduced form of U
+       if(allocated(red)) deallocate(red)
+       allocate(red(m,n))
+       red=zero
+       do i=1,n
+       do j=1,m
+         red(j,i)=u(j,i)
+       end do
+       end do
+       call RXCHF_matmult(m,n,n,n,red,vt,mat)
+       if(allocated(red)) deallocate(red)
+
+      else if(n.gt.m) then ! reduced form of V^t
+       if(allocated(red)) deallocate(red)
+       allocate(red(m,n))
+       red=zero
+       do i=1,n
+       do j=1,m
+         red(j,i)=vt(j,i)
+       end do
+       end do
+       call RXCHF_matmult(m,m,m,n,u,red,mat)
+       if(allocated(red)) deallocate(red)
+
+      else
+       call RXCHF_matmult(m,m,n,n,u,vt,mat)
       end if
 
       return

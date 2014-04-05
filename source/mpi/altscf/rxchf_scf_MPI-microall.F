@@ -1,5 +1,5 @@
 !======================================================================
-      subroutine RXCHF_scf_MPI(nproc,rank,
+      subroutine RXCHF_scf_microall_MPI(nproc,rank,
      x                         nelec,NAE,NBE,NPRA,NPRB,NEBFLT,NUCST,
      x                         npebf,nebf,nebf2,npbf,npbf2,ngee,
      x                         ngtg1,ng1,ng2,ng3,ng4,
@@ -181,8 +181,10 @@
       double precision DBE0(NEBF,NEBF)
       double precision VECAE(NEBF,NEBF)
       double precision VECAE0(NEBF,NEBF)
+      double precision VECAEi(NEBF,NEBF)
       double precision VECBE(NEBF,NEBF)
       double precision VECBE0(NEBF,NEBF)
+      double precision VECBEi(NEBF,NEBF)
       double precision AEE(NEBF)
       double precision BEE(NEBF)
       double precision FAE(nebf,nebf)
@@ -853,6 +855,11 @@ C ARS( microiterate
          CALL COPYDEN(DP0,DP,NPBF)
 C )
 
+         call COPYDEN(vecAEi,vecAE0,nebf)
+         call COPYDEN(vecBEi,vecBE0,nebf)
+
+! MICROITERATE REGULAR ELECTRONS
+
          if(LSOSCFA) ITSOA=0
          if(LSOSCFB) ITSOB=0
          if(LSORXCHF) then
@@ -954,7 +961,6 @@ C )
       end if
 C )
 
-         if (LOCBSE) then
 ! Do OCBSE procedure (restricted solutions for regular and special electrons)
 
           if (rank.eq.0) then
@@ -970,7 +976,7 @@ C )
              tempvecA(:,j)=vecBE0(:,j+noccb)
            end do
            do j=1,nocca
-             tempvecA(:,j+nebf-nocca-noccb)=vecAE0(:,j)
+             tempvecA(:,j+nebf-nocca-noccb)=vecAEi(:,j)
            end do
 CC ARS( check ovlap
 C      write(*,*) "regular tempvecA"
@@ -1057,6 +1063,253 @@ CC )
 
   250 CONTINUE
 
+           WA0(:,:)=WA(:,:)
+
+          end if ! rank 0
+
+
+          call MPI_BCAST(VECAE,nebf2_,MPI_DOUBLE_PRECISION,
+     x                   0,MPI_COMM_WORLD,ierr)
+          call MPI_BCAST(AEe,nebf_,MPI_DOUBLE_PRECISION,
+     x                   0,MPI_COMM_WORLD,ierr)
+          call MPI_BCAST(DAE,nebf2_,MPI_DOUBLE_PRECISION,
+     x                   0,MPI_COMM_WORLD,ierr)
+
+          CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
+
+          CALL COPYDEN(DAE0,DAE,NEBF)
+
+          CALL COPYDEN(vecAE0,vecAE,NEBF)
+
+! Calculate energy for this it and Fock matrices for next it
+
+C Call HF Fock build for NAE regular electrons
+           call RXCHF_fock_hf_MPI(nproc,rank,
+     x                            LCMF,nebf,nebf2,NAE,ngee,
+     x                            DAE,GAM_ecore,GAM_ee,
+     x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
+
+C Call XCHF Fock build for NBE special electrons and one QM particle
+         call RXCHF_fock_xchf_MPI(nproc,rank,
+     x                            LCMF,NBE,
+     x                            nebf,nebf2,npbf,npbf2,
+     x                            ngee,ng1,ng2,ng3,ng4,
+     x                            dimXCHF2,dimXCHF3,dimXCHF4,
+     x                            NG2CHK,NG3CHK,NG4CHK,
+     x                            DBE,DP,
+     x                            XCHF_GAM2,XCHF_GAM2s,
+     x                            XCHF_GAM3,XCHF_GAM4,
+     x                            FBE,FP,SBE_XCHF,SP_XCHF,
+     x                            E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
+     x                            E_XCHF_gam3,E_XCHF_gam4,
+     x                            S_total,S_gam1,S_gam2)
+
+C Call interaction Fock build for all particles
+         call RXCHF_fock_int_MPI(nproc,rank,
+     x                           LCMF,LADDEXCH,nelec,NAE,NBE,
+     x                           nebf,nebf2,npbf,npbf2,
+     x                           ng1,ng2,ng3,ng4,
+     x                           dimINT2,dimINT3,dimINT4,
+     x                           dimINT2ex,dimINT3ex,
+     x                           NG2CHK,NG3CHK,NG4CHK,
+     x                           DAE,DBE,DP,
+     x                           INT_GAM2,INT_GAM3,INT_GAM4,
+     x                           INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
+     x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
+     x                           FPint,FAEint,FBEint, 
+     x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
+     x                           E_int)
+
+           call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+C ARS( no interaction
+      if(LNOINT) then
+            E_int=0.0d+00
+            E_HF=0.0d+00
+      else
+            call add2fock(npbf,FPint,FP)
+            call add2fock(nebf,FAEint,FAE)
+            call add2fock(nebf,FBEint,FBE)
+      end if
+C )
+
+            IF ((LCMF).and.(rank.eq.0)) then
+             npbflt=npbf*(npbf+1)/2
+             write(*,*)
+             write(*,*) "FAE:"
+             call prt_lower_triangle(nebf,nebflt,FAE)
+             write(*,*)
+             write(*,*) "FBE:"
+             call prt_lower_triangle(nebf,nebflt,FBE)
+             write(*,*)
+             write(*,*) "FP:"
+             call prt_lower_triangle(npbf,npbflt,FP)
+             write(*,*)
+            END IF  
+
+            E_total=E_HF+E_XCHF+E_int+E_nuc
+
+!        --> CALCULATE CHANGE IN TOTAL ENERGY
+         Delta_E_tot=E_total-E_total_old
+         E_total_old=E_total
+
+!        --> PRINT SUMMARY OF THIS ITERATION
+         if (rank.eq.0) then
+          if((LSOSCFA).and.(LSOSCFB)) then
+             WRITE(*,9151) IELEC,E_total,Delta_E_tot,
+     x                     DIFFAE,DIFFBE,DIFFP,ORBGRDA,ORBGRDB
+          else if ((LSOSCFA).and.(.not.(LSOSCFB))) then
+             WRITE(*,9150) IELEC,E_total,Delta_E_tot,
+     x                     DIFFAE,DIFFBE,DIFFP,ORBGRDA
+          else if ((LSOSCFB).and.(.not.(LSOSCFA))) then
+             WRITE(*,9150) IELEC,E_total,Delta_E_tot,
+     x                     DIFFAE,DIFFBE,DIFFP,ORBGRDB
+          else if ((LDIIS).and.(LSORXCHF)) then
+             WRITE(*,9152) IELEC,E_total,Delta_E_tot,
+     x                     DIFFAE,DIFFBE,DIFFP,ORBGRDA,ORBGRDB,errDIIS
+          else if (LSORXCHF) then
+             WRITE(*,9151) IELEC,E_total,Delta_E_tot,
+     x                     DIFFAE,DIFFBE,DIFFP,ORBGRDA,ORBGRDB
+          else if (LDIIS) then
+             WRITE(*,9150) IELEC,E_total,Delta_E_tot,
+     x                     DIFFAE,DIFFBE,DIFFP,errDIIS
+          else
+             WRITE(*,9100) IELEC,E_total,Delta_E_tot,
+     x                     DIFFAE,DIFFBE,DIFFP
+          end if
+C ARS( debug: print out MOs here
+          if (LCMF) then
+           WRITE(*,9610)
+           call PREVNU(vecAE,AEE,nebf,nebf,nebf)
+           WRITE(*,9620)
+           call PREVNU(vecBE,BEE,nebf,nebf,nebf)
+           WRITE(*,9700)
+           call PREVNU(vecp,EP,npbf,npbf,npbf)
+          end if
+C )
+! Output the vectors for this iteration for restart if necessary:
+          call write_MOs(860,nebf,VECAE)
+          call write_MOs(861,nebf,VECBE)
+          call write_MOs(853,npbf,VECP)
+         end if ! rank 0
+
+         LDIFFE=( DIFFAE.LT.TOLE )
+         IF(LDIFFE) GOTO 200
+         IF(IELEC.EQ.MAXMICROIT) GOTO 10
+
+       END DO  ! microiterations
+
+  200 CONTINUE
+!      IF WE GET HERE - MICROITERATION CONVERGENCE ACHIEVED
+       if(rank.eq.0) write(*,2000) i,ielec
+
+! MICROITERATE SPECIAL ELECTRONS
+
+         if(LSOSCFA) ITSOA=0
+         if(LSOSCFB) ITSOB=0
+         if(LSORXCHF) then
+          ITSOA=0
+          ITSOB=0
+          if(rank.eq.0) then
+           if(allocated(HESSA0)) HESSA0=0.0d+00
+           if(allocated(HESSB0)) HESSB0=0.0d+00
+           if(allocated(GRADA0)) GRADA0=0.0d+00
+           if(allocated(GRADB0)) GRADB0=0.0d+00
+          end if
+         end if
+         ORBGRDA=0.0d+00
+         ORBGRDB=0.0d+00
+         PGRADA=0.0d+00
+         PGRADB=0.0d+00
+
+         if (rank.eq.0) then
+          write(*,2001) I
+          if((LSOSCFA).and.(LSOSCFB)) then 
+           WRITE(*,9052)
+          else if ((LSOSCFA).and.(.not.(LSOSCFB))) then
+           WRITE(*,9050)
+          else if ((LSOSCFB).and.(.not.(LSOSCFA))) then
+           WRITE(*,9051)
+          else if ((LSORXCHF).and.(LDIIS)) then
+           WRITE(*,9054)
+          else if (LSORXCHF) then
+           WRITE(*,9052)
+          else if (LDIIS) then
+           WRITE(*,9053)
+          else
+           WRITE(*,9000)
+          end if
+         end if
+
+         if((LDIIS).and.(rank.eq.0)) then
+          errvec=zero
+          vecDIIS=zero
+          itDIIS=0
+          errDIIS=zero
+         end if
+
+         do ielec=1,maxmicroit
+
+       if((.not.((locbse).or.(locbse2))).or.(ielec.eq.1)) then
+C Call HF Fock build for NAE regular electrons
+           call RXCHF_fock_hf_MPI(nproc,rank,
+     x                            LCMF,nebf,nebf2,NAE,ngee,
+     x                            DAE,GAM_ecore,GAM_ee,
+     x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
+
+C Call XCHF Fock build for NBE special electrons and one QM particle
+         call RXCHF_fock_xchf_MPI(nproc,rank,
+     x                            LCMF,NBE,
+     x                            nebf,nebf2,npbf,npbf2,
+     x                            ngee,ng1,ng2,ng3,ng4,
+     x                            dimXCHF2,dimXCHF3,dimXCHF4,
+     x                            NG2CHK,NG3CHK,NG4CHK,
+     x                            DBE,DP,
+     x                            XCHF_GAM2,XCHF_GAM2s,
+     x                            XCHF_GAM3,XCHF_GAM4,
+     x                            FBE,FP,SBE_XCHF,SP_XCHF,
+     x                            E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
+     x                            E_XCHF_gam3,E_XCHF_gam4,
+     x                            S_total,S_gam1,S_gam2)
+
+C Call interaction Fock build for all particles
+         call RXCHF_fock_int_MPI(nproc,rank,
+     x                           LCMF,LADDEXCH,nelec,NAE,NBE,
+     x                           nebf,nebf2,npbf,npbf2,
+     x                           ng1,ng2,ng3,ng4,
+     x                           dimINT2,dimINT3,dimINT4,
+     x                           dimINT2ex,dimINT3ex,
+     x                           NG2CHK,NG3CHK,NG4CHK,
+     x                           DAE,DBE,DP,
+     x                           INT_GAM2,INT_GAM3,INT_GAM4,
+     x                           INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
+     x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
+     x                           FPint,FAEint,FBEint, 
+     x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
+     x                           E_int)
+
+           call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+C ARS( no interaction
+      if(LNOINT) then
+            E_int=0.0d+00
+            E_HF=0.0d+00
+      else
+            call add2fock(npbf,FPint,FP)
+            call add2fock(nebf,FAEint,FAE)
+            call add2fock(nebf,FBEint,FBE)
+      end if
+C )
+C ARS( microiteration
+          E_total=E_HF+E_XCHF+E_int+E_nuc
+C )
+      end if
+C )
+
+! Do OCBSE procedure (restricted solutions for regular and special electrons)
+
+          if (rank.eq.0) then
+
 ! Special electrons
 
 ! Transform FBE (calculated at end of previous iteration) to new WB basis
@@ -1068,7 +1321,7 @@ CC )
              tempvecB(:,j)=vecAE(:,j+nocca)
            end do
            do j=1,noccb
-             tempvecB(:,j+nebf-nocca-noccb)=vecBE0(:,j)
+             tempvecB(:,j+nebf-nocca-noccb)=vecBEi(:,j)
            end do
 CC ARS( check ovlap
 C      write(*,*) "special tempvecB"
@@ -1155,58 +1408,11 @@ CC )
 
   350 CONTINUE
 
-C --------------------------- POTENTIAL DIIS ---------------------------
-      if(LDIIS) then
-
-       CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
-       CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
-
-       if(itDIIS.eq.0) then ! If DIIS not intiated, check if it should be
-        if((DIFFAE.lt.threshDIIS).and.(DIFFBE.lt.threshDIIS)) then
-         write(*,9801)
-         itDIIS=itDIIS+1
-         do j=1,nocca
-           vecDIIS(:,j,nstore)=vecAE0(:,j)
-         end do
-         do j=1,noccb
-           vecDIIS(:,j+nocca,nstore)=vecBE0(:,j)
-         end do
-         do j=1,nebf-nocca-noccb
-           vecDIIS(:,j+nocca+noccb,nstore)=vecBE0(:,j+noccb)
-         end do
-        end if
-       end if
-
-       if(itDIIS.gt.0) then ! If DIIS already initiated, continue with DIIS
-        call DIIS_driver(nebf,nocca,noccb,nstore,itDIIS,
-     x                   vecAE,vecBE,xxse,
-     x                   errvec,vecDIIS,errDIIS)
-        itDIIS=itDIIS+1
-CC ARS( check ovlap
-C        write(*,*) "regular DIIS vecAE"
-C        call checkovlap(nebf,nebf,vecAE,xxse)
-C        write(*,*) "special DIIS vecBE"
-C        call checkovlap(nebf,nebf,vecBE,xxse)
-CC )
-        call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
-        call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
-       end if
-
-      end if
-C ----------------------------------------------------------------------
-
-           WA0(:,:)=WA(:,:)
            WB0(:,:)=WB(:,:)
 
           end if ! rank 0
 
 
-          call MPI_BCAST(VECAE,nebf2_,MPI_DOUBLE_PRECISION,
-     x                   0,MPI_COMM_WORLD,ierr)
-          call MPI_BCAST(AEe,nebf_,MPI_DOUBLE_PRECISION,
-     x                   0,MPI_COMM_WORLD,ierr)
-          call MPI_BCAST(DAE,nebf2_,MPI_DOUBLE_PRECISION,
-     x                   0,MPI_COMM_WORLD,ierr)
           call MPI_BCAST(VECBE,nebf2_,MPI_DOUBLE_PRECISION,
      x                   0,MPI_COMM_WORLD,ierr)
           call MPI_BCAST(BEe,nebf_,MPI_DOUBLE_PRECISION,
@@ -1214,13 +1420,10 @@ C ----------------------------------------------------------------------
           call MPI_BCAST(DBE,nebf2_,MPI_DOUBLE_PRECISION,
      x                   0,MPI_COMM_WORLD,ierr)
 
-          CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
           CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
 
-          CALL COPYDEN(DAE0,DAE,NEBF)
           CALL COPYDEN(DBE0,DBE,NEBF)
 
-          CALL COPYDEN(vecAE0,vecAE,NEBF)
           CALL COPYDEN(vecBE0,vecBE,NEBF)
 
 ! Calculate energy for this it and Fock matrices for next it
@@ -1291,370 +1494,6 @@ C )
 
             E_total=E_HF+E_XCHF+E_int+E_nuc
 
-         else if (LOCBSE2) then
-! Do OCBSE2 procedure (restricted solutions for special electrons)
-
-! Regular electrons
-!-----------------------POSSIBLE-SOSCF-ALPHA---------------------------(
-      if (rank.eq.0) then
-         if((LSORXCHF).or.(LSOSCFA)) THEN
-          ITER=IELEC
-          EIGAVL = ITER.GT.1
-         end if
-         IF((LSORXCHF.or.LSOSCFA) .AND.  EIGAVL) THEN
-           call pack_LT(nebf,nebfLT,FAE,FLT)
-           call SOGRAD(GRADA,FLT,vecAE,WRK,NPRA,NA,L0,L1,NEBFLT,ORBGRDA)
-!      write(*,*) "regular grada:",grada
-            IF(ORBGRDA.LT.SOGTOL  .OR.  ITSOA.GT.0) THEN
-              IF(ITSOA.EQ.0) THEN
-              WRITE(*,9800)
-                 call SOHESS(HSTARTA,AEE,NPRA,L0,NA,NA)
-!                 write(*,*) "regular hstarta:",hstarta
-                 if(LSORXCHF) then
-                  do j=1,npra
-                    HESSA0(j,j)=HSTARTA(j)
-                    DISPLIA0(j)=-HSTARTA(j)*GRADA(j)
-                  end do
-                 end if
-              END IF
-              ITSOA = ITSOA+1
-              IF(LSORXCHF) then
-               call RXCHF_SONEWT(NPRA,ITSOA,HESSA0,HESSA,GRADA0,
-     x                           GRADA,DISPLIA0,DISPLIA)
-C      write(*,*) "grad:",GRADA
-C      write(*,*) "grad0:",GRADA0
-C      write(*,*) "displia:",DISPLIA
-              ELSE
-C      write(*,*) "hess:",HSTARTA
-C      write(*,*) "grad:",GRADA
-C      write(*,*) "pgrad:",PGRADA
-               call SONEWT(HSTARTA,GRADA,PGRADA,DISPLIA,DGRADA,
-     x                     DISPLA,UPDTA,DISPLNA,DGRADIA,UPDTIA,
-     x                     ORBGRDA,NPRA,ITSOA,NFT15)
-!                 write(*,*) "regular displia:",displia
-              END IF
-              call SOTRAN(DISPLIA,vecAE,GA,WRK,NPRA,L0,L1,NA,NA,ORBGRDA)
-              IF(LSORXCHF) THEN
-                CALL DCOPY(NPRA,GRADA,1,GRADA0,1)
-                CALL DCOPY(NPRA,DISPLIA,1,DISPLIA0,1)
-                CALL COPYDEN(HESSA0,HESSA,NPRA)
-              ELSE
-                CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
-              END IF
-              call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
-CC ARS( check ovlap
-C        write(*,*) "regular SORXCHF vecAE"
-C        call checkovlap(nebf,nebf,vecAE,xxse)
-CC )
-              GO TO 950
-            END IF
-         END IF
-!-----------------------POSSIBLE-SOSCF-ALPHA---------------------------)
-
-!        Diagonalize Electronic Fock Matrices
-!        call ROOTHAN(DAE,vecAE,AEE,xxse,FAE,nebf,nelec,1,NUCST)
-         call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
-         call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
-CC ARS( check ovlap
-C      write(*,*) "regular diag vecAE",ielec
-C      call checkovlap(nebf,nebf,vecAE,xxse)
-CC )
-
-  950 CONTINUE
-
-C ARS( OCBSE/SOSCF
-
-! Transform FBE (calculated at end of previous iteration) to new W basis
-!  - W updated with new vecA from this iteration
-!  - vecBE in AO basis from previous iteration is transformed to new W basis
-!    (relevant for SOSCF only)
-         call RXCHFmult_OCBSE_transF(nebf,nwbfB,vecAE(:,nocca+1:nebf),
-     x                               FBE,WB,wFBEw)
-
-!-----------------------POSSIBLE-SOSCF-BETA----------------------------(
-         if((LSORXCHF).or.(LSOSCFB)) THEN
-           ITER=IELEC
-           EIGAVL = ITER.GT.1
-         end if
-         IF((LSORXCHF.or.LSOSCFB) .AND. (EIGAVL)) THEN
-           call pack_LT(nwbfB,nwbfLTB,wFBEw,wFLTBw)
-           call RXCHFmult_OCBSE_transVt(nebf,nwbfB,WB,
-     x                                  xxse,vecBE,wvecBEw)
-CC ARS( check ovlap
-C      write(*,*) "special transVt vecBE"
-C      call checkovlap(nebf,nebf,vecBE,xxse)
-CC )
-           call SOGRAD(GRADB,wFLTBw,wvecBEw,wWRKBw,NPRB,NB,
-     x                 L0wB,L1wB,NwBFLTB,ORBGRDB)
-!      write(*,*) "special gradb:",gradb
-            IF(ORBGRDB.LT.SOGTOL  .OR.  ITSOB.GT.0) THEN
-              IF(ITSOB.EQ.0) THEN
-                 WRITE(*,9800)
-                 call SOHESS(HSTARTB,wBEenw,NPRB,L0wB,NB,NB)
-!                 write(*,*) "special hstartb:",hstartb
-                 if(LSORXCHF) then
-                  do j=1,nprb
-                    HESSB0(j,j)=HSTARTB(j)
-                    DISPLIB0(j)=-HSTARTB(j)*GRADB(j)
-                  end do
-                 end if
-              END IF
-              ITSOB = ITSOB+1
-              IF(LSORXCHF) then
-               call RXCHF_SOCHGBAS(NPRB,NB,nwbfB,nebf,WB0,WB,xxse,
-     x                             GRADB0,HESSB0,DISPLIB0)
-               call RXCHF_SONEWT(NPRB,ITSOB,HESSB0,HESSB,GRADB0,
-     x                           GRADB,DISPLIB0,DISPLIB)
-C      write(*,*) "grad:",GRADB
-C      write(*,*) "grad0:",GRADB0
-C      write(*,*) "displia:",DISPLIB
-              ELSE
-               call SONEWT(HSTARTB,GRADB,PGRADB,DISPLIB,DGRADB,
-     x                     DISPLB,UPDTB,DISPLNB,DGRADIB,UPDTIB,
-     x                     ORBGRDB,NPRB,ITSOB,NFT16)
-C                 write(*,*) "special displib:",displib
-              END IF
-              call SOTRAN(DISPLIB,wvecBEw,wGBw,wWRKBw,NPRB,
-     x                    L0wB,L1wB,NB,NB,ORBGRDB)
-              IF(LSORXCHF) THEN
-                CALL DCOPY(NPRB,GRADB,1,GRADB0,1)
-                CALL DCOPY(NPRB,DISPLIB,1,DISPLIB0,1)
-                CALL COPYDEN(HESSB0,HESSB,NPRB)
-              ELSE
-                CALL DCOPY(NPRB,GRADB,1,PGRADB,1)
-              END IF
-              call RXCHFmult_OCBSE_transV(nebf,nwbfB,WB,wvecBEw,wBEenw, ! eigenvalues useless
-     x                                    vecBE,BEe)
-CC ARS( check ovlap
-C      write(*,*) "special transV vecBE"
-C      call checkovlap(nebf,nebf,vecBE,xxse)
-CC )
-              call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
-              GO TO 450
-            END IF
-         END IF
-!-----------------------POSSIBLE-SOSCF-BETA----------------------------)
-
-! No SOSCF
-!  - Diagonalize Fock matrix in W basis of this iteration
-!  - Obtain updated vecBE in W basis of this iteration
-         call RXCHFmult_OCBSE_diag(nebf,nwbfB,WB,wFBEw,
-     x                             wvecBEw,wBEenw,vecBE,BEe)
-CC ARS( check ovlap
-C      write(*,*) "special diag vecBE"
-C      call checkovlap(nebf,nebf,vecBE,xxse)
-CC )
-         call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
-
-  450 CONTINUE
-
-       WB0(:,:)=WB(:,:)
-
-      end if ! rank 0
-
-           call MPI_BCAST(VECAE,nebf2_,MPI_DOUBLE_PRECISION,
-     x                    0,MPI_COMM_WORLD,ierr)
-           call MPI_BCAST(AEe,nebf_,MPI_DOUBLE_PRECISION,
-     x                    0,MPI_COMM_WORLD,ierr)
-           call MPI_BCAST(DAE,nebf2_,MPI_DOUBLE_PRECISION,
-     x                    0,MPI_COMM_WORLD,ierr)
-           call MPI_BCAST(VECBE,nebf2_,MPI_DOUBLE_PRECISION,
-     x                    0,MPI_COMM_WORLD,ierr)
-           call MPI_BCAST(BEe,nebf_,MPI_DOUBLE_PRECISION,
-     x                    0,MPI_COMM_WORLD,ierr)
-           call MPI_BCAST(DBE,nebf2_,MPI_DOUBLE_PRECISION,
-     x                    0,MPI_COMM_WORLD,ierr)
-
-         CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
-         CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
-
-         CALL COPYDEN(DAE0,DAE,NEBF)
-         CALL COPYDEN(DBE0,DBE,NEBF)
-
-C )
-
-! Calculate energy for this it and Fock matrices for next it
-
-C Call HF Fock build for NAE regular electrons
-           call RXCHF_fock_hf_MPI(nproc,rank,
-     x                            LCMF,nebf,nebf2,NAE,ngee,
-     x                            DAE,GAM_ecore,GAM_ee,
-     x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
-
-C Call XCHF Fock build for NBE special electrons and one QM particle
-         call RXCHF_fock_xchf_MPI(nproc,rank,
-     x                            LCMF,NBE,
-     x                            nebf,nebf2,npbf,npbf2,
-     x                            ngee,ng1,ng2,ng3,ng4,
-     x                            dimXCHF2,dimXCHF3,dimXCHF4,
-     x                            NG2CHK,NG3CHK,NG4CHK,
-     x                            DBE,DP,
-     x                            XCHF_GAM2,XCHF_GAM2s,
-     x                            XCHF_GAM3,XCHF_GAM4,
-     x                            FBE,FP,SBE_XCHF,SP_XCHF,
-     x                            E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
-     x                            E_XCHF_gam3,E_XCHF_gam4,
-     x                            S_total,S_gam1,S_gam2)
-
-C Call interaction Fock build for all particles
-         call RXCHF_fock_int_MPI(nproc,rank,
-     x                           LCMF,LADDEXCH,nelec,NAE,NBE,
-     x                           nebf,nebf2,npbf,npbf2,
-     x                           ng1,ng2,ng3,ng4,
-     x                           dimINT2,dimINT3,dimINT4,
-     x                           dimINT2ex,dimINT3ex,
-     x                           NG2CHK,NG3CHK,NG4CHK,
-     x                           DAE,DBE,DP,
-     x                           INT_GAM2,INT_GAM3,INT_GAM4,
-     x                           INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
-     x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
-     x                           FPint,FAEint,FBEint, 
-     x                           E_int_OMG2,E_int_OMG3,E_int_OMG4,
-     x                           E_int)
-
-           call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-C ARS( no interaction
-      if(LNOINT) then
-            E_int=0.0d+00
-            E_HF=0.0d+00
-      else
-            call add2fock(npbf,FPint,FP)
-            call add2fock(nebf,FAEint,FAE)
-            call add2fock(nebf,FBEint,FBE)
-      end if
-C )
-
-            IF ((LCMF).and.(rank.eq.0)) then
-             npbflt=npbf*(npbf+1)/2
-             write(*,*)
-             write(*,*) "FAE:"
-             call prt_lower_triangle(nebf,nebflt,FAE)
-             write(*,*)
-             write(*,*) "FBE:"
-             call prt_lower_triangle(nebf,nebflt,FBE)
-             write(*,*)
-             write(*,*) "FP:"
-             call prt_lower_triangle(npbf,npbflt,FP)
-             write(*,*)
-            END IF  
-
-            E_total=E_HF+E_XCHF+E_int+E_nuc
-
-         else
-
-!-----------------------POSSIBLE-SOSCF-ALPHA---------------------------(
-      if (rank.eq.0) then
-         if(LSOSCFA) THEN
-          ITER=IELEC
-          EIGAVL = ITER.GT.1
-         end if
-         IF(LSOSCFA .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
-!!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
-           call pack_LT(nebf,nebfLT,FAE,FLT)
-          call SOGRAD(GRADA,FLT,vecAE,WRK,NPRA,NA,L0,L1,NEBFLT,ORBGRDA)
-!!!!!!      IF(ORBGRD.LT.SMALL) THEN
-!!!!!!         DIFF = ZERO
-!!!!!!         CVGING=.TRUE.
-!!!!!!         GO TO 700  ! Check on convergence behavior
-!!!!!!      END IF
-            IF(ORBGRDA.LT.SOGTOL  .OR.  ITSOA.GT.0) THEN
-              IF(ITSOA.EQ.0) THEN   ! only on first SOSCF it. set up approx Hess
-              WRITE(*,9800)
-                 call SOHESS(HSTARTA,AEE,NPRA,L0,NA,NA)
-              END IF
-              ITSOA = ITSOA+1
-           call SONEWT(HSTARTA,GRADA,PGRADA,DISPLIA,DGRADA,DISPLA,UPDTA,
-     *                 DISPLNA,DGRADIA,UPDTIA,ORBGRDA,NPRA,ITSOA,NFT15)
-            call SOTRAN(DISPLIA,vecAE,GA,WRK,NPRA,L0,L1,NA,NA,ORBGRDA)
-             CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
-              call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
-              GO TO 750  ! Use the new C's to form new density (change)
-            END IF
-         END IF
-!-----------------------POSSIBLE-SOSCF-ALPHA---------------------------)
-
-  700 CONTINUE
-!        Diagonalize Electronic Fock Matrices
-!        call ROOTHAN(DAE,vecAE,AEE,xxse,FAE,nebf,nelec,1,NUCST)
-         call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
-         call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
-
-      end if ! rank 0
-
-  750 CONTINUE
-
-           call MPI_BCAST(VECAE,nebf2_,MPI_DOUBLE_PRECISION,
-     x                    0,MPI_COMM_WORLD,ierr)
-           call MPI_BCAST(AEe,nebf_,MPI_DOUBLE_PRECISION,
-     x                    0,MPI_COMM_WORLD,ierr)
-           call MPI_BCAST(DAE,nebf2_,MPI_DOUBLE_PRECISION,
-     x                    0,MPI_COMM_WORLD,ierr)
-
-!        --> FIND LARGEST CHANGE IN Alpha E DENSITY
-         CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
-         CALL COPYDEN(DAE0,DAE,NEBF)
-
-!-----------------------POSSIBLE-SOSCF-BETA----------------------------(
-      if (rank.eq.0) then
-        if(LSOSCFB) THEN
-         ITER=IELEC
-         EIGAVL = ITER.GT.1
-        end if
-         IF(LSOSCFB .AND.  EIGAVL) THEN                ! first it. skip SOSCF (diag to get EE)
-!!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
-           call pack_LT(nebf,nebfLT,FBE,FLT)
-          call SOGRAD(GRADB,FLT,vecBE,WRK,NPRB,NB,L0,L1,NEBFLT,ORBGRDB)
-!!!!!!      IF(ORBGRD.LT.SMALL) THEN
-!!!!!!         DIFF = ZERO
-!!!!!!         CVGING=.TRUE.
-!!!!!!         GO TO 700  ! Check on convergence behavior
-!!!!!!      END IF
-            IF(ORBGRDB.LT.SOGTOL  .OR.  ITSOB.GT.0) THEN
-              IF(ITSOB.EQ.0) THEN   ! only on first SOSCF it. set up approx Hess
-             WRITE(*,9800)
-                 call SOHESS(HSTARTB,BEE,NPRB,L0,NB,NB)
-              END IF
-              ITSOB = ITSOB+1
-           call SONEWT(HSTARTB,GRADB,PGRADB,DISPLIB,DGRADB,DISPLB,UPDTB,
-     *                 DISPLNB,DGRADIB,UPDTIB,ORBGRDB,NPRB,ITSOB,NFT16)
-            call SOTRAN(DISPLIB,vecBE,GB,WRK,NPRB,L0,L1,NB,NB,ORBGRDB)
-             CALL DCOPY(NPRB,GRADB,1,PGRADB,1)
-              call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
-              GO TO 850  ! Use the new C's to form new density (change)
-            END IF
-         END IF
-!-----------------------POSSIBLE-SOSCF-BETA----------------------------)
-
-  800 CONTINUE
-!        Diagonalize Electronic Fock Matrices
-!        call ROOTHAN(DBE,vecBE,BEE,xxse,FBE,nebf,nelec,1,NUCST)
-         call UROOTHAN(vecBE,BEE,xxse,FBE,nebf)
-         call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
-
-      end if ! rank 0
-
-  850 CONTINUE
-
-           call MPI_BCAST(VECBE,nebf2_,MPI_DOUBLE_PRECISION,
-     x                    0,MPI_COMM_WORLD,ierr)
-           call MPI_BCAST(BEe,nebf_,MPI_DOUBLE_PRECISION,
-     x                    0,MPI_COMM_WORLD,ierr)
-           call MPI_BCAST(DBE,nebf2_,MPI_DOUBLE_PRECISION,
-     x                    0,MPI_COMM_WORLD,ierr)
-
-!        --> FIND LARGEST CHANGE IN Beta E DENSITY
-         CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
-         CALL COPYDEN(DBE0,DBE,NEBF)
-
-         end if ! end if for not ocbse or ocbse2
-
-C ARS( microiterate
-C!        --> FIND LARGEST CHANGE IN P DENSITY
-C         CALL DENDIF(DP0,DP,NPBF,DIFFP)
-C         CALL COPYDEN(DP0,DP,NPBF)
-C )
-
 !        --> CALCULATE CHANGE IN TOTAL ENERGY
          Delta_E_tot=E_total-E_total_old
          E_total_old=E_total
@@ -1699,13 +1538,13 @@ C )
           call write_MOs(853,npbf,VECP)
          end if ! rank 0
 
-         LDIFFE=( (DIFFAE.LT.TOLE).and.(DIFFBE.LT.TOLE) )
-         IF(LDIFFE) GOTO 200
+         LDIFFE=( DIFFBE.LT.TOLE )
+         IF(LDIFFE) GOTO 300
          IF(IELEC.EQ.MAXMICROIT) GOTO 10
 
        END DO  ! microiterations
 
-  200 CONTINUE
+  300 CONTINUE
 !      IF WE GET HERE - MICROITERATION CONVERGENCE ACHIEVED
        if(rank.eq.0) write(*,2000) i,ielec
 

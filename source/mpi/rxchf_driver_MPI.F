@@ -611,11 +611,29 @@ C Kick-off SCF
 
       nebf2=nebf*nebf
       npbf2=npbf*npbf
+      nebflt=nebf*(nebf+1)/2
+
+C ARS( OCBSE hardwired over OCBSE2
+C      if(nae.gt.1) then
+C       npra=(nebf-(nae/2))*(nae/2) ! occ-vir pairs for regular elecs
+C      else
+C         npra=nae*(nebf-nae)
+C      end if
       if(nae.gt.1) then
-       npra=(nebf-(nae/2))*(nae/2) ! occ-vir pairs for regular elecs
+       if (LOCBSE) then ! account for noccb less virtual orbitals
+        if (nbe.gt.1) then
+         npra=((nebf-nbe/2)-(nae/2))*(nae/2)
+        else
+         npra=((nebf-nbe)-(nae/2))*(nae/2)
+        end if
+       else
+        npra=(nebf-(nae/2))*(nae/2) ! occ-vir pairs for regular elecs
+       end if
       else
-         npra=nae*(nebf-nae)
+       npra=nae*(nebf-nae)
       end if
+C )
+
       if(nbe.gt.1) then
        if (LOCBSE) then ! account for nocca less virtual orbitals
         if (nae.gt.1) then
@@ -629,7 +647,6 @@ C Kick-off SCF
       else
        nprb=nbe*(nebf-nbe)
       end if
-      nebflt=nebf*(nebf+1)/2
 
       if ((read_GAM3).or.(nblocks.eq.1)) then
        call RXCHF_scf_MPI(nproc,rank,
