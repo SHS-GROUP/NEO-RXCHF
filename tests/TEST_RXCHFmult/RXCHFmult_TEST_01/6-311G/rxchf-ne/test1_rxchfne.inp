@@ -27,7 +27,7 @@
  NG3CHK=1,
  NG4CHK=1,
  nblocks=1,
- blockrank=1/
+ blockrank=0/
  
 &GEMINAL
  bgem(1)=0.500, ggem(1)=1.0e-15,

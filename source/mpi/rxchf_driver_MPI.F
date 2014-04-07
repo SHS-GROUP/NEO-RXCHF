@@ -127,7 +127,7 @@ C Initialize dimensions
       dimINT3ex = 1
 
 C Set logical flag for -ae
-      if(EXCHLEV.gt.1) then
+      if(EXCHLEV.gt.0) then
        LADDEXCH=.true.
       else
        LADDEXCH=.false.
