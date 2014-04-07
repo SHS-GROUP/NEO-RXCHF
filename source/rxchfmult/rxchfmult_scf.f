@@ -1496,9 +1496,17 @@ C )
         end do
       end do
 
-! Store nebf-nocca remaining evectors as occ and virt spec elec vectors
-      do i=nocca+1,nebf
+! Store next noccb evectors as occ spec elec vectors
+      do i=1,noccb
         do j=1,nebf
+          CBE(j,i)=C(j,i+nocca)
+        end do
+      end do
+
+! Store nebf-nocca-noccb remaining evectors as virt reg and spec elec vectors
+      do i=nocca+noccb+1,nebf
+        do j=1,nebf
+          CAE(j,i-noccb)=C(j,i)
           CBE(j,i-nocca)=C(j,i)
         end do
       end do

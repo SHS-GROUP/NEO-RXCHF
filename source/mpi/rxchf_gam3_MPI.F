@@ -206,20 +206,19 @@ C Symmetrized integrals in GM3_2ICR (interaction integrals)
 
       wtime = MPI_WTIME() 
 
-      if (rank.eq.0) write(*,*) "Symmetrizing GM3_2"
-      call gam3_symm1(nproc,rank,
-     x                nebf,npbf,ng3,ng3loc,GM3_2)
+      if (rank.eq.0) write(*,*) "Symmetrizing INT_GAM3"
+      call gam3_symm_132(nproc,rank,
+     x                   nebf,npbf,ng3,ng3loc,
+     x                   mpistart,mpiend,GM3_2)
 
       if (LSYMM) then
-C       if (rank.eq.0) write(*,*) "Symmetrizing GM3_1"
-C       call RXCHF_GAM3_MPI_symm(nproc,rank,
-C     x                          ng3,ng3loc,
-C     x                          mpistart,mpiend,arrstart,
-C     x                          nebf,npbf,
-C     x                          GM3_1)
-       if (rank.eq.0) write(*,*) "GM3_1 symm not supported yet"
+       if (rank.eq.0) write(*,*) "Symmetrizing XCHF_GAM3"
+       call xchf_gam3_symm_MPI(nproc,rank,
+     x                         nebf,npbf,ng3,ng3loc,
+     x                         mpistart,mpiend,GM3_1)
+      else
+       if (rank.eq.0) write(*,*) "Not symmetrizing XCHF_GAM3"
       end if
-      if (rank.eq.0) write(*,*) "Not symmetrizing GM3_1"
 
       wtime2 = MPI_WTIME() - wtime
 
@@ -566,28 +565,29 @@ C Symmetrized integrals in GM3_4ICR (exchange integrals)
 
       wtime = MPI_WTIME()
 
-      if (rank.eq.0) write(*,*) "Symmetrizing GM3_2"
-      call gam3_symm1(nproc,rank,
-     x                nebf,npbf,ng3,ng3loc,GM3_2)
+      if (rank.eq.0) write(*,*) "Symmetrizing INT_GAM3"
+      call gam3_symm_132(nproc,rank,
+     x                   nebf,npbf,ng3,ng3loc,
+     x                   mpistart,mpiend,GM3_2)
 
-      if (rank.eq.0) write(*,*) "Symmetrizing GM3_3"
-      call gam3_symm2(nproc,rank,
-     x                nebf,npbf,ng3,ng3loc,GM3_3)
+      if (rank.eq.0) write(*,*) "Symmetrizing INT_GAM3ex1"
+      call gam3_symm_213(nproc,rank,
+     x                   nebf,npbf,ng3,ng3loc,
+     x                   mpistart,mpiend,GM3_3)
 
-      if (rank.eq.0) write(*,*) "Symmetrizing GM3_4"
-      call gam3_symm3(nproc,rank,
-     x                nebf,npbf,ng3,ng3loc,GM3_4)
+      if (rank.eq.0) write(*,*) "Symmetrizing INT_GAM3ex2"
+      call gam3_symm_321(nproc,rank,
+     x                   nebf,npbf,ng3,ng3loc,
+     x                   mpistart,mpiend,GM3_4)
 
       if (LSYMM) then
-C       if (rank.eq.0) write(*,*) "Symmetrizing GM3_1"
-C       call RXCHF_GAM3_MPI_symm(nproc,rank,
-C     x                          ng3,ng3loc,
-C     x                          mpistart,mpiend,arrstart,
-C     x                          nebf,npbf,
-C     x                          GM3_1)
-       if (rank.eq.0) write(*,*) "GM3_1 symm not supported yet"
+       if (rank.eq.0) write(*,*) "Symmetrizing XCHF_GAM3"
+       call xchf_gam3_symm_MPI(nproc,rank,
+     x                         nebf,npbf,ng3,ng3loc,
+     x                         mpistart,mpiend,GM3_1)
+      else
+       if (rank.eq.0) write(*,*) "Not symmetrizing XCHF_GAM3"
       end if
-      if (rank.eq.0) write(*,*) "Not symmetrizing GM3_1"
 
       wtime2 = MPI_WTIME() - wtime
 
@@ -974,9 +974,27 @@ C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------)
       return
       end
 C=======================================================================
-      subroutine gam3_symm1(nproc,rank,
-     x                      nebf,npbf,ntotints,nlocints,GAM3)
+      subroutine xchf_gam3_symm_MPI(nproc,rank,
+     x                              nebf,npbf,ntotints,nlocints,
+     x                              mpistart,mpiend,GAM3)
 
+C Symmetrizes XCHF_GAM3 integrals averaging
+C   < ip ie1 ie2 ie3 | O3 | ip je1 je2 je3 > = Omega_3(1,2,3)
+C   < ip ie1 ie3 ie2 | O3 | ip je1 je3 je2 > = Omega_3(1,3,2)
+C   < ip ie2 ie1 ie3 | O3 | ip je2 je1 je3 > = Omega_3(2,1,3)
+C   < ip ie2 ie3 ie1 | O3 | ip je2 je3 je1 > = Omega_3(2,3,1)
+C   < ip ie3 ie1 ie2 | O3 | ip je3 je1 je2 > = Omega_3(3,1,2)
+C   < ip ie3 ie2 ie1 | O3 | ip je3 je2 je1 > = Omega_3(3,2,1)
+C
+C The symmetrization is done sequentially:
+C  1) Symmetrize 123 to 132
+C      => I1 = 1/2 [ O(1,2,3) + O(1,3,2) ]
+C  2) Symmetrize integrals from (1) using 123 to 321 symm
+C      => I2 = 1/4 [ O(1,2,3) + O(1,3,2) + O(3,2,1) + O(3,1,2) ]
+C  3) Symmetrize integrals from (1) using 123 to 213 symm
+C      => I3 = 1/4 [ O(1,2,3) + O(1,3,2) + O(2,1,3) + O(2,3,1) ]
+C  4) Result is a linear combination of integrals from (1),(2),(3)
+C      => 2/3 [ I2 + I3 - 1/2 I1 ]
 C=======================================================================
       implicit none
       include "mpif.h"
@@ -985,13 +1003,85 @@ C=======================================================================
       integer nproc,rank
       integer nebf,npbf
       integer ntotints,nlocints
+      integer mpistart,mpiend
 
 ! Input/output variables
       double precision GAM3(nlocints)
 
 ! Local variables
       integer i
+      double precision  fac
+      double precision, allocatable :: GAM3_aux(:)
+      double precision, parameter   :: half=0.50d+00
+      double precision, parameter   :: two=2.0d+00
+      double precision, parameter   :: three=3.0d+00
+
+      fac=two/three
+
+      if(allocated(GAM3_aux)) deallocate(GAM3_aux)
+      allocate(GAM3_aux(nlocints))
+
+! Do 132 symmetrization (GAM3=I1 on return)
+      if (rank.eq.0) write(*,*) "XCHF_GAM3 132 symmetrization"
+      call gam3_symm_132(nproc,rank,
+     x                   nebf,npbf,ntotints,nlocints,
+     x                   mpistart,mpiend,GAM3)
+
+! Save 132 symmetrization (GAM3_aux=I1)
+      do i=1,nlocints
+        GAM3_aux(i)=GAM3(i)
+      end do
+
+! Do 321 symmetrization (GAM3=I2 on return)
+      if (rank.eq.0) write(*,*) "XCHF_GAM3 321 symmetrization"
+      call gam3_symm_321(nproc,rank,
+     x                   nebf,npbf,ntotints,nlocints,
+     x                   mpistart,mpiend,GAM3)
+
+! Combine I2 and I1 now to reduce memory load (GAM3=I2-I1/2)
+      do i=1,nlocints
+        GAM3(i)=GAM3(i)-half*GAM3_aux(i)
+      end do
+
+! Do 213 symmetrization (GAM3_aux=I3 on return)
+      if (rank.eq.0) write(*,*) "XCHF_GAM3 213 symmetrization"
+      call gam3_symm_213(nproc,rank,
+     x                   nebf,npbf,ntotints,nlocints,
+     x                   mpistart,mpiend,GAM3_aux)
+
+! Combine with I3 to generate desired result (GAM3=I2-I1/2+I3)
+      do i=1,nlocints
+        GAM3(i)=GAM3(i)+GAM3_aux(i)
+        GAM3(i)=fac*GAM3(i)
+      end do
+
+      if(allocated(GAM3_aux)) deallocate(GAM3_aux)
+
+      return
+      end
+C=======================================================================
+      subroutine gam3_symm_132(nproc,rank,
+     x                         nebf,npbf,ntotints,nlocints,
+     x                         mpistart,mpiend,GAM3)
+
+C Symmetrizes INT_GAM3 integrals averaging
+C   < ip ie1 ie2 ie3 | O3 | ip je1 je2 je3 > = Omega_3(1,2,3)
+C   < ip ie1 ie3 ie2 | O3 | ip je1 je3 je2 > = Omega_3(1,3,2)
+C=======================================================================
+      implicit none
+      include "mpif.h"
+
+! Input variables
+      integer nproc,rank
+      integer nebf,npbf
+      integer ntotints,nlocints
       integer mpistart,mpiend
+
+! Input/output variables
+      double precision GAM3(nlocints)
+
+! Local variables
+      integer i
       integer ip,jp,ie1,je1,ie2,je2,ie3,je3
       integer ia_first,ia_last
       integer ia,ia_12,ia_21
@@ -1014,9 +1104,6 @@ C=======================================================================
 #endif
 
       xGAM3=0.0d+00
-
-      call get_mpi_range(ntotints,nproc,rank,mpistart,mpiend)
-      if(rank.eq.(nproc-1)) mpiend=ntotints
 
 ! Get appropriate ia_ji values for xGAM3
 
@@ -1113,9 +1200,13 @@ C            end if
       return
       end
 C=======================================================================
-      subroutine gam3_symm2(nproc,rank,
-     x                      nebf,npbf,ntotints,nlocints,GAM3)
+      subroutine gam3_symm_213(nproc,rank,
+     x                         nebf,npbf,ntotints,nlocints,
+     x                         mpistart,mpiend,GAM3)
 
+C Symmetrizes INT_GAM3ex1 integrals averaging
+C   < ip ie1 ie2 ie3 | O3 | ip je1 je2 je3 > = Omega_3(1,2,3)
+C   < ip ie2 ie1 ie3 | O3 | ip je2 je1 je3 > = Omega_3(2,1,3)
 C=======================================================================
       implicit none
       include "mpif.h"
@@ -1124,13 +1215,13 @@ C=======================================================================
       integer nproc,rank
       integer nebf,npbf
       integer ntotints,nlocints
+      integer mpistart,mpiend
 
 ! Input/output variables
       double precision GAM3(nlocints)
 
 ! Local variables
       integer i
-      integer mpistart,mpiend
       integer ip,jp,ie1,je1,ie2,je2,ie3,je3
       integer ia_first,ia_last
       integer ia,ia_12,ia_21
@@ -1153,9 +1244,6 @@ C=======================================================================
 #endif
 
       xGAM3=0.0d+00
-
-      call get_mpi_range(ntotints,nproc,rank,mpistart,mpiend)
-      if(rank.eq.(nproc-1)) mpiend=ntotints
 
 ! Get appropriate ia_ji values for xGAM3
 
@@ -1252,9 +1340,13 @@ C            end if
       return
       end
 C=======================================================================
-      subroutine gam3_symm3(nproc,rank,
-     x                      nebf,npbf,ntotints,nlocints,GAM3)
+      subroutine gam3_symm_321(nproc,rank,
+     x                         nebf,npbf,ntotints,nlocints,
+     x                         mpistart,mpiend,GAM3)
 
+C Symmetrizes INT_GAM3ex1 integrals averaging
+C   < ip ie1 ie2 ie3 | O3 | ip je1 je2 je3 > = Omega_3(1,2,3)
+C   < ip ie3 ie2 ie1 | O3 | ip je3 je2 je1 > = Omega_3(3,2,1)
 C=======================================================================
       implicit none
       include "mpif.h"
@@ -1263,13 +1355,13 @@ C=======================================================================
       integer nproc,rank
       integer nebf,npbf
       integer ntotints,nlocints
+      integer mpistart,mpiend
 
 ! Input/output variables
       double precision GAM3(nlocints)
 
 ! Local variables
       integer i
-      integer mpistart,mpiend
       integer ip,jp,ie1,je1,ie2,je2,ie3,je3
       integer ia_first,ia_last
       integer ia,ia_12,ia_21
@@ -1292,9 +1384,6 @@ C=======================================================================
 #endif
 
       xGAM3=0.0d+00
-
-      call get_mpi_range(ntotints,nproc,rank,mpistart,mpiend)
-      if(rank.eq.(nproc-1)) mpiend=ntotints
 
 ! Get appropriate ia_ji values for xGAM3
 

@@ -1,12 +1,13 @@
 !======================================================================
       subroutine RXCHF_scf_MPI(nproc,rank,
-     x                         nelec,NAE,NBE,NPRA,NPRB,NEBFLT,NUCST,
+     x                         nelec,NAE,NBE,NEBFLT,NPBFLT,NUCST,
      x                         npebf,nebf,nebf2,npbf,npbf2,ngee,
      x                         ngtg1,ng1,ng2,ng3,ng4,
      x                         NG2CHK,NG3CHK,NG4CHK,
      x                         read_CE,read_CP,
      x                         LG4DSCF,LG3DSCF,LG2DSCF,
-     x                         LSOSCF,LOCBSE,LCMF,LADDEXCH,
+     x                         LSOSCF,LDIIS,LSORXCHF,
+     x                         OCBSETYP,LCMF,LADDEXCH,
      x                         ng2prm,ng3prm,nat,pmass,cat,zan,
      x                         bcoef1,gamma1,
      x                         KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
@@ -54,6 +55,7 @@
 ! Input Variables
       integer nproc,rank
       logical LNEOHF
+      integer OCBSETYP ! =1 : OCBSE ; =2 : OCBSE2 ; =3 : OCBSE3
       logical LOCBSE   ! Use OCBSE scheme as is (restricted variational freedom for reg/sp elecs)
       logical LOCBSE2  ! Use modified OCBSE scheme (complete variational freedom for reg elecs)
       logical read_CE
@@ -223,35 +225,35 @@
       integer NFT15
       integer NFT16
       double precision FLT(NEBFLT) !FLT: Lower triangle focke
-      double precision HSTARTA(NPRA)
-      double precision HSTARTB(NPRB)
-      double precision GRADA(NPRA)
-      double precision GRADB(NPRB)
-      double precision PGRADA(NPRA)
-      double precision PGRADB(NPRB)
-      double precision DISPLIA(NPRA)
-      double precision DISPLIB(NPRB)
-      double precision DGRADA(NPRA)  ! WRK1
-      double precision DGRADB(NPRB)  ! WRK1
-      double precision DISPLA(NPRA)  ! WRK2
-      double precision DISPLB(NPRB)  ! WRK2
-      double precision UPDTA(NPRA)   ! WRK3
-      double precision UPDTB(NPRB)   ! WRK3
-      double precision DISPLNA(NPRA) ! WRK1+NPR
-      double precision DISPLNB(NPRB) ! WRK1+NPR
-      double precision DGRADIA(NPRA) ! WRK2+NPR
-      double precision DGRADIB(NPRB) ! WRK2+NPR
-      double precision UPDTIA(NPRA)  ! WRK3+NPR
-      double precision UPDTIB(NPRB)  ! WRK3+NPR
+      double precision, allocatable :: HSTARTA(:)
+      double precision, allocatable :: GRADA(:)
+      double precision, allocatable :: PGRADA(:)
+      double precision, allocatable :: DISPLIA(:)
+      double precision, allocatable :: DGRADA(:)  ! WRK1
+      double precision, allocatable :: DISPLA(:)  ! WRK2
+      double precision, allocatable :: UPDTA(:)   ! WRK3
+      double precision, allocatable :: DISPLNA(:) ! WRK1+NPR
+      double precision, allocatable :: DGRADIA(:) ! WRK2+NPR
+      double precision, allocatable :: UPDTIA(:)  ! WRK3+NPR
+      double precision, allocatable :: XA(:)
       double precision ORBGRDA
+      double precision GA(nebf,nebf) !G(L0,L0)
+      double precision WRK(nebf) !WRK(L0)
+      double precision, allocatable :: HSTARTB(:)
+      double precision, allocatable :: GRADB(:)
+      double precision, allocatable :: PGRADB(:)
+      double precision, allocatable :: DISPLIB(:)
+      double precision, allocatable :: DGRADB(:)  ! WRK1
+      double precision, allocatable :: DISPLB(:)  ! WRK2
+      double precision, allocatable :: UPDTB(:)   ! WRK3
+      double precision, allocatable :: DISPLNB(:) ! WRK1+NPR
+      double precision, allocatable :: DGRADIB(:) ! WRK2+NPR
+      double precision, allocatable :: UPDTIB(:)  ! WRK3+NPR
+      double precision, allocatable :: XB(:)
+      double precision GB(nebf,nebf) !G(L0,L0)
       double precision ORBGRDB
       double precision SMALL
       double precision SOGTOL ! ORBGRAD TOL to activate soscf
-      double precision XA(NPRA)
-      double precision XB(NPRB)
-      double precision GA(nebf,nebf) !G(L0,L0)
-      double precision GB(nebf,nebf) !G(L0,L0)
-      double precision WRK(nebf) !WRK(L0)
 !cc   double precision CCC(nebf,nebf) !WRK(L0)
 !cc   NPR=(L0-NA)*NA ! Line 2134 RHFCL ?NA is NUM ALPHA E?
 !--------SOSCF-RELATED-VARIABLES------------)
@@ -404,18 +406,13 @@ C )
       ngee_=ngee
 #endif
 
-      LDIIS=.false.
-      LSOSCF=.false.
-      LSORXCHF=.true.
-
-      if((LDIIS).and.(rank.eq.0)) then
-       if(allocated(errvec)) deallocate(errvec)
-       allocate(errvec(nebf,nebf,nstore))
-       threshDIIS=0.5d+00
-      end if
-
-      LOCBSE2=LOCBSE
+      LOCBSE=.false.
       LOCBSE2=.false.
+      if(OCBSETYP.eq.1) then
+       LOCBSE=.true.
+      else if (OCBSETYP.eq.2) then
+       LOCBSE2=.true.
+      end if
 
       if (nae.gt.1) then
        nocca=nae/2
@@ -426,6 +423,12 @@ C )
        noccb=nbe/2
       else
        noccb=nbe
+      end if
+
+      if((LDIIS).and.(rank.eq.0)) then
+       if(allocated(errvec)) deallocate(errvec)
+       allocate(errvec(nebf,nebf,nstore))
+       threshDIIS=0.5d+00
       end if
 
       if(LOCBSE.or.LOCBSE2) then
@@ -455,52 +458,50 @@ C )
 
        if(LOCBSE2) then
 
-        LOCBSE=.false.
         if(rank.eq.0) write(*,*) "Using LOCBSE2"
         if(LSORXCHF) then
          SOGTOL=0.40d+00
-!         npra=(nebf-nocca)*nocca       ! occ-vir pairs for regular elecs
-!         nprb=(nebf-noccb-nocca)*noccb ! occ-vir pairs for regular elecs
+         npra=(nebf-nocca)*nocca       ! occ-vir pairs for regular elecs
+         nprb=(nebf-noccb-nocca)*noccb ! occ-vir pairs for regular elecs
          NA=nocca
          NB=noccb
          L0=nebf
          L1=nebf
          if (rank.eq.0) then
           if(allocated(WB0))      deallocate(WB0)
-!          if(allocated(HSTARTA))  deallocate(HSTARTA)
-!          if(allocated(HSTARTB))  deallocate(HSTARTB)
+          if(allocated(HSTARTA))  deallocate(HSTARTA)
+          if(allocated(HSTARTB))  deallocate(HSTARTB)
           if(allocated(HESSA))    deallocate(HESSA)
           if(allocated(HESSB))    deallocate(HESSB)
           if(allocated(HESSA0))   deallocate(HESSA0)
           if(allocated(HESSB0))   deallocate(HESSB0)
-!          if(allocated(GRADA))    deallocate(GRADA)
-!          if(allocated(GRADB))    deallocate(GRADB)
+          if(allocated(GRADA))    deallocate(GRADA)
+          if(allocated(GRADB))    deallocate(GRADB)
           if(allocated(GRADA0))   deallocate(GRADA0)
           if(allocated(GRADB0))   deallocate(GRADB0)
-!          if(allocated(DISPLIA))  deallocate(DISPLIA)
-!          if(allocated(DISPLIB))  deallocate(DISPLIB)
+          if(allocated(DISPLIA))  deallocate(DISPLIA)
+          if(allocated(DISPLIB))  deallocate(DISPLIB)
           if(allocated(DISPLIA0)) deallocate(DISPLIA0)
           if(allocated(DISPLIB0)) deallocate(DISPLIB0)
           allocate(WB0(nebf,nwbfB))
-!          allocate(HSTARTA(NPRA))
-!          allocate(HSTARTB(NPRB))
+          allocate(HSTARTA(NPRA))
+          allocate(HSTARTB(NPRB))
           allocate(HESSA(NPRA,NPRA))
           allocate(HESSB(NPRB,NPRB))
           allocate(HESSA0(NPRA,NPRA))
           allocate(HESSB0(NPRB,NPRB))
-!          allocate(GRADA(NPRA))
-!          allocate(GRADB(NPRB))
+          allocate(GRADA(NPRA))
+          allocate(GRADB(NPRB))
           allocate(GRADA0(NPRA))
           allocate(GRADB0(NPRB))
-!          allocate(DISPLIA(NPRA))
-!          allocate(DISPLIB(NPRB))
+          allocate(DISPLIA(NPRA))
+          allocate(DISPLIB(NPRB))
           allocate(DISPLIA0(NPRA))
           allocate(DISPLIB0(NPRB))
          end if
         end if
 
        else
-
         if(rank.eq.0) write(*,*) "Using LOCBSE"
         nwbfA=nebf-noccb
         nwbfltA=nwbfA*(nwbfA+1)/2
@@ -526,41 +527,41 @@ C )
         end if
         if(LSORXCHF) then
          SOGTOL=0.40d+00
-!         npra=(nebf-nocca-noccb)*nocca ! occ-vir pairs for regular elecs
-!         nprb=(nebf-noccb-nocca)*noccb ! occ-vir pairs for special elecs
+         npra=(nebf-nocca-noccb)*nocca ! occ-vir pairs for regular elecs
+         nprb=(nebf-noccb-nocca)*noccb ! occ-vir pairs for special elecs
          NA=nocca
          NB=noccb
          if (rank.eq.0) then
           if(allocated(WA0))      deallocate(WA0)
           if(allocated(WB0))      deallocate(WB0)
-!          if(allocated(HSTARTA))  deallocate(HSTARTA)
-!          if(allocated(HSTARTB))  deallocate(HSTARTB)
+          if(allocated(HSTARTA))  deallocate(HSTARTA)
+          if(allocated(HSTARTB))  deallocate(HSTARTB)
           if(allocated(HESSA))    deallocate(HESSA)
           if(allocated(HESSB))    deallocate(HESSB)
           if(allocated(HESSA0))   deallocate(HESSA0)
           if(allocated(HESSB0))   deallocate(HESSB0)
-!          if(allocated(GRADA))    deallocate(GRADA)
-!          if(allocated(GRADB))    deallocate(GRADB)
+          if(allocated(GRADA))    deallocate(GRADA)
+          if(allocated(GRADB))    deallocate(GRADB)
           if(allocated(GRADA0))   deallocate(GRADA0)
           if(allocated(GRADB0))   deallocate(GRADB0)
-!          if(allocated(DISPLIA))  deallocate(DISPLIA)
-!          if(allocated(DISPLIB))  deallocate(DISPLIB)
+          if(allocated(DISPLIA))  deallocate(DISPLIA)
+          if(allocated(DISPLIB))  deallocate(DISPLIB)
           if(allocated(DISPLIA0)) deallocate(DISPLIA0)
           if(allocated(DISPLIB0)) deallocate(DISPLIB0)
           allocate(WA0(nebf,nwbfA))
           allocate(WB0(nebf,nwbfB))
-!          allocate(HSTARTA(NPRA))
-!          allocate(HSTARTB(NPRB))
+          allocate(HSTARTA(NPRA))
+          allocate(HSTARTB(NPRB))
           allocate(HESSA(NPRA,NPRA))
           allocate(HESSB(NPRB,NPRB))
           allocate(HESSA0(NPRA,NPRA))
           allocate(HESSB0(NPRB,NPRB))
-!          allocate(GRADA(NPRA))
-!          allocate(GRADB(NPRB))
+          allocate(GRADA(NPRA))
+          allocate(GRADB(NPRB))
           allocate(GRADA0(NPRA))
           allocate(GRADB0(NPRB))
-!          allocate(DISPLIA(NPRA))
-!          allocate(DISPLIB(NPRB))
+          allocate(DISPLIA(NPRA))
+          allocate(DISPLIB(NPRB))
           allocate(DISPLIA0(NPRA))
           allocate(DISPLIB0(NPRB))
          end if
@@ -729,7 +730,35 @@ C )
           OPEN(NFT15, FILE='WORK15', STATUS='UNKNOWN',
      *         ACCESS='SEQUENTIAL', FORM='UNFORMATTED')
          end if
-         NA=nae/2
+         NA=nocca
+         if(LOCBSE) then
+          npra=(nebf-nocca-noccb)*nocca ! occ-vir pairs for regular elecs
+         else
+          npra=(nebf-nocca)*nocca ! occ-vir pairs for regular elecs
+         end if
+! Allocate here (previously on stack)
+         if(allocated(XA))      deallocate(XA)
+         if(allocated(UPDTIA))  deallocate(UPDTIA)
+         if(allocated(DGRADIA)) deallocate(DGRADIA)
+         if(allocated(DISPLNA)) deallocate(DISPLNA)
+         if(allocated(UPDTA))   deallocate(UPDTA)
+         if(allocated(DISPLA))  deallocate(DISPLA)
+         if(allocated(DGRADA))  deallocate(DGRADA)
+         if(allocated(DISPLIA)) deallocate(DISPLIA)
+         if(allocated(PGRADA))  deallocate(PGRADA)
+         if(allocated(GRADA))   deallocate(GRADA)
+         if(allocated(HSTARTA)) deallocate(HSTARTA)
+         allocate(HSTARTA(NPRA))
+         allocate(GRADA(NPRA))
+         allocate(PGRADA(NPRA))
+         allocate(DISPLIA(NPRA))
+         allocate(DGRADA(NPRA))
+         allocate(DISPLA(NPRA))
+         allocate(UPDTA(NPRA))
+         allocate(DISPLNA(NPRA))
+         allocate(DGRADIA(NPRA))
+         allocate(UPDTIA(NPRA))
+         allocate(XA(NPRA))
       end if
       if(LSOSCFB) THEN
          NFT16=16
@@ -737,7 +766,35 @@ C )
           OPEN(NFT16, FILE='WORK16', STATUS='UNKNOWN',
      *         ACCESS='SEQUENTIAL', FORM='UNFORMATTED')
          end if
-         NB=nbe/2
+         NB=noccb
+         if(LOCBSE.or.LOCBSE2) then
+          nprb=(nebf-noccb-nocca)*noccb ! occ-vir pairs for special elecs
+         else
+          nprb=(nebf-noccb)*noccb ! occ-vir pairs for special elecs
+         end if
+! Allocate here (previously on stack)
+         if(allocated(XB))      deallocate(XB)
+         if(allocated(UPDTIB))  deallocate(UPDTIB)
+         if(allocated(DGRADIB)) deallocate(DGRADIB)
+         if(allocated(DISPLNB)) deallocate(DISPLNB)
+         if(allocated(UPDTB))   deallocate(UPDTB)
+         if(allocated(DISPLB))  deallocate(DISPLB)
+         if(allocated(DGRADB))  deallocate(DGRADB)
+         if(allocated(DISPLIB)) deallocate(DISPLIB)
+         if(allocated(PGRADB))  deallocate(PGRADB)
+         if(allocated(GRADB))   deallocate(GRADB)
+         if(allocated(HSTARTB)) deallocate(HSTARTB)
+         allocate(HSTARTB(NPRB))
+         allocate(GRADB(NPRB))
+         allocate(PGRADB(NPRB))
+         allocate(DISPLIB(NPRB))
+         allocate(DGRADB(NPRB))
+         allocate(DISPLB(NPRB))
+         allocate(UPDTB(NPRB))
+         allocate(DISPLNB(NPRB))
+         allocate(DGRADIB(NPRB))
+         allocate(UPDTIB(NPRB))
+         allocate(XB(NPRB))
       end if
 !-------------SETUP-FOR-POSSIBLE-SOSCF---------------------------------)
 
@@ -810,7 +867,6 @@ C ARS( no interaction
 C )
 
           IF ((LCMF).and.(rank.eq.0)) then
-           npbflt=npbf*(npbf+1)/2
            write(*,*)
            write(*,*) "FAE:"
            call prt_lower_triangle(nebf,nebflt,FAE)
@@ -867,8 +923,8 @@ C )
          end if
          ORBGRDA=0.0d+00
          ORBGRDB=0.0d+00
-         PGRADA=0.0d+00
-         PGRADB=0.0d+00
+         if(allocated(PGRADA)) PGRADA=0.0D+00
+         if(allocated(PGRADB)) PGRADB=0.0D+00
 
          if (rank.eq.0) then
           write(*,2001) I
@@ -972,10 +1028,10 @@ C )
            do j=1,nocca
              tempvecA(:,j+nebf-nocca-noccb)=vecAE0(:,j)
            end do
-CC ARS( check ovlap
-C      write(*,*) "regular tempvecA"
-C      call checkovlap(nwbfA,nebf,tempvecA,xxse)
-CC )
+           if(LCMF) then
+            write(*,*) "regular tempvecA"
+            call checkovlap(nwbfA,nebf,tempvecA,xxse)
+           end if
 
            call RXCHFmult_OCBSE_transF(nebf,nwbfA,tempvecA,
      x                                 FAE,WA,wFAEw)
@@ -989,10 +1045,10 @@ CC )
            call pack_LT(nwbfA,nwbfLTA,wFAEw,wFLTAw)
            call RXCHFmult_OCBSE_transVt(nebf,nwbfA,WA,
      x                                  xxse,vecAE,wvecAEw)
-CC ARS( check ovlap
-C      write(*,*) "regular transVt vecAE"
-C      call checkovlap(nebf,nebf,vecAE,xxse)
-CC )
+           if(LCMF) then
+            write(*,*) "regular transVt vecAE"
+            call checkovlap(nebf,nebf,vecAE,xxse)
+           end if
            call SOGRAD(GRADA,wFLTAw,wvecAEw,wWRKAw,NPRA,NA,
      x                 L0wA,L1wA,NwBFLTA,ORBGRDA)
 C      write(*,*) "regular grada:",grada
@@ -1034,10 +1090,10 @@ C                 write(*,*) "regular displia:",displia
               END IF
               call RXCHFmult_OCBSE_transV(nebf,nwbfA,WA,wvecAEw,wAEenw, ! eigenvalues useless
      x                                    vecAE,AEe)
-CC ARS( check ovlap
-C      write(*,*) "regular transV vecAE"
-C      call checkovlap(nebf,nebf,vecAE,xxse)
-CC )
+              if(LCMF) then
+               write(*,*) "regular transV vecAE"
+               call checkovlap(nebf,nebf,vecAE,xxse)
+              end if
               call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
               GO TO 250
             END IF
@@ -1049,10 +1105,10 @@ CC )
 !  - Obtain updated vecAE in WA basis of this iteration
            call RXCHFmult_OCBSE_diag(nebf,nwbfA,WA,wFAEw,
      x                               wvecAEw,wAEenw,vecAE,AEe)
-CC ARS( check ovlap
-C      write(*,*) "regular diag vecAE"
-C      call checkovlap(nebf,nebf,vecAE,xxse)
-CC )
+           if(LCMF) then
+            write(*,*) "regular diag vecAE"
+            call checkovlap(nebf,nebf,vecAE,xxse)
+           end if
            call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
 
   250 CONTINUE
@@ -1070,10 +1126,10 @@ CC )
            do j=1,noccb
              tempvecB(:,j+nebf-nocca-noccb)=vecBE0(:,j)
            end do
-CC ARS( check ovlap
-C      write(*,*) "special tempvecB"
-C      call checkovlap(nwbfB,nebf,tempvecB,xxse)
-CC )
+           if(LCMF) then
+            write(*,*) "special tempvecB"
+            call checkovlap(nwbfB,nebf,tempvecB,xxse)
+           end if
 
            call RXCHFmult_OCBSE_transF(nebf,nwbfB,tempvecB,
      x                                 FBE,WB,wFBEw)
@@ -1087,10 +1143,10 @@ CC )
            call pack_LT(nwbfB,nwbfLTB,wFBEw,wFLTBw)
            call RXCHFmult_OCBSE_transVt(nebf,nwbfB,WB,
      x                                  xxse,vecBE,wvecBEw)
-CC ARS( check ovlap
-C      write(*,*) "special transVt vecBE"
-C      call checkovlap(nebf,nebf,vecBE,xxse)
-CC )
+           if(LCMF) then
+            write(*,*) "special transVt vecBE"
+            call checkovlap(nebf,nebf,vecBE,xxse)
+           end if
            call SOGRAD(GRADB,wFLTBw,wvecBEw,wWRKBw,NPRB,NB,
      x                 L0wB,L1wB,NwBFLTB,ORBGRDB)
 C      write(*,*) "special gradb:",gradb
@@ -1132,10 +1188,10 @@ C                 write(*,*) "special displib:",displib
               END IF
               call RXCHFmult_OCBSE_transV(nebf,nwbfB,WB,wvecBEw,wBEenw, ! eigenvalues useless
      x                                    vecBE,BEe)
-CC ARS( check ovlap
-C      write(*,*) "special transV vecBE"
-C      call checkovlap(nebf,nebf,vecBE,xxse)
-CC )
+              if(LCMF) then
+               write(*,*) "special transV vecBE"
+               call checkovlap(nebf,nebf,vecBE,xxse)
+              end if
               call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
               GO TO 350
             END IF
@@ -1147,10 +1203,10 @@ CC )
 !  - Obtain updated vecBE in WB basis of this iteration
            call RXCHFmult_OCBSE_diag(nebf,nwbfB,WB,wFBEw,
      x                               wvecBEw,wBEenw,vecBE,BEe)
-CC ARS( check ovlap
-C      write(*,*) "special diag vecBE"
-C      call checkovlap(nebf,nebf,vecBE,xxse)
-CC )
+           if(LCMF) then
+            write(*,*) "special diag vecBE"
+            call checkovlap(nebf,nebf,vecBE,xxse)
+           end if
            call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
 
   350 CONTINUE
@@ -1182,12 +1238,12 @@ C --------------------------- POTENTIAL DIIS ---------------------------
      x                   vecAE,vecBE,xxse,
      x                   errvec,vecDIIS,errDIIS)
         itDIIS=itDIIS+1
-CC ARS( check ovlap
-C        write(*,*) "regular DIIS vecAE"
-C        call checkovlap(nebf,nebf,vecAE,xxse)
-C        write(*,*) "special DIIS vecBE"
-C        call checkovlap(nebf,nebf,vecBE,xxse)
-CC )
+        if(LCMF) then
+         write(*,*) "regular DIIS vecAE"
+         call checkovlap(nebf,nebf,vecAE,xxse)
+         write(*,*) "special DIIS vecBE"
+         call checkovlap(nebf,nebf,vecBE,xxse)
+        end if
         call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
         call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
        end if
@@ -1276,7 +1332,6 @@ C ARS( no interaction
 C )
 
             IF ((LCMF).and.(rank.eq.0)) then
-             npbflt=npbf*(npbf+1)/2
              write(*,*)
              write(*,*) "FAE:"
              call prt_lower_triangle(nebf,nebflt,FAE)
@@ -1342,10 +1397,10 @@ C      write(*,*) "pgrad:",PGRADA
                 CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
               END IF
               call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
-CC ARS( check ovlap
-C        write(*,*) "regular SORXCHF vecAE"
-C        call checkovlap(nebf,nebf,vecAE,xxse)
-CC )
+              if(LCMF) then
+               write(*,*) "regular SORXCHF vecAE"
+               call checkovlap(nebf,nebf,vecAE,xxse)
+              end if
               GO TO 950
             END IF
          END IF
@@ -1355,10 +1410,10 @@ CC )
 !        call ROOTHAN(DAE,vecAE,AEE,xxse,FAE,nebf,nelec,1,NUCST)
          call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
          call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
-CC ARS( check ovlap
-C      write(*,*) "regular diag vecAE",ielec
-C      call checkovlap(nebf,nebf,vecAE,xxse)
-CC )
+         if(LCMF) then
+          write(*,*) "regular diag vecAE",ielec
+          call checkovlap(nebf,nebf,vecAE,xxse)
+         end if
 
   950 CONTINUE
 
@@ -1380,10 +1435,10 @@ C ARS( OCBSE/SOSCF
            call pack_LT(nwbfB,nwbfLTB,wFBEw,wFLTBw)
            call RXCHFmult_OCBSE_transVt(nebf,nwbfB,WB,
      x                                  xxse,vecBE,wvecBEw)
-CC ARS( check ovlap
-C      write(*,*) "special transVt vecBE"
-C      call checkovlap(nebf,nebf,vecBE,xxse)
-CC )
+           if(LCMF) then
+            write(*,*) "special transVt vecBE"
+            call checkovlap(nebf,nebf,vecBE,xxse)
+           end if
            call SOGRAD(GRADB,wFLTBw,wvecBEw,wWRKBw,NPRB,NB,
      x                 L0wB,L1wB,NwBFLTB,ORBGRDB)
 !      write(*,*) "special gradb:",gradb
@@ -1425,10 +1480,10 @@ C                 write(*,*) "special displib:",displib
               END IF
               call RXCHFmult_OCBSE_transV(nebf,nwbfB,WB,wvecBEw,wBEenw, ! eigenvalues useless
      x                                    vecBE,BEe)
-CC ARS( check ovlap
-C      write(*,*) "special transV vecBE"
-C      call checkovlap(nebf,nebf,vecBE,xxse)
-CC )
+              if(LCMF) then
+               write(*,*) "special transV vecBE"
+               call checkovlap(nebf,nebf,vecBE,xxse)
+              end if
               call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
               GO TO 450
             END IF
@@ -1440,10 +1495,10 @@ CC )
 !  - Obtain updated vecBE in W basis of this iteration
          call RXCHFmult_OCBSE_diag(nebf,nwbfB,WB,wFBEw,
      x                             wvecBEw,wBEenw,vecBE,BEe)
-CC ARS( check ovlap
-C      write(*,*) "special diag vecBE"
-C      call checkovlap(nebf,nebf,vecBE,xxse)
-CC )
+         if(LCMF) then
+          write(*,*) "special diag vecBE"
+          call checkovlap(nebf,nebf,vecBE,xxse)
+         end if
          call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
 
   450 CONTINUE
@@ -1526,7 +1581,6 @@ C ARS( no interaction
 C )
 
             IF ((LCMF).and.(rank.eq.0)) then
-             npbflt=npbf*(npbf+1)/2
              write(*,*)
              write(*,*) "FAE:"
              call prt_lower_triangle(nebf,nebflt,FAE)
@@ -1691,6 +1745,14 @@ C ARS( debug: print out MOs here
            call PREVNU(vecBE,BEE,nebf,nebf,nebf)
            WRITE(*,9700)
            call PREVNU(vecp,EP,npbf,npbf,npbf)
+          end if
+C )
+C ARS( check orthonormality of MOs
+          if(LCMF) then
+           write(*,*) "Regular MO overlap matrix:"
+           call checkovlap(nebf,nebf,vecAE,xxse)
+           write(*,*) "Special MO overlap matrix:"
+           call checkovlap(nebf,nebf,vecBE,xxse)
           end if
 C )
 ! Output the vectors for this iteration for restart if necessary:

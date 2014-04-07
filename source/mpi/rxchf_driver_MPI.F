@@ -13,7 +13,8 @@ C=======================================================================
      x                            read_GAM2,read_GAM3,read_GAM4,
      x                            LG2IC,LG3IC,LG4IC,
      x                            LG2DSCF,LG3DSCF,LG4DSCF,
-     x                            LSOSCF,LOCBSE,LCMF,LADDEXCH)
+     x                            LSOSCF,LDIIS,LSORXCHF,OCBSETYP,
+     x                            LDBG,EXCHLEV)
 
 C Driver to calculate RXCHF integrals for nbe > 1
 C   XCHF_GAM* : integrals needed for XCHF contribution
@@ -59,13 +60,16 @@ C Input variables
       logical LG3DSCF                  ! Direct SCF for 4-particle integrals
       logical LG4DSCF                  ! Direct SCF for 5-particle integrals
       logical LSOSCF                   ! SOSCF where applicable
-      logical LOCBSE                   ! OCBSE2 procedure
-      logical LCMF                     ! On-the-fly Fock matrix check and debugging
-      logical LADDEXCH                 ! Flag to activate approximate exchange
+      logical LDIIS                    ! DIIS where applicable
+      logical LSORXCHF                 ! SORXCHF where applicable
+      logical LDBG                     ! Debugging flag
       logical read_CE,read_CP          ! Read in orbitals
       logical read_GAM2                ! 
       logical read_GAM3                ! Read in integrals
       logical read_GAM4                ! 
+      logical LADDEXCH
+      integer EXCHLEV                  ! 0=ne; 1=ae; 2=fe
+      integer OCBSETYP                 ! 1=OCBSE; 2=OCBSE2
       double precision pmass           ! Mass of nonelectron quantum particle 
       double precision zan(nat)        ! Classical nuclear charges
       double precision cat(3,nat)      ! Classical nuclear coordinates (au)
@@ -85,7 +89,8 @@ C Local variables
       integer      ierr
 #endif
       character*4  istring              ! File I/O variables
-      integer      nebf2,npbf2,nebflt   ! Convenient quantities
+      integer      nebf2,npbf2          ! Convenient quantities
+      integer      nebflt,npbflt        !
       integer      npra,nprb            ! Number of distinct electron pairs
       integer      dimXCHF2             !
       integer      dimXCHF3             ! Dimensions of XCHF integral arrays
@@ -120,6 +125,13 @@ C Initialize dimensions
       dimINT4   = 1
       dimINT2ex = 1
       dimINT3ex = 1
+
+C Set logical flag for -ae
+      if(EXCHLEV.gt.1) then
+       LADDEXCH=.true.
+      else
+       LADDEXCH=.false.
+      end if
 
 C Variable for file I/O
       write(istring,'(I4.4)') rank
@@ -612,51 +624,18 @@ C Kick-off SCF
       nebf2=nebf*nebf
       npbf2=npbf*npbf
       nebflt=nebf*(nebf+1)/2
-
-C ARS( OCBSE hardwired over OCBSE2
-C      if(nae.gt.1) then
-C       npra=(nebf-(nae/2))*(nae/2) ! occ-vir pairs for regular elecs
-C      else
-C         npra=nae*(nebf-nae)
-C      end if
-      if(nae.gt.1) then
-       if (LOCBSE) then ! account for noccb less virtual orbitals
-        if (nbe.gt.1) then
-         npra=((nebf-nbe/2)-(nae/2))*(nae/2)
-        else
-         npra=((nebf-nbe)-(nae/2))*(nae/2)
-        end if
-       else
-        npra=(nebf-(nae/2))*(nae/2) ! occ-vir pairs for regular elecs
-       end if
-      else
-       npra=nae*(nebf-nae)
-      end if
-C )
-
-      if(nbe.gt.1) then
-       if (LOCBSE) then ! account for nocca less virtual orbitals
-        if (nae.gt.1) then
-         nprb=((nebf-nae/2)-(nbe/2))*(nbe/2)
-        else
-         nprb=((nebf-nae)-(nbe/2))*(nbe/2)
-        end if
-       else
-        nprb=(nebf-(nbe/2))*(nbe/2) ! occ-vir pairs for special elecs
-       end if
-      else
-       nprb=nbe*(nebf-nbe)
-      end if
+      npbflt=npbf*(npbf+1)/2
 
       if ((read_GAM3).or.(nblocks.eq.1)) then
        call RXCHF_scf_MPI(nproc,rank,
-     x                    nelec,nae,nbe,npra,nprb,nebflt,nucst,
+     x                    nelec,nae,nbe,nebflt,npbflt,nucst,
      x                    npebf,nebf,nebf2,npbf,npbf2,ngee,
      x                    ngtg1,ng1,ng2,ng3,ng4,
      x                    NG2CHK,NG3CHK,NG4CHK,
      x                    read_CE,read_CP,
      x                    LG4DSCF,LG3DSCF,LG2DSCF,
-     x                    LSOSCF,LOCBSE,LCMF,LADDEXCH,
+     x                    LSOSCF,LDIIS,LSORXCHF,
+     x                    OCBSETYP,LDBG,LADDEXCH,
      x                    ng2prm,ng3prm,nat,pmass,cat,zan,
      x                    bcoef1,gamma1,
      x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,

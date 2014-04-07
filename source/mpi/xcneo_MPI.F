@@ -40,10 +40,10 @@
       integer,allocatable :: KPEEND(:)  ! Map contracted index to primitive end
       double precision,allocatable :: zan(:) ! Classical nuclear charges
       double precision,allocatable :: cat(:,:) ! XYZ Coordinates of classical atoms
-      double precision,allocatable :: bcoef1(:)
-      double precision,allocatable :: gamma1(:)
+      double precision,allocatable :: bgem(:)
+      double precision,allocatable :: ggem(:)
       integer nat
-      integer ngtg1
+      integer ngtg
       integer nelec
       integer NAE               ! Number of regular electrons
       integer NBE               ! Number of special electrons
@@ -84,19 +84,19 @@
       logical read_GAM3
       logical read_GAM4
       logical LGAM4
-      logical LCMF
+      logical LDBG
       logical LSOSCF
+      logical LDIIS
+      logical LSORXCHF
+      integer OCBSETYP
       logical LRXCHF
       logical LRXCUHF
-      logical LOCBSE
 
       double precision a2bohr,bohr2a
       parameter(bohr2a=0.529177249d+00)
       parameter(a2bohr=1.0d+00/0.529177249d+00)
 
       integer npebf,nebf,npbf
-      integer nebf2,npbf2,NPR,NEBFLT
-      integer NPRA,NPRB
 
       integer ngee
       integer ng1,ng2,ng3,ng4
@@ -106,10 +106,10 @@
 
 #if MPI32
       integer*4 nproc4,rank4,namelen,ierr
-      integer*4 ngtg1_,nat_,npebf_,npbf_,nebf_
+      integer*4 ngtg_,nat_,npebf_,npbf_,nebf_
 #else
       integer namelen,ierr
-      integer ngtg1_,nat_,npebf_,npbf_,nebf_
+      integer ngtg_,nat_,npebf_,npbf_,nebf_
 #endif
       integer nproc,rank
       character(len=25) :: procname
@@ -119,130 +119,407 @@
       integer nblocks
       integer blockrank
 
+      logical foundrec,inperr
+      character*70 exe
+      character*30 fname
+      character*72 line
+      character*6  CATOMS
+      character*7  CEBASIS
+      character*7  CPBASIS
+      character*1  istring
+
+      namelist /sysinfo/ nat,nebf,npebf,npbf,ngtg,pmass,nelec,nucst
+      namelist /control/ lneohf,lxcuhf,lxcrohf,lrxchf,lrxcuhf
+      namelist /guessmo/ read_ce,read_cp
+      namelist /intctrl/ read_gam2,read_gam3,read_gam4,
+     x                   ng2chk,ng3chk,ng4chk,nblocks,blockrank
+      namelist /scfctrl/ ldbg,lsoscf,ldiis,lsorxchf,ocbsetyp
+      namelist /geminal/ bgem,ggem
+      namelist /xcuhf  / nae,nbe
+      namelist /rxchf  / nae,nbe,exchlev
+      namelist /rxcuhf / naalpe,nabete
+
 #if MPI32
       call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc4,ierr)
       call MPI_COMM_RANK(MPI_COMM_WORLD,rank4,ierr)
       rank=int(rank4,kind=8)
       nproc=int(nproc4,kind=8)
-      if(rank.eq.0) write(*,*) "Assuming 32-bit integer MPI library"
 #else
       call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
       call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
-      if(rank.eq.0) write(*,*) "Assuming 64-bit integer MPI library"
 #endif
       call MPI_GET_PROCESSOR_NAME(procname,namelen,ierr)
+
+      if(rank.eq.0) then
+       write(*,2000)
+
+       call getarg(0,exe)
+       call getarg(1,fname)
+       write(*,*) "Running executable: "
+       write(*,*) "   "//trim(exe)
+       write(*,*) "Input file: "
+       write(*,*) "   "//trim(fname)
+       write(*,*)
+#if MPI32
+       write(*,*) "Assuming 32-bit integer MPI library"
+#else
+       write(*,*) "Assuming 64-bit integer MPI library"
+#endif
+       write(*,*)
+      end if
+
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      write(*,7000) "Process with rank",rank,
+      write(*,5000) "Process with rank",rank,
      x              "running on host",trim(procname)
+
+! Initialize
+      LNEOHF=.false.
+      LXCUHF=.false.
+      LXCROHF=.false.
+      LRXCHF=.true.
+      LRXCUHF=.false.
+      read_CE=.false.
+      read_CP=.false.
+      read_GAM2=.false.
+      read_GAM3=.false.
+      read_GAM4=.false.
+      NG2CHK=1
+      NG3CHK=1
+      NG4CHK=1
+      LGAM4=.true.
+      LG4DSCF=.false.
+      LG4IC=.true.
+      LG3DSCF=.false.
+      LG3IC1=.true.
+      LG3IC2=.false.
+      LG2DSCF=.false.
+      LG2IC1=.true.
+      LDBG=.false.
+      LSOSCF=.false.
+      LDIIS=.false.
+      LSORXCHF=.false.
+      OCBSETYP=2
+      CATOMS='&ATOMS'
+      CEBASIS='&EBASIS'
+      CPBASIS='&PBASIS'
+      nblocks=1
+      blockrank=0
+      inperr=.false.
 
 ! Read from file with master process
       if(rank.eq.0) then
-         open(unit=9,file='basis_definition.inp')
 
-         read(9,*) ngtg1
-         if(allocated(bcoef1)) deallocate(bcoef1)
-         allocate( bcoef1(ngtg1),stat=istat )
-         if(allocated(gamma1)) deallocate(gamma1)
-         allocate( gamma1(ngtg1),stat=istat )
-         do i=1,ngtg1
-            read(9,*)bcoef1(i),gamma1(i)
-         end do
+       open(unit=9,file=trim(fname)//'.inp')
 
-         read(9,*)nat
-         if(allocated(zan)) deallocate(zan)
-         allocate( zan(nat),stat=istat )
-         if(allocated(cat)) deallocate(cat)
-         allocate( cat(3,nat),stat=istat )
-         do i=1,nat
-            read(9,*)zan(i),cat(1,i),cat(2,i),cat(3,i)
-            cat(1,i)=a2bohr*cat(1,i)
-            cat(2,i)=a2bohr*cat(2,i)
-            cat(3,i)=a2bohr*cat(3,i)
-         end do
+!!!!!!!!!!!!!!! Read system info !!!!!!!!!!!!!! 
+       read(9,nml=sysinfo)
+       write(*,*)
+       write(*,nml=sysinfo)
+       write(*,*)
 
-         read(9,*)nebf
-         read(9,*)npebf
-         if(allocated(AMPEB2C)) deallocate(AMPEB2C)
-         allocate( AMPEB2C(npebf),stat=istat )
-         if(allocated(ELCEX)) deallocate(ELCEX)
-         allocate( ELCEX(npebf),stat=istat )
-         if(allocated(AGEBFCC)) deallocate(AGEBFCC)
-         allocate( AGEBFCC(npebf),stat=istat )
-         if(allocated(ELCAM)) deallocate(ELCAM)
-         allocate( ELCAM(npebf,3),stat=istat )
-         if(allocated(ELCBFC)) deallocate(ELCBFC)
-         allocate( ELCBFC(npebf,3),stat=istat )
-         do i=1,npebf
-            read(9,*)idum,AMPEB2C(i),ELCAM(i,1),ELCAM(i,2),ELCAM(i,3),
-     x    ELCEX(i),AGEBFCC(i),ELCBFC(i,1),ELCBFC(i,2),ELCBFC(i,3)
-            do j=1,3
-               ELCBFC(i,j)=a2bohr*ELCBFC(i,j)
-            end do
-         end do
+!!!!!!!!!!!!!!! Read control info !!!!!!!!!!!!!! 
+       rewind(9)
+       read(9,nml=control)
+       write(*,*)
+       write(*,nml=control)
+       write(*,*)
 
-         read(9,*)npbf
-         if(allocated(NUCEX)) deallocate(NUCEX)
-         allocate( NUCEX(npbf),stat=istat )
-         if(allocated(AGNBFCC)) deallocate(AGNBFCC)
-         allocate( AGNBFCC(npbf),stat=istat )
-         if(allocated(NUCAM)) deallocate(NUCAM)
-         allocate( NUCAM(npbf,3),stat=istat )
-         if(allocated(NUCBFC)) deallocate(NUCBFC)
-         allocate( NUCBFC(npbf,3),stat=istat )
-         do i=1,npbf
-            read(9,*)idum,idum,NUCAM(i,1),NUCAM(i,2),NUCAM(i,3),
-     x    NUCEX(i),AGNBFCC(i),NUCBFC(i,1),NUCBFC(i,2),NUCBFC(i,3)
-            do j=1,3
-               NUCBFC(i,j)=a2bohr*NUCBFC(i,j)
-            end do
-         end do
-         if(allocated(KPESTR)) deallocate(KPESTR)
-         allocate( KPESTR(nebf),stat=istat )
-         if(allocated(KPEEND)) deallocate(KPEEND)
-         allocate( KPEEND(nebf),stat=istat )
-         call make_KPE(nebf,npebf,AMPEB2C,KPESTR,KPEEND)
+       if(LNEOHF.and.LRXCHF) then
+        LRXCHF=.false.
+        write(*,*) "Overriding LRXCHF since LNEOHF=.TRUE."
+       end if
+       if(LNEOHF.and.LRXCUHF) then
+        LRXCUHF=.false.
+        LXCUHF=.false.
+        write(*,*) "Overriding LRXCUHF since LNEOHF=.TRUE."
+       end if
 
-         read(9,*)pmass
-         read(9,*)nelec
-         read(9,*)NAE
-         read(9,*)NBE
-         read(9,*) NUCST
-         read(9,*) LNEOHF
-         read(9,*) LXCUHF
-         read(9,*) LXCROHF
-         read(9,*) LRXCHF
-         read(9,*) LRXCUHF
-         read(9,*) read_CE
-         read(9,*) read_CP
-         read(9,*) read_GAM2
-         read(9,*) read_GAM3
-         read(9,*) read_GAM4
-         read(9,*) NG4CHK
-         read(9,*) LGAM4
-         read(9,*) LG4DSCF
-         read(9,*) LG4IC
-         read(9,*) NG3CHK
-         read(9,*) LG3DSCF
-         read(9,*) LG3IC1
-         read(9,*) LG3IC2
-         read(9,*) NG2CHK
-         read(9,*) LG2DSCF
-         read(9,*) LG2IC1
-         read(9,*) LCMF
-         read(9,*) LSOSCF
-         read(9,*) LOCBSE
-         read(9,*) EXCHLEV ! 0=RXCHF-ne; 1=RXCHF-ae; 2=RXCHF-fe
-         read(9,*) nblocks
-         read(9,*) blockrank
+       if(LRXCHF.and.LRXCUHF) then
+        LRXCHF=.false.
+        write(*,*) "Overriding LRXCHF since LRXCUHF=.TRUE."
+       end if
 
-         close(9)
+       if ((LRXCHF).and.(LXCUHF)) then
+        write(*,*) "Cannot have LRXCHF and LXCUHF"
+        write(*,*) "Exiting..."
+        inperr=.true.
+       end if
+
+       if ((LRXCUHF).and.(LXCUHF)) then
+        write(*,*) "Cannot have LRXCUHF and LXCUHF"
+        write(*,*) "Exiting..."
+        inperr=.true.
+       end if
+
+!!!!!!!!!!!!!!! Read guess info !!!!!!!!!!!!!! 
+       rewind(9)
+       read(9,nml=guessmo)
+       write(*,*)
+       write(*,nml=guessmo)
+       write(*,*)
+
+!!!!!!!!!!!!!!! Read integral info !!!!!!!!!!!!!! 
+       rewind(9)
+       read(9,nml=intctrl)
+       write(*,*)
+       write(*,nml=intctrl)
+       write(*,*)
+ 
+!!!!!!!!!!!!!!! Read SCF info !!!!!!!!!!!!!! 
+       rewind(9)
+       read(9,nml=scfctrl)
+       write(*,*)
+       write(*,nml=scfctrl)
+       write(*,*)
+
+       if(LSOSCF.and.LDIIS) then
+        write(*,*) "Cannot have both SOSCF and DIIS"
+        write(*,*) "Proceeding with DIIS..."
+        LSOSCF=.false.
+       end if
+       if(LSOSCF.and.LSORXCHF) then
+        write(*,*) "Cannot have both SOSCF and SORXCHF"
+        write(*,*) "Proceeding with SORXCHF..."
+        LSOSCF=.false.
+       end if
+C       if(LDIIS.and.LSORXCHF) then
+C        write(*,*) "Cannot have both DIIS and SORXCHF"
+C        write(*,*) "Proceeding with SORXCHF..."
+C        LDIIS=.false.
+C       end if
+
+!!!!!!!!!!!!!!! Read in geminal info !!!!!!!!!!!!!! 
+       if(allocated(bgem)) deallocate(bgem)
+       if(allocated(ggem)) deallocate(ggem)
+
+       if(.not.(LNEOHF)) then
+        allocate(bgem(ngtg))
+        allocate(ggem(ngtg))
+        rewind(9)
+        read(9,nml=geminal)
+       else
+        ngtg=1
+        allocate(bgem(ngtg))
+        allocate(ggem(ngtg))
+        bgem=1.0d+00
+        ggem=1.0d-15
+       end if
+
+!!!!!!!!!!!!!!! Read in XCHF/NEO-HF openshell info !!!!!!!!!!!!!!!
+       if(LXCUHF) then
+        rewind(9)
+        read(9,nml=xcuhf)
+        write(*,*)
+        write(*,nml=xcuhf)
+        write(*,*)
+        if((nae+nbe).ne.nelec) then
+         write(*,*) "Num alpha electrons:",NAE
+         write(*,*) "Num beta  electrons:",NBE
+         write(*,*) "Num total electrons:",nelec
+         write(*,*) "Not equal. Exiting..."
+         inperr=.true.
+        end if
+       end if
+
+!!!!!!!!!!!!!!! Read in RXCHF info !!!!!!!!!!!!!!!
+       if((LRXCHF).or.(LRXCUHF)) then
+        rewind(9)
+        read(9,nml=rxchf)
+        write(*,*)
+        write(*,nml=rxchf)
+        write(*,*)
+        if((nae+nbe).ne.nelec) then
+         write(*,*) "Num regular electrons:",NAE
+         write(*,*) "Num special electrons:",NBE
+         write(*,*) "Num total   electrons:",nelec
+         write(*,*) "Not equal. Exiting..."
+         inperr=.true.
+        end if
+       end if
+
+       if (((LRXCHF).or.(LRXCUHF)).and.(nelec.ge.4).and.(exchlev.eq.2))
+     x       then
+        write(*,*) "Currently only nelec<4 is supported for RXCHF-fe"
+        write(*,*) "Exiting..."
+        inperr=.true.
+       end if
+
+       if (((LRXCHF).or.(LRXCUHF)).and.
+     x          ((exchlev.lt.0).or.(exchlev.gt.2))) then
+        write(*,*) "EXCHLEV must be between 0 and 2:"
+        write(*,*) "        = 0 for RXCHF-ne"
+        write(*,*) "        = 1 for RXCHF-ae"
+        write(*,*) "        = 2 for RXCHF-fe"
+        write(*,*) "Exiting..."
+        inperr=.true.
+       end if
+
+       if ((EXCHLEV.gt.0).and.(LRXCHF).and.(NBE.eq.1)) then
+        write(*,*) "EXCHLEV > 0 should only be used with LRXCUHF"
+        write(*,*) "Exiting..."
+        inperr=.true.
+       end if
+
+       if((LRXCUHF).and.(nae.eq.1)) then
+        write(*,*) "For NAE=1 regular electron, use RXCHF-ne"
+        write(*,*) "Exiting..."
+        inperr=.true.
+       end if
+
+       if((LRXCUHF).and.(nbe.gt.1)) then
+        write(*,*) "Open-shell RXCHF for more than one special"
+        write(*,*) "is currently not supported."
+        write(*,*) "Exiting..."
+        inperr=.true.
+       end if
+
+       if ((LRXCHF.or.LRXCUHF).and.(NBE.gt.1).and.(EXCHLEV.gt.1)) then
+        write(*,*) "Only RXCHF-ne and RXCHF-ae are currently"
+        write(*,*) "supported for more than one special electron."
+        write(*,*) "Exiting..."
+        inperr=.true.
+       end if
+
+       if ((LRXCHF.or.LRXCUHF).and.(NBE.gt.2).and.(EXCHLEV.eq.1)) then
+        write(*,*) "WARNING: A balanced version of RXCHF-ae has only"
+        write(*,*) "         been derived for up to two special"
+        write(*,*) "         electrons: use with caution for NBE>2!"
+       end if
+
+       if((LRXCHF.or.LRXCUHF).and.((OCBSETYP.lt.0).or.(OCBSETYP.gt.3)))
+     x  then
+        write(*,*) "OCBSETYP must be one of:"
+        write(*,*) " = 0 : OCBSE off"
+        write(*,*) " = 1 : OCBSE"
+        write(*,*) " = 2 : OCBSE2"
+        write(*,*) " = 3 : OCBSE3"
+        write(*,*) "Exiting..."
+        inperr=.true.
+       end if
+
+!!!!!!!!!!!!!!! Read in RXCUHF info !!!!!!!!!!!!!!!
+       if(LRXCUHF) then
+        rewind(9)
+        read(9,nml=rxcuhf)
+        write(*,*)
+        write(*,nml=rxcuhf)
+        write(*,*)
+       end if
+
+       if(LRXCUHF) then
+C Ensure num beta reg elecs > num alpha reg elecs since special electron is assigned spin alpha
+        if (NAalpE.gt.NAbetE) then  
+         write(*,*) "Exchanging NAalpE and NAbetE since special"
+         write(*,*) "electron is assumed to have spin alpha"
+         junk=NAalpE
+         NAalpE=NAbetE
+         NAbetE=junk
+        end if
+        if (NAE.ne.(NAalpE+NAbetE)) then
+         write(*,*) "# of regular electrons should be # alpha + # beta"
+         write(*,*) "   NAE: ",NAE
+         write(*,*) "   NAalpE: ",NAalpE
+         write(*,*) "   NAbetE: ",NAbetE
+         write(*,*) "Exiting..."
+         inperr=.true.
+        end if
+       end if
+
+!!!!!!!!!!!!!!! Read in atomic coordinates !!!!!!!!!!!!!!!
+       if(allocated(zan)) deallocate(zan)
+       if(allocated(cat)) deallocate(cat)
+       allocate(zan(nat))
+       allocate(cat(3,nat))
+
+       rewind(9)
+       foundrec=.false.
+       do while (.not.(foundrec))
+         read(9,*) line
+         if(trim(line).eq.CATOMS) then
+          foundrec=.true.
+         end if
+       end do
+
+       do i=1,nat
+          read(9,*)zan(i),cat(1,i),cat(2,i),cat(3,i)
+          cat(1,i)=a2bohr*cat(1,i)
+          cat(2,i)=a2bohr*cat(2,i)
+          cat(3,i)=a2bohr*cat(3,i)
+       end do
+
+!!!!!!!!!!!!!!! Read in electronic basis sets !!!!!!!!!!!!!!!
+       if(allocated(AMPEB2C)) deallocate(AMPEB2C)
+       if(allocated(ELCEX)) deallocate(ELCEX)
+       if(allocated(AGEBFCC)) deallocate(AGEBFCC)
+       if(allocated(ELCAM)) deallocate(ELCAM)
+       if(allocated(ELCBFC)) deallocate(ELCBFC)
+       allocate(AMPEB2C(npebf))
+       allocate(ELCEX(npebf))
+       allocate(AGEBFCC(npebf))
+       allocate(ELCAM(npebf,3))
+       allocate(ELCBFC(npebf,3))
+
+       rewind(9)
+       foundrec=.false.
+       do while (.not.(foundrec))
+         read(9,*) line
+         if(trim(line).eq.CEBASIS) then
+          foundrec=.true.
+         end if
+       end do
+
+       do i=1,npebf
+          read(9,*)idum,AMPEB2C(i),ELCAM(i,1),ELCAM(i,2),ELCAM(i,3),
+     x  ELCEX(i),AGEBFCC(i),ELCBFC(i,1),ELCBFC(i,2),ELCBFC(i,3)
+          do j=1,3
+             ELCBFC(i,j)=a2bohr*ELCBFC(i,j)
+          end do
+       end do
+
+!!!!!!!!!!!!!!! Read in nuclear basis sets !!!!!!!!!!!!!!!
+       if(allocated(NUCEX)) deallocate(NUCEX)
+       if(allocated(AGNBFCC)) deallocate(AGNBFCC)
+       if(allocated(NUCAM)) deallocate(NUCAM)
+       if(allocated(NUCBFC)) deallocate(NUCBFC)
+       allocate(NUCEX(npbf))
+       allocate(AGNBFCC(npbf))
+       allocate(NUCAM(npbf,3))
+       allocate(NUCBFC(npbf,3))
+
+       rewind(9)
+       foundrec=.false.
+       do while (.not.(foundrec))
+         read(9,*) line
+         if(trim(line).eq.CPBASIS) then
+          foundrec=.true.
+         end if
+       end do
+
+       do i=1,npbf
+          read(9,*)idum,idum,NUCAM(i,1),NUCAM(i,2),NUCAM(i,3),
+     x  NUCEX(i),AGNBFCC(i),NUCBFC(i,1),NUCBFC(i,2),NUCBFC(i,3)
+          do j=1,3
+             NUCBFC(i,j)=a2bohr*NUCBFC(i,j)
+          end do
+       end do
+
+       close(9)
+
+       if(allocated(KPESTR)) deallocate(KPESTR)
+       allocate( KPESTR(nebf),stat=istat )
+       if(allocated(KPEEND)) deallocate(KPEEND)
+       allocate( KPEEND(nebf),stat=istat )
+       call make_KPE(nebf,npebf,AMPEB2C,KPESTR,KPEEND)
 
       end if
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
+      call MPI_BCAST(inperr,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+      if(inperr) return
+
 ! Broadcast static variables including array dimensions to slave processes
-      call MPI_BCAST(ngtg1,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(ngtg,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(nebf,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(npebf,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(npbf,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
@@ -276,9 +553,11 @@
       call MPI_BCAST(NG2CHK,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(LG2DSCF,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(LG2IC1,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(LCMF,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LDBG,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(LSOSCF,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(LOCBSE,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LDIIS,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LSORXCHF,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(OCBSETYP,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(EXCHLEV,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(nblocks,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(blockrank,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
@@ -287,10 +566,10 @@
 
 ! Allocate arrays on slave processes
       if (rank.gt.0) then
-       if(allocated(bcoef1)) deallocate(bcoef1)
-       allocate( bcoef1(ngtg1),stat=istat )
-       if(allocated(gamma1)) deallocate(gamma1)
-       allocate( gamma1(ngtg1),stat=istat )
+       if(allocated(bgem)) deallocate(bgem)
+       allocate( bgem(ngtg),stat=istat )
+       if(allocated(ggem)) deallocate(ggem)
+       allocate( ggem(ngtg),stat=istat )
        if(allocated(zan)) deallocate(zan)
        allocate( zan(nat),stat=istat )
        if(allocated(cat)) deallocate(cat)
@@ -323,21 +602,21 @@
 
 ! Broadcast array data
 #if MPI32
-      ngtg1_=int(ngtg1,kind=4)
+      ngtg_=int(ngtg,kind=4)
       nat_=int(nat,kind=4)
       npebf_=int(npebf,kind=4)
       npbf_=int(npbf,kind=4)
       nebf_=int(nebf,kind=4)
 #else
-      ngtg1_=ngtg1
+      ngtg_=ngtg
       nat_=nat
       npebf_=npebf
       npbf_=npbf
       nebf_=nebf
 #endif
-      call MPI_BCAST(bcoef1,ngtg1_,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(bgem,ngtg_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(gamma1,ngtg1_,MPI_DOUBLE_PRECISION,
+      call MPI_BCAST(ggem,ngtg_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(zan,nat_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
@@ -392,57 +671,7 @@
       ng3prm=npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
 
       if (rank.eq.0) then
-       write(*,*)
-       write(*,*)'nat   =',nat
-       write(*,*)'npebf =',npebf
-       write(*,*)'nebf  =',nebf
-       write(*,*)'npbf  =',npbf
-       write(*,*)'ngtg1 =',ngtg1
-       write(*,*)'ngee  =',ngee
-       write(*,*)'ng1   =',ng1
-       write(*,*)'ng2   =',ng2
-       write(*,*)'ng3   =',ng3
-       write(*,*)'ng4   =',ng4
-       write(*,*)'ng1prm=',ng1prm
-       write(*,*)'ng2prm=',ng2prm
-       write(*,*)'ng3prm=',ng3prm
-       write(*,*)
-       write(*,*)'PMASS   =',PMASS
-       write(*,*)'nelec   =',nelec
-       write(*,*)'NAE     =',NAE,'= total number of regular electrons'
-       write(*,*)'NBE     =',NBE,'= number of special electrons'
-       write(*,*)'NUCST   =',NUCST
-       write(*,*)'LNEOHF  =',LNEOHF
-       write(*,*)'LXCUHF  =',LXCUHF
-       write(*,*)'LXCROHF =',LXCROHF
-       write(*,*)'LRXCHF  =',LRXCHF
-       write(*,*)'LRXCUHF  =',LRXCUHF
-       write(*,*)'read_CE =',read_CE
-       write(*,*)'read_CP =',read_CP
-       write(*,*)'READ_GAM2=',read_GAM2
-       write(*,*)'READ_GAM3=',read_GAM3
-       write(*,*)'READ_GAM4=',read_GAM4
-       write(*,*)'NG4CHK  =',NG4CHK
-       write(*,*)'LGAM4   =',LGAM4
-       write(*,*)'LG4DSCF =',LG4DSCF
-       write(*,*)'LG4IC   =',LG4IC 
-       write(*,*)'NG3CHK  =',NG3CHK
-       write(*,*)'LG3DSCF =',LG3DSCF
-       write(*,*)'LG3IC1  =',LG3IC1
-       write(*,*)'LG3IC2  =',LG3IC2
-       write(*,*)'NG2CHK  =',NG2CHK
-       write(*,*)'LG2DSCF =',LG2DSCF
-       write(*,*)'LG2IC1  =',LG2IC1
-       write(*,*)'LCMF    =',LCMF
-       write(*,*)'LSOSCF  =',LSOSCF
-       write(*,*)'LOCBSE  =',LOCBSE
-       write(*,*)'EXCHLEV =',EXCHLEV,' (=2: fe; =1: ae; =0: ne)'
-       write(*,*)'NBLOCKS =',nblocks
-       write(*,*)'BLOCKRNK=',blockrank
-       write(*,*) "Geminal parameters: k, b_k, gamm_k"
-          do i=1,ngtg1
-             write(*,*) i,bcoef1(i),gamma1(i)
-          end do
+
        write(*,*)
        write(*,*) "========================================"
        write(*,*)
@@ -461,6 +690,22 @@
        write(*,*)
        write(*,*) "========================================"
        write(*,*)
+
+       write(*,*)
+       write(*,*) "GEMINAL PARAMETERS"
+       write(*,*) "  k          b_k                 gamma_k"
+       do i=1,ngtg
+         write(*,6000) i,bgem(i),ggem(i)
+       end do
+
+       write(*,*) 
+       write(*,*) 'ATOMIC COORDINATES (BOHR)'
+       write(*,*) 
+       write(*,*) 'CHARGE -X COORDINATE- -Y COORDINATE- -Z COORDINATE-'
+       do i=1,nat
+         write(*,7000) zan(i),cat(1,i),cat(2,i),cat(3,i)
+       end do
+       write(*,*) 
       
        write(*,*)
        write(*,*)' CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS '
@@ -575,10 +820,10 @@
       call RXCHF_driver_MPI(nproc,rank,
      x                      nblocks,blockrank,
      x                      nelec,nae,nbe,nucst,
-     x                      nebf,npebf,npbf,nat,ngtg1,
+     x                      nebf,npebf,npbf,nat,ngtg,
      x                      ng1,ng2,ng3,ng4,ngee,
      x                      ng1prm,ng2prm,ng3prm,
-     x                      pmass,cat,zan,bcoef1,gamma1,
+     x                      pmass,cat,zan,bgem,ggem,
      x                      KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                      NG2CHK,NG3CHK,NG4CHK,
@@ -586,13 +831,27 @@
      x                      read_GAM2,read_GAM3,read_GAM4,
      x                      LG2IC1,LG3IC1,LG4IC,
      x                      LG2DSCF,LG3DSCF,LG4DSCF,
-     x                      LSOSCF,LOCBSE,LCMF,EXCHLEV)
+     x                      LSOSCF,LDIIS,LSORXCHF,OCBSETYP,
+     x                      LDBG,EXCHLEV)
 
       write(*,*) "Process is finished:",rank
 
- 7000 format(1X,A,1X,I4,1X,A,1X,A)
+ 5000 format(1X,A,1X,I4,1X,A,1X,A)
+ 6000 format(1X,I3,G20.8,G20.8)
+ 7000 format(1X,F5.1,3(2X,F13.8))
  8000 format(1X,I3,I6,I5)
  9000 format(1X,I3,I6,I5,I3,I3,F12.6,F10.6,F10.6,F10.6,F10.6)
+
+ 2000 format(/,
+     x' ============================================================',/,
+     x'        ______     _ _   _ _____ ___            ______       ',/,
+     x'       / / / /    |   \ | | ____/ _ \           \ \ \ \      ',/,
+     x'      / / / /     | |  \| |  _|| | | |_____      \ \ \ \     ',/,
+     x'      \ \ \ \     | | |\  | |__| |_|  _____|     / / / /     ',/,
+     x'       \_\_\_\    |  _| \_|_____\___/           /_/_/_/      ',/,
+     x'                  |_|                                        ',/,
+     x'                                                             ',/,
+     x' ============================================================'/)
 
       return
       end
