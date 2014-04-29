@@ -278,14 +278,14 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
      x        6X,'|            --IN-CORE APPROACH--             |',/,
      x        6X,'+---------------------------------------------+',/,
      x        8X,'                          ',/,
-     x        8X,'   NUMBER OF 3-PARTICLE INTEGRALS: ',1X,I12/
-     x        8X,'  NUMBER OF BLOCKS (USER DEFINED): ',1X,I12/
+     x        8X,'   NUMBER OF 3-PARTICLE INTEGRALS: ',1X,I15/
+     x        8X,'  NUMBER OF BLOCKS (USER DEFINED): ',1X,I15/
      x        8X,'                          ',/,
      x        8X,'  COMPUTATIONAL RESOURCES:',/,
      x        8X,'  ------------------------',/)
 
- 1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I3/
-     x        8X,'        OMP THREADS:',1X,I3/)
+ 1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I4/
+     x        8X,'        OMP THREADS:',2X,I4/)
 
  2000 FORMAT(/8X,'  INTEGRAL CALCULATION TIMINGS:',/,
      x        8X,'  -----------------------------')
@@ -600,14 +600,14 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
      x        6X,'|            --IN-CORE APPROACH--             |',/,
      x        6X,'+---------------------------------------------+',/,
      x        8X,'                          ',/,
-     x        8X,'   NUMBER OF 3-PARTICLE INTEGRALS: ',1X,I12/
-     x        8X,'  NUMBER OF BLOCKS (USER DEFINED): ',1X,I12/
+     x        8X,'   NUMBER OF 3-PARTICLE INTEGRALS: ',1X,I15/
+     x        8X,'  NUMBER OF BLOCKS (USER DEFINED): ',1X,I15/
      x        8X,'                          ',/,
      x        8X,'  COMPUTATIONAL RESOURCES:',/,
      x        8X,'  ------------------------',/)
 
- 1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I3/
-     x        8X,'        OMP THREADS:',1X,I3/)
+ 1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I4/
+     x        8X,'        OMP THREADS:',1X,I4/)
 
  2000 FORMAT(/8X,'  INTEGRAL CALCULATION TIMINGS:',/,
      x        8X,'  -----------------------------')

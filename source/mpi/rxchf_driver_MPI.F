@@ -490,6 +490,9 @@ C     => XCHF_GAM3 only needed if nbe >= 3
            if(rank.eq.0) write(*,*) "XCHF_GAM3 written to disk"
           end if
 
+C Only process five-particle integrals if not just an integral calculation run
+          if(nblocks.eq.1) then
+
 C nbe >= 3
 C  - calculate interaction five-particle integrals and store in memory
 C     => INT_GAM4
@@ -497,61 +500,61 @@ C  - assume there is enough memory for each process to store GAM2s
 
 ! Have each process calculate and store its ng4/proc integrals
 ! Assign residual integrals to last process
-          if (rank.eq.(nproc-1)) then
-           dimINT4=ng4/nproc+mod(ng4,nproc)
-          else
-           dimINT4=ng4/nproc
-          end if
+            if (rank.eq.(nproc-1)) then
+             dimINT4=ng4/nproc+mod(ng4,nproc)
+            else
+             dimINT4=ng4/nproc
+            end if
 
 ! This array now local to each process and correspond to only its chunk of integrals
-          if(allocated(INT_GAM4)) deallocate(INT_GAM4)
-          allocate(INT_GAM4(dimINT4))
+            if(allocated(INT_GAM4)) deallocate(INT_GAM4)
+            allocate(INT_GAM4(dimINT4))
 
-          if (read_GAM4) then
+            if (read_GAM4) then
 
 ! Read chunk with process (restart job requires same number of processes)
-           if (rank.eq.0) then
-            write(*,*)
-            write(*,*) "---------------------------"
-            write(*,*) " Reading:         INT_GAM4 "
-            write(*,*) "---------------------------"
-            write(*,*)
-           end if
+             if (rank.eq.0) then
+              write(*,*)
+              write(*,*) "---------------------------"
+              write(*,*) " Reading:         INT_GAM4 "
+              write(*,*) "---------------------------"
+              write(*,*)
+             end if
 
-           call RXCHF_readint_mpi(nproc,rank,dimINT4,17,
-     x                            "INT_GAM4-"//istring//".ufm",
-     x                            INT_GAM4)
+             call RXCHF_readint_mpi(nproc,rank,dimINT4,17,
+     x                              "INT_GAM4-"//istring//".ufm",
+     x                              INT_GAM4)
 
-          else
+            else
 
-           if (rank.eq.0) then
-            write(*,*)
-            write(*,*) "---------------------------"
-            write(*,*) " Calculating:     INT_GAM4 "
-            write(*,*) "---------------------------"
-            write(*,*)
-           end if
+             if (rank.eq.0) then
+              write(*,*)
+              write(*,*) "---------------------------"
+              write(*,*) " Calculating:     INT_GAM4 "
+              write(*,*) "---------------------------"
+              write(*,*)
+             end if
 
-           call RXCHF_GAM4_MPI(nproc,rank,
-     x                         ng4chk,nebf,npbf,ngee,ng2,ng4,
-     x                         dimXCHF2,dimINT4,
-     x                         XCHF_GAM2s,INT_GAM4)
+             call RXCHF_GAM4_MPI(nproc,rank,
+     x                           ng4chk,nebf,npbf,ngee,ng2,ng4,
+     x                           dimXCHF2,dimINT4,
+     x                           XCHF_GAM2s,INT_GAM4)
 
-! Write integrals to disk (chunk calculated by each process)
-           call RXCHF_writeint_mpi(nproc,rank,dimINT4,17,
-     x                             "INT_GAM4-"//istring//".ufm",
-     x                             INT_GAM4)
-           if(rank.eq.0) write(*,*) "INT_GAM4 written to disk"
+C! Write integrals to disk (chunk calculated by each process)
+C           call RXCHF_writeint_mpi(nproc,rank,dimINT4,17,
+C     x                             "INT_GAM4-"//istring//".ufm",
+C     x                             INT_GAM4)
+C           if(rank.eq.0) write(*,*) "INT_GAM4 written to disk"
 
-          end if
+            end if
 
-          if (nbe.le.3) then
+            if (nbe.le.3) then
 
-            dimXCHF4=1
-            if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
-            allocate(XCHF_GAM4(dimXCHF4))
+              dimXCHF4=1
+              if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
+              allocate(XCHF_GAM4(dimXCHF4))
 
-          else
+            else
 
 C nbe >= 4
 C  - calculate XCHF five-particle integrals and store in memory
@@ -560,55 +563,57 @@ C  - assume there is enough memory for each process to store GAM2s
 
 ! Have each process calculate and store its ng4/proc integrals
 ! Assign residual integrals to last process
-            if (rank.eq.(nproc-1)) then
-             dimXCHF4=ng4/nproc+mod(ng4,nproc)
-            else
-             dimXCHF4=ng4/nproc
-            end if
+              if (rank.eq.(nproc-1)) then
+               dimXCHF4=ng4/nproc+mod(ng4,nproc)
+              else
+               dimXCHF4=ng4/nproc
+              end if
 
 ! This array now local to each process and correspond to only its chunk of integrals
-            if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
-            allocate(XCHF_GAM4(dimXCHF4))
+              if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
+              allocate(XCHF_GAM4(dimXCHF4))
 
-            if (read_GAM4) then
+              if (read_GAM4) then
 
 ! Read chunk with process (restart job requires same number of processes)
-             if (rank.eq.0) then
-              write(*,*)
-              write(*,*) "---------------------------"
-              write(*,*) " Reading:        XCHF_GAM4 "
-              write(*,*) "---------------------------"
-              write(*,*)
-             end if
+               if (rank.eq.0) then
+                write(*,*)
+                write(*,*) "---------------------------"
+                write(*,*) " Reading:        XCHF_GAM4 "
+                write(*,*) "---------------------------"
+                write(*,*)
+               end if
 
-             call RXCHF_readint_mpi(nproc,rank,dimXCHF4,18,
-     x                              "XCHF_GAM4-"//istring//".ufm",
-     x                              XCHF_GAM4)
+               call RXCHF_readint_mpi(nproc,rank,dimXCHF4,18,
+     x                                "XCHF_GAM4-"//istring//".ufm",
+     x                                XCHF_GAM4)
 
-            else
+              else
 
-             if (rank.eq.0) then
-              write(*,*)
-              write(*,*) "---------------------------"
-              write(*,*) " Calculating:    XCHF_GAM4 "
-              write(*,*) "---------------------------"
-              write(*,*)
-             end if
+               if (rank.eq.0) then
+                write(*,*)
+                write(*,*) "---------------------------"
+                write(*,*) " Calculating:    XCHF_GAM4 "
+                write(*,*) "---------------------------"
+                write(*,*)
+               end if
 
-             call XCHF_GAM4_MPI(nproc,rank,
-     s                          ng4chk,nebf,npbf,ngee,ng2,ng4,
-     x                          dimXCHF2,dimXCHF4,
-     x                          XCHF_GAM2s,XCHF_GAM4)
+               call XCHF_GAM4_MPI(nproc,rank,
+     x                            ng4chk,nebf,npbf,ngee,ng2,ng4,
+     x                            dimXCHF2,dimXCHF4,
+     x                            XCHF_GAM2s,XCHF_GAM4)
 
-! Write integrals to disk (chunk calculated by each process)
-             call RXCHF_writeint_mpi(nproc,rank,dimXCHF4,18,
-     x                               "XCHF_GAM4-"//istring//".ufm",
-     x                               XCHF_GAM4)
-             if(rank.eq.0) write(*,*) "XCHF_GAM4 written to disk"
+C! Write integrals to disk (chunk calculated by each process)
+C             call RXCHF_writeint_mpi(nproc,rank,dimXCHF4,18,
+C     x                               "XCHF_GAM4-"//istring//".ufm",
+C     x                               XCHF_GAM4)
+C             if(rank.eq.0) write(*,*) "XCHF_GAM4 written to disk"
 
-            end if ! read GAM4
+              end if ! read GAM4
 
-          end if ! nbe >= 4
+            end if ! nbe >= 4
+
+          end if ! nblocks == 1
 
         end if ! nbe >= 3
 

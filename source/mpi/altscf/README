@@ -7,3 +7,5 @@ Alternative SCF implementations:
   microall            : Iterate regular and special electrons separately using OCBSE (regular first)
   microall2           : Iterate regular and special electrons separately using OCBSE (special first)
 Select which to use by modifying the SCF routine call in ../rxchf_driver_MPI.f 
+
+Only microall has been updated for compatability with namelist modifications (different calling sequence, etc.)

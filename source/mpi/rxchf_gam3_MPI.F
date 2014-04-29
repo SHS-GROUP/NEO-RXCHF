@@ -312,14 +312,14 @@ C Symmetrized integrals in GM3_2ICR (interaction integrals)
      x        6X,'|            --IN-CORE APPROACH--             |',/,
      x        6X,'+---------------------------------------------+',/,
      x        8X,'                          ',/,
-     x        8X,'   NUMBER OF 4-PARTICLE INTEGRALS: ',1X,I12/
-     x        8X,'  NUMBER OF BLOCKS (USER DEFINED): ',1X,I12/
+     x        8X,'   NUMBER OF 4-PARTICLE INTEGRALS: ',1X,I15/
+     x        8X,'  NUMBER OF BLOCKS (USER DEFINED): ',1X,I15/
      x        8X,'                          ',/,
      x        8X,'  COMPUTATIONAL RESOURCES:',/,
      x        8X,'  ------------------------',/)
 
- 1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I3/
-     x        8X,'        OMP THREADS:',1X,I3/)
+ 1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I4/
+     x        8X,'        OMP THREADS:',1X,I4/)
 
  2000 FORMAT(/8X,'  INTEGRAL BLOCK CALCULATION TIMINGS:',/,
      x        8X,' -------------------------------------')
@@ -715,14 +715,14 @@ C Symmetrized integrals in GM3_4ICR (exchange integrals)
      x        6X,'|            --IN-CORE APPROACH--             |',/,
      x        6X,'+---------------------------------------------+',/,
      x        8X,'                          ',/,
-     x        8X,'   NUMBER OF 4-PARTICLE INTEGRALS: ',1X,I12/
-     x        8X,'  NUMBER OF BLOCKS (USER DEFINED): ',1X,I12/
+     x        8X,'   NUMBER OF 4-PARTICLE INTEGRALS: ',1X,I15/
+     x        8X,'  NUMBER OF BLOCKS (USER DEFINED): ',1X,I15/
      x        8X,'                          ',/,
      x        8X,'  COMPUTATIONAL RESOURCES:',/,
      x        8X,'  ------------------------',/)
 
- 1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I3/
-     x        8X,'        OMP THREADS:',1X,I3/)
+ 1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I4/
+     x        8X,'        OMP THREADS:',1X,I4/)
 
  2000 FORMAT(/8X,'  INTEGRAL BLOCK CALCULATION TIMINGS:',/,
      x        8X,' -------------------------------------')
@@ -1344,7 +1344,7 @@ C=======================================================================
      x                         nebf,npbf,ntotints,nlocints,
      x                         mpistart,mpiend,GAM3)
 
-C Symmetrizes INT_GAM3ex1 integrals averaging
+C Symmetrizes INT_GAM3ex2 integrals averaging
 C   < ip ie1 ie2 ie3 | O3 | ip je1 je2 je3 > = Omega_3(1,2,3)
 C   < ip ie3 ie2 ie1 | O3 | ip je3 je2 je1 > = Omega_3(3,2,1)
 C=======================================================================
