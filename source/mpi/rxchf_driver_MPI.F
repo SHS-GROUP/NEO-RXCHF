@@ -527,24 +527,28 @@ C  - assume there is enough memory for each process to store GAM2s
 
             else
 
-             if (rank.eq.0) then
-              write(*,*)
-              write(*,*) "---------------------------"
-              write(*,*) " Calculating:     INT_GAM4 "
-              write(*,*) "---------------------------"
-              write(*,*)
-             end if
+             if(nbe.le.3) then     ! Otherwise calc INT_GAM4 and XCHF_GAM4 together
 
-             call RXCHF_GAM4_MPI(nproc,rank,
-     x                           ng4chk,nebf,npbf,ngee,ng2,ng4,
-     x                           dimXCHF2,dimINT4,
-     x                           XCHF_GAM2s,INT_GAM4)
+              if (rank.eq.0) then
+               write(*,*)
+               write(*,*) "---------------------------"
+               write(*,*) " Calculating:     INT_GAM4 "
+               write(*,*) "---------------------------"
+               write(*,*)
+              end if
+
+              call RXCHF_GAM4_MPI(nproc,rank,
+     x                            ng4chk,nebf,npbf,ngee,ng2,ng4,
+     x                            dimXCHF2,dimINT4,
+     x                            XCHF_GAM2s,INT_GAM4)
 
 C! Write integrals to disk (chunk calculated by each process)
-C           call RXCHF_writeint_mpi(nproc,rank,dimINT4,17,
-C     x                             "INT_GAM4-"//istring//".ufm",
-C     x                             INT_GAM4)
-C           if(rank.eq.0) write(*,*) "INT_GAM4 written to disk"
+C            call RXCHF_writeint_mpi(nproc,rank,dimINT4,17,
+C     x                              "INT_GAM4-"//istring//".ufm",
+C     x                              INT_GAM4)
+C            if(rank.eq.0) write(*,*) "INT_GAM4 written to disk"
+
+             end if
 
             end if
 
@@ -593,6 +597,7 @@ C  - assume there is enough memory for each process to store GAM2s
                if (rank.eq.0) then
                 write(*,*)
                 write(*,*) "---------------------------"
+                write(*,*) " Calculating:     INT_GAM4 "
                 write(*,*) " Calculating:    XCHF_GAM4 "
                 write(*,*) "---------------------------"
                 write(*,*)
@@ -601,13 +606,17 @@ C  - assume there is enough memory for each process to store GAM2s
                call XCHF_GAM4_MPI(nproc,rank,
      x                            ng4chk,nebf,npbf,ngee,ng2,ng4,
      x                            dimXCHF2,dimXCHF4,
-     x                            XCHF_GAM2s,XCHF_GAM4)
+     x                            XCHF_GAM2s,INT_GAM4,XCHF_GAM4)
 
-C! Write integrals to disk (chunk calculated by each process)
-C             call RXCHF_writeint_mpi(nproc,rank,dimXCHF4,18,
-C     x                               "XCHF_GAM4-"//istring//".ufm",
-C     x                               XCHF_GAM4)
-C             if(rank.eq.0) write(*,*) "XCHF_GAM4 written to disk"
+! Write integrals to disk (chunk calculated by each process)
+             call RXCHF_writeint_mpi(nproc,rank,dimINT4,17,
+     x                               "INT_GAM4-"//istring//".ufm",
+     x                               INT_GAM4)
+             if(rank.eq.0) write(*,*) "INT_GAM4 written to disk"
+             call RXCHF_writeint_mpi(nproc,rank,dimXCHF4,18,
+     x                               "XCHF_GAM4-"//istring//".ufm",
+     x                               XCHF_GAM4)
+             if(rank.eq.0) write(*,*) "XCHF_GAM4 written to disk"
 
               end if ! read GAM4
 

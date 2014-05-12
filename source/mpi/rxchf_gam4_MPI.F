@@ -263,9 +263,9 @@
       subroutine XCHF_GAM4_MPI(nproc,rank,
      x                         Nchunks,ne,np,ngee,ng2,ng4,
      x                         ng2loc,ng4loc,
-     x                         GM2s,GM4)
+     x                         GM2s,GM4_1,GM4_2)
 
-! Calculates XCHF_GAM4 integrals (split onto MPI procs)
+! Calculates INT_GAM4 and XCHF_GAM4 integrals (split onto MPI procs)
 !  - requires each proc to store all XCHF_GAM2s integrals in memory
 !======================================================================
       implicit none
@@ -277,7 +277,8 @@
       integer ngee,ne,np
       integer ng4,ng2       ! Total number of integrals
       integer ng2loc,ng4loc ! Number of integrals on this proc
-      double precision GM4(ng4loc)  ! XCHF OMG4 integrals (symm)
+      double precision GM4_1(ng4loc)  ! INT  OMG4 integrals (symm)
+      double precision GM4_2(ng4loc)  ! XCHF OMG4 integrals (symm)
       double precision GM2s(ng2loc) ! GAM2s integrals on this MPI proc
       
 ! Local Variables
@@ -304,7 +305,9 @@
       double precision zero
       parameter(zero=0.0d+00)
 
-      double precision wtime,wtime2
+      character*4  istring              ! File I/O variables
+
+      double precision wtime,wtime1,wtime2
 
 ! Have each process calculate ng4/nproc integrals according to rank
 ! Have last process calculate ng4%nproc remaining integrals
@@ -316,7 +319,8 @@
        write(*,1500) nproc,omp_get_max_threads()
       end if
 
-      GM4=0.0d+00
+      GM4_1=0.0d+00
+      GM4_2=0.0d+00
 
 !----READ-GAM_ee--INTO-MEMORY-------------------------------(
       if(allocated(GAM_ee)) deallocate(GAM_ee)
@@ -357,10 +361,19 @@
      x                    TGM2s(1),ng2locarr,displarr,
      x                    MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
 
+C Variables for file I/O
+      write(istring,'(I4.4)') rank
+
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_4--------------------------------(
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+      if(rank.eq.0) write(*,2000) 
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
       wtime = MPI_WTIME()
 
       do ichunk=1,Nchunks
+
+         wtime1 = MPI_WTIME()
 
 ! Have threads chop calculation of mpiend-mpistart+1=ng4/nproc integrals
          call loop_size(mpistart,mpiend,Nchunks,ichunk-1,istart,iend)
@@ -422,20 +435,30 @@
 
          call XCHF_GAM4_thread_MPI(ne,np,ngee,ng2,ng4loc,ng4_seg,
      x                             istart,iend,loop_map,arrstart,
-     x                             GAM_ee,TGM2s,GM4)
+     x                             GAM_ee,TGM2s,GM4_1,GM4_2)
+
+         call RXCHF_writeint_mpi(nproc,rank,ng4loc,17,
+     x                           "INT_GAM4-"//istring//".ufm",
+     x                           GM4_1)
+         call RXCHF_writeint_mpi(nproc,rank,ng4loc,18,
+     x                           "XCHF_GAM4-"//istring//".ufm",
+     x                           GM4_2)
+
+         wtime2 = MPI_WTIME() - wtime1
+         write(*,2001) rank,ichunk,wtime2
 
       end do !end loop over chunks
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_4--------------------------------)
-!-----CLEAN-UP-AND-RETURN---------------------------------------------(
+
       if(allocated(loop_map)) deallocate(loop_map)
-!-----CLEAN-UP-AND-RETURN---------------------------------------------)
 
       wtime2 = MPI_WTIME() - wtime
-      if(rank.eq.0) write(*,2000)
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-      write(*,2001) rank,wtime2
+      if(rank.eq.0) write(*,2010)
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+      write(*,2011) rank,wtime2
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 !      write(*,*) "start,end,ng4loc:",mpistart,mpiend,ng4loc
@@ -511,10 +534,15 @@
  1500 FORMAT( 8X,'      MPI PROCESSES:',1X,I4/
      x        8X,'        OMP THREADS:',1X,I4/)
 
- 2000 FORMAT(/8X,'  INTEGRAL CALC+SYMM TIMINGS:',/,
+ 2000 FORMAT(/8X,'  INTEGRAL BLOCK CALCULATION TIMINGS:',/,
+     x        8X,' -------------------------------------')
+
+ 2001 FORMAT( 8X,' PROCESS ',1X,I4,1X,' BLOCK ',1X,I4,1X,F10.2)
+
+ 2010 FORMAT(/8X,'  INTEGRAL CALC+SYMM TIMINGS:',/,
      x        8X,'  ---------------------------')
 
- 2001 FORMAT( 8X,'   PROCESS ',1X,I4,1X,F10.2)
+ 2011 FORMAT( 8X,'   PROCESS ',1X,I4,1X,F10.2)
 
  9001 FORMAT(1X,1(F20.10))
 
@@ -633,7 +661,7 @@
 !======================================================================
       subroutine XCHF_GAM4_thread_MPI(ne,np,ngee,ng2,ng4,ng4_seg,
      x                                istart,iend,loop_map,arrstart,
-     x                                GAM_ee,GAM_2s,GAM_4)
+     x                                GAM_ee,GAM_2s,GAM4_1,GAM4_2)
 !
 !======================================================================
       implicit none
@@ -651,7 +679,8 @@
       integer loop_map(ng4_seg,10)
       double precision GAM_ee(ngee)   ! Array storage of 2e-integrals
       double precision GAM_2s(ng2)    ! Array storage of 3-part overlaps
-      double precision GAM_4(ng4)     ! Array storage of 5-particle ints
+      double precision GAM4_1(ng4)    ! Array storage of 5-particle ints (INT)
+      double precision GAM4_2(ng4)    ! Array storage of 5-particle ints (XCHF)
 
 !---OPENMP-RELATED-VARIABLES-----(
       integer IFIL
@@ -696,7 +725,8 @@
 !$ompx shared(four)
 !$ompx shared(GAM_2s)
 !$ompx shared(GAM_ee)
-!$ompx shared(GAM_4)
+!$ompx shared(GAM4_1)
+!$ompx shared(GAM4_2)
 !$ompx shared(IFIL)
 !$ompx private(iLp) 
 !$ompx private(imap) 
@@ -732,11 +762,16 @@
      x                       ie4,je4,ia)
 
 
+         call RXCHFmult_symm_gam4(ne,np,ng2,ngee,GAM_2s,GAM_ee,
+     x                  ip,jp,ie1,je1,ie2,je2,ie3,je3,ie4,je4,ans)
+
+         GAM4_1(ia-arrstart+1)=ans
+
          call symm_gam4(ne,np,ng2,ngee,GAM_2s,GAM_ee,
      x                  ip,jp,ie1,je1,ie2,je2,ie3,je3,ie4,je4,ans)
 
          ans=ans/(four*four)
-         GAM_4(ia-arrstart+1)=ans
+         GAM4_2(ia-arrstart+1)=ans
 
       end do
 !$omp end do
