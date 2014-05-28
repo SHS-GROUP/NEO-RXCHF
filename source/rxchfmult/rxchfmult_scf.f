@@ -6,7 +6,7 @@
      x                         ngtg1,ngee,
      x                         NG2CHK,NG3CHK,NG4CHK,
      x                         read_CE,read_CP,
-     x                         LG4DSCF,LG3DSCF,LG2DSCF,
+     x                         LG4DSCF,LG3DSCF,LG2DSCF,LTCSCF,
      x                         LSOSCF,LOCBSE,LCMF,LALTBAS,LADDEXCH,
      x                         nat,pmass,cat,zan,
      x                         bcoef1,gamma1,
@@ -17,6 +17,7 @@
      x                         AMPEB2C_be,AGEBFCC_be,
      x                         ELCEX_be,ELCAM_be,ELCBFC_be,
      x                         AGNBFCC,NUCEX,NUCAM,NUCBFC,
+     x                         regmos_1,regmos_2,spemos_1,spemos_2,
      x                         LG2IC1,dimXCHF2,dimINT2,dimINT2ex,
      x                         XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
      x                         LG3IC1,dimXCHF3,dimINT3,dimINT3ex,
@@ -130,6 +131,13 @@
       double precision INT_GAM3ex2(dimINT3)        ! Exchange GAM3 integrals
       double precision XCHF_GAM4(dimXCHF4)         ! XCHF GAM4 integrals
       double precision INT_GAM4(dimINT4)           ! Interaction GAM4 integrals
+
+! TC-SCF variables
+      logical LTCSCF                               ! Flag for TCSCF calculation
+      integer regmos_1(nae)                        ! Indices for occ regular MOS in config 1
+      integer regmos_2(nae)                        ! Indices for occ regular MOS in config 2
+      integer spemos_1(nbe)                        ! Indices for occ special MOS in config 1
+      integer spemos_2(nbe)                        ! Indices for occ special MOS in config 2
 
 ! Local variables
       double precision zero,one
@@ -473,9 +481,12 @@ C store quantities over special electron basis
           write(*,*) "  Special orbitals MUST ALREADY BE in order!"
           write(*,*)
          end if
-         call RXCHFmult_read_CAE(nebf,nebfBE,LALTBAS,elindBE,
-     x                           NAE,DAE,VECAE0)
-         call RXCHFmult_read_CBE(nebfBE,NBE,DBE,VECBE0)
+         call RXCHFmult_read_CAE(nebf,nebfBE,NAE,LALTBAS,elindBE,
+     x                           LTCSCF,regmos_1,regmos_2,
+     x                           DAE,VECAE0)
+         call RXCHFmult_read_CBE(nebfBE,NBE,
+     x                           LTCSCF,spemos_1,spemos_2,
+     x                           DBE,VECBE0)
          write(*,*) "Done reading electronic orbitals"
          write(*,*)
       else
@@ -499,7 +510,11 @@ C store quantities over special electron basis
       end if
       if(read_CP) then
 !        READ IN GUESS FOR N:
-         call read_nuc_density(npbf,1,NUCST,DP)
+         if(LTCSCF) then
+          call TCSCF_read_nuc_density(npbf,1,NUCST,DP)
+         else
+          call read_nuc_density(npbf,1,NUCST,DP)
+         end if
       else
 !        STANDARD GUESS:  HCORE FOR NUC AND ELEC DENSITIES:
          write(*,*)'ABOUT TO CALL guess_prot'
@@ -689,7 +704,11 @@ C )
 
 !        Fockp diag
          call UROOTHAN(vecP,EP,xxsp,FP,npbf)
-         call construct_DP(nucst,npbf,vecP,DP)
+         if(LTCSCF) then
+          call TCSCF_construct_DP(npbf,vecP,DP)
+         else
+          call construct_DP(npbf,vecP,DP)
+         end if
 
 C ARS( reform elec Fock matrices
 
@@ -781,13 +800,23 @@ C )
      x                          vecAE,vecBE,AEe,BEe)
 
 ! Form regular electronic density matrix and store stuff for next it
-           call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+           if(LTCSCF) then
+            call TCSCF_construct_DAE(NAE,nebf,regmos_1,regmos_2,
+     x                               vecAE,DAE)
+           else
+            call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+           end if
            CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
            CALL COPYDEN(DAE0,DAE,NEBF)
            CALL COPYDEN(vecAE0,vecAE,NEBF)
 
 ! Form special electronic density matrix and store stuff for next it
-           call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
+           if(LTCSCF) then
+            call TCSCF_construct_DBE(NBE,nebf,spemos_1,spemos_2,
+     x                               vecBE,DBE)
+           else
+            call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
+           end if
            CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
            CALL COPYDEN(DBE0,DBE,NEBF)
            CALL COPYDEN(vecBE0,vecBE,NEBF)
@@ -885,7 +914,12 @@ C )
      *                 DISPLNA,DGRADIA,UPDTIA,ORBGRDA,NPRA,ITSOA,NFT15)
             call SOTRAN(DISPLIA,vecAE,GA,WRK,NPRA,L0,L1,NA,NA,ORBGRDA)
              CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
+           if(LTCSCF) then
+            call TCSCF_construct_DAE(NAE,nebf,regmos_1,regmos_2,
+     x                               vecAE,DAE)
+           else
               call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+           end if
               GO TO 950  ! Use the new C's to form new density (change)
             END IF
          END IF
@@ -895,7 +929,12 @@ C )
 !        Diagonalize Electronic Fock Matrices
 !        call ROOTHAN(DAE,vecAE,AEE,xxse,FAE,nebf,nelec,1,NUCST)
          call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
+           if(LTCSCF) then
+            call TCSCF_construct_DAE(NAE,nebf,regmos_1,regmos_2,
+     x                               vecAE,DAE)
+           else
          call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+           end if
 
   950 CONTINUE
 !        --> FIND LARGEST CHANGE IN Alpha E DENSITY
@@ -1070,7 +1109,12 @@ C ARS( new stuff
               CALL DCOPY(NPRB,GRADB,1,PGRADB,1)
               call RXCHFmult_OCBSE_transV(nebfBE,nwbf,WB,wvecBEw,wBEenw,! eigenvalues useless
      x                                    vecBE,BEe)
+           if(LTCSCF) then
+            call TCSCF_construct_DBE(NBE,nebf,spemos_1,spemos_2,
+     x                               vecBE,DBE)
+           else
               call RXCHFmult_construct_DE(NBE,nebfBE,vecBE,DBE)
+           end if
               GO TO 450  ! Use the new C's to form new density (change)
             END IF
          END IF
@@ -1081,7 +1125,12 @@ C ARS( new stuff
 !  - Obtain updated vecBE in W basis of this iteration
          call RXCHFmult_OCBSE_diag(nebfBE,nwbf,WB,wFBEw,
      x                             wvecBEw,wBEenw,vecBE,BEe)
+           if(LTCSCF) then
+            call TCSCF_construct_DBE(NBE,nebf,spemos_1,spemos_2,
+     x                               vecBE,DBE)
+           else
          call RXCHFmult_construct_DE(NBE,nebfBE,vecBE,DBE)
+           end if
 
   450 CONTINUE
 
@@ -1184,7 +1233,12 @@ C )
      *                 DISPLNA,DGRADIA,UPDTIA,ORBGRDA,NPRA,ITSOA,NFT15)
             call SOTRAN(DISPLIA,vecAE,GA,WRK,NPRA,L0,L1,NA,NA,ORBGRDA)
              CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
+           if(LTCSCF) then
+            call TCSCF_construct_DAE(NAE,nebf,regmos_1,regmos_2,
+     x                               vecAE,DAE)
+           else
               call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+           end if
               GO TO 750  ! Use the new C's to form new density (change)
             END IF
          END IF
@@ -1194,7 +1248,12 @@ C )
 !        Diagonalize Electronic Fock Matrices
 !        call ROOTHAN(DAE,vecAE,AEE,xxse,FAE,nebf,nelec,1,NUCST)
          call UROOTHAN(vecAE,AEE,xxse,FAE,nebf)
+           if(LTCSCF) then
+            call TCSCF_construct_DAE(NAE,nebf,regmos_1,regmos_2,
+     x                               vecAE,DAE)
+           else
          call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+           end if
 
   750 CONTINUE
 !        --> FIND LARGEST CHANGE IN Alpha E DENSITY
@@ -1227,7 +1286,12 @@ C )
             call SOTRAN(DISPLIB,vecBE,GB,WRKB,NPRB,
      x                  L0b,L1b,NB,NB,ORBGRDB)
              CALL DCOPY(NPRB,GRADB,1,PGRADB,1)
+           if(LTCSCF) then
+            call TCSCF_construct_DBE(NBE,nebf,spemos_1,spemos_2,
+     x                               vecBE,DBE)
+           else
               call RXCHFmult_construct_DE(NBE,nebfBE,vecBE,DBE)
+           end if
               GO TO 850  ! Use the new C's to form new density (change)
             END IF
          END IF
@@ -1236,7 +1300,12 @@ C )
   800 CONTINUE
 !        call ROOTHAN(DBE,vecBE,BEE,xxse,FBE,nebf,nelec,1,NUCST)
          call UROOTHAN(vecBE,BEE,xxseBE,FBE,nebfBE)
+           if(LTCSCF) then
+            call TCSCF_construct_DBE(NBE,nebf,spemos_1,spemos_2,
+     x                               vecBE,DBE)
+           else
          call RXCHFmult_construct_DE(NBE,nebfBE,vecBE,DBE)
+           end if
 
   850 CONTINUE
 !        --> FIND LARGEST CHANGE IN Beta E DENSITY

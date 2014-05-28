@@ -90,7 +90,12 @@
       logical LSOSCF
       logical LRXCHF
       logical LRXCUHF
+      logical LTCSCF
       logical LOCBSE
+
+! TC-SCF variables
+      integer,allocatable :: regmos_1(:),regmos_2(:)
+      integer,allocatable :: spemos_1(:),spemos_2(:)
 
       double precision a2bohr,bohr2a
       parameter(bohr2a=0.529177249d+00)
@@ -118,7 +123,7 @@
       character*1  istring
 
       namelist /sysinfo/ nat,nebf,npebf,npbf,ngtg,pmass,nelec,nucst
-      namelist /control/ lneohf,lxcuhf,lxcrohf,lrxchf,lrxcuhf
+      namelist /control/ lneohf,lxcuhf,lxcrohf,lrxchf,lrxcuhf,ltcscf
       namelist /guessmo/ read_ce,read_cp
       namelist /intctrl/ read_gam2,read_gam3,read_gam4,
      x                   ng2chk,ng3chk,ng4chk
@@ -128,6 +133,7 @@
       namelist /rxchf  / nae,nbe,exchlev,nebfbe
       namelist /rxcuhf / naalpe,nabete
       namelist /altbas / elindbe
+      namelist /tcscf  / regmos_1,regmos_2,spemos_1,spemos_2
 
       write(*,2000)
 
@@ -147,6 +153,7 @@
       LXCROHF=.false.
       LRXCHF=.true.
       LRXCUHF=.false.
+      LTCSCF=.false.
       read_CE=.false.
       read_CP=.false.
       read_GAM2=.false.
@@ -212,12 +219,25 @@
        return
       end if
 
+      if ((LTCSCF).and.(.not.(LRXCHF))) then
+       write(*,*) "Must have LRXCHF if using LTCSCF"
+       write(*,*) "Exiting..."
+       return
+      end if
+
 !!!!!!!!!!!!!!! Read guess info !!!!!!!!!!!!!! 
       rewind(9)
       read(9,nml=guessmo)
       write(*,*)
       write(*,nml=guessmo)
       write(*,*)
+
+      if ((LTCSCF).and.(.not.(read_CE.and.read_CP))) then
+       write(*,*) "Must provide initial elec/prot orbitals"
+       write(*,*) "if using TC-SCF"
+       write(*,*) "Exiting..."
+       return
+      end if
 
 !!!!!!!!!!!!!!! Read integral info !!!!!!!!!!!!!! 
       rewind(9)
@@ -364,6 +384,28 @@ C Ensure num beta reg elecs > num alpha reg elecs since special electron is assi
         write(*,*) "Exiting..."
         return
        end if
+      end if
+
+!!!!!!!!!!!!!!! Read in TC-SCF information !!!!!!!!!!!!!!!
+      if(allocated(regmos_1)) deallocate(regmos_1)
+      if(allocated(regmos_2)) deallocate(regmos_2)
+      if(allocated(spemos_1)) deallocate(spemos_1)
+      if(allocated(spemos_2)) deallocate(spemos_2)
+      allocate(regmos_1(nae))
+      allocate(regmos_2(nae))
+      allocate(spemos_1(nbe))
+      allocate(spemos_2(nbe))
+      regmos_1=0
+      regmos_2=0
+      spemos_1=0
+      spemos_2=0
+
+      if(LTCSCF) then
+       rewind(9)
+       read(9,nml=tcscf)
+       write(*,*)
+       write(*,nml=tcscf)
+       write(*,*)
       end if
 
 !!!!!!!!!!!!!!! Read in atomic coordinates !!!!!!!!!!!!!!!
@@ -734,6 +776,7 @@ C Call separate routine for RXCHF(nbe>1) integral calculations
             call RXCHFmult_driver(nelec,nae,nbe,nucst,
      x                            nebf,npebf,npbf,nat,ngtg,ngee,
      x                            pmass,cat,zan,bgem,ggem,
+     x                            regmos_1,regmos_2,spemos_1,spemos_2,
      x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                            nebfBE,elindBE,
@@ -742,7 +785,7 @@ C Call separate routine for RXCHF(nbe>1) integral calculations
      x                            read_GAM2,read_GAM3,read_GAM4,
      x                            LG2IC1,LG3IC1,LG4IC,
      x                            LG2DSCF,LG3DSCF,LG4DSCF,
-     x                            LSOSCF,LOCBSE,LDBG,EXCHLEV)
+     x                            LTCSCF,LSOSCF,LOCBSE,LDBG,EXCHLEV)
            else
             write(*,*) "RXCUHF with more than one special electron"
             write(*,*) "still needs to be coded."

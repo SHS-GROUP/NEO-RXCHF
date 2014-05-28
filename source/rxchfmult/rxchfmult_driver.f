@@ -2,6 +2,7 @@ C=======================================================================
       subroutine RXCHFmult_driver(nelec,nae,nbe,nucst,
      x                            nebf,npebf,npbf,nat,ngtg1,ngee,
      x                            pmass,cat,zan,bcoef1,gamma1,
+     x                            regmos_1,regmos_2,spemos_1,spemos_2,
      x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                            nebfBE,elindBE,
@@ -10,7 +11,7 @@ C=======================================================================
      x                            read_GAM2,read_GAM3,read_GAM4,
      x                            LG2IC,LG3IC,LG4IC,
      x                            LG2DSCF,LG3DSCF,LG4DSCF,
-     x                            LSOSCF,LOCBSE,LCMF,LADDEXCH)
+     x                            LTCSCF,LSOSCF,LOCBSE,LCMF,LADDEXCH)
 
 C Driver to calculate RXCHF integrals for nbe > 1
 C   XCHF_GAM* : integrals needed for XCHF contribution
@@ -73,6 +74,11 @@ C Input variables
       double precision AGEBFCC(npebf)  ! Map primitive index to contract coeff
       double precision AGNBFCC(npbf)   ! Nuclear contraction coeff
 
+      logical LTCSCF                   ! Flag for TCSCF calculation
+      integer regmos_1(nae)            ! Indices for occ regular MOS in config 1
+      integer regmos_2(nae)            ! Indices for occ regular MOS in config 2
+      integer spemos_1(nbe)            ! Indices for occ special MOS in config 1
+      integer spemos_2(nbe)            ! Indices for occ special MOS in config 2
 
 C Local variables
       integer i,j,istat
@@ -729,7 +735,7 @@ C Kick-off SCF
      x                   ngtg1,ngee,
      x                   NG2CHK,NG3CHK,NG4CHK,
      x                   read_CE,read_CP,
-     x                   LG4DSCF,LG3DSCF,LG2DSCF,
+     x                   LG4DSCF,LG3DSCF,LG2DSCF,LTCSCF,
      x                   LSOSCF,LOCBSE,LCMF,LALTBAS,LADDEXCH,
      x                   nat,pmass,cat,zan,
      x                   bcoef1,gamma1,
@@ -740,6 +746,7 @@ C Kick-off SCF
      x                   AMPEB2C_be,AGEBFCC_be,
      x                   ELCEX_be,ELCAM_be,ELCBFC_be,
      x                   AGNBFCC,NUCEX,NUCAM,NUCBFC,
+     x                   regmos_1,regmos_2,spemos_1,spemos_2,
      x                   LG2IC,dimXCHF2,dimINT2,dimINT2ex,
      x                   XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
      x                   LG3IC,dimXCHF3,dimINT3,dimINT3ex,
