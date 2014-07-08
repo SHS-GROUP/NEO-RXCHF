@@ -47,6 +47,8 @@
       integer nelec
       integer NAE               ! Number of regular electrons
       integer NBE               ! Number of special electrons
+      integer NAE_alp
+      integer NAE_beta
       integer NAalpE,NAbetE
       double precision pmass    ! Mass of nonelectron quantum particle 
 !-------Basis Set Info-------)
@@ -136,7 +138,7 @@
       namelist /scfctrl/ ldbg,lsoscf,ldiis,lsorxchf,ocbsetyp
       namelist /geminal/ bgem,ggem
       namelist /xcuhf  / nae,nbe
-      namelist /rxchf  / nae,nbe,exchlev
+      namelist /rxchf  / nae,nbe,exchlev,nae_alp,nae_beta
       namelist /rxcuhf / naalpe,nabete
 
 #if MPI32
@@ -271,7 +273,11 @@
        write(*,*)
        write(*,nml=scfctrl)
        write(*,*)
-
+       if(.not.LSORXCHF) then
+        write(*,*) "Must use SORXCHF to use UHF for regulars"
+        write(*,*) "Exiting...."
+        call exit
+       end if       
        if(LSOSCF.and.LDIIS) then
         write(*,*) "Cannot have both SOSCF and DIIS"
         write(*,*) "Proceeding with DIIS..."
@@ -335,7 +341,21 @@ C       end if
          write(*,*) "Not equal. Exiting..."
          inperr=.true.
         end if
-       end if
+        if((nae_alp+nae_beta).ne.nae) then
+         write(*,*) "Num regular alpha electrons:",NAE_alp
+         write(*,*) "Num regular beta  electrons:",NAE_beta
+         write(*,*) "Num regular       electrons:",NAE
+         write(*,*) "Not equal. Exiting..."
+         inperr=.true.
+        end if
+         if((nae_beta).gt.nae_alp) then
+         write(*,*) "Num regular alpha electrons:",NAE
+         write(*,*) "Num regular beta  electrons:",NBE
+         write(*,*) "Num of alpha electrons must be equal or greater"
+         write(*,*) "than number of beta electrons. Exiting..."
+         inperr=.true.
+        end if
+        end if
 
        if (((LRXCHF).or.(LRXCUHF)).and.(nelec.ge.4).and.(exchlev.eq.2))
      x       then
@@ -832,7 +852,7 @@ C Ensure num beta reg elecs > num alpha reg elecs since special electron is assi
      x                      LG2IC1,LG3IC1,LG4IC,
      x                      LG2DSCF,LG3DSCF,LG4DSCF,
      x                      LSOSCF,LDIIS,LSORXCHF,OCBSETYP,
-     x                      LDBG,EXCHLEV)
+     x                      LDBG,EXCHLEV,NAE_ALP,NAE_beta)
 
       write(*,*) "Process is finished:",rank
 

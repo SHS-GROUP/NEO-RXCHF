@@ -14,7 +14,7 @@ C=======================================================================
      x                            LG2IC,LG3IC,LG4IC,
      x                            LG2DSCF,LG3DSCF,LG4DSCF,
      x                            LSOSCF,LDIIS,LSORXCHF,OCBSETYP,
-     x                            LDBG,EXCHLEV)
+     x                            LDBG,EXCHLEV,NAE_ALP,NAE_BETA)
 
 C Driver to calculate RXCHF integrals for nbe > 1
 C   XCHF_GAM* : integrals needed for XCHF contribution
@@ -38,6 +38,8 @@ C Input variables
       integer blockstart,blockend
       integer nelec                    ! Total number of electrons
       integer nae                      ! Number of regular electrons
+      integer nae_alp                  ! Number of regular alpha electrons
+      integer nae_beta                 ! Number of regular beta electrons
       integer nbe                      ! Number of special electrons
       integer nucst                    ! Nuclear state for which to form density
       integer nebf                     ! Number of contracted electronic basis functions
@@ -642,7 +644,8 @@ C Kick-off SCF
 
       if ((read_GAM3).or.(nblocks.eq.1)) then
        call RXCHF_scf_MPI(nproc,rank,
-     x                    nelec,nae,nbe,nebflt,npbflt,nucst,
+     x                    nelec,nae,nae_alp,nae_beta,
+     x                    nbe,nebflt,npbflt,nucst,
      x                    npebf,nebf,nebf2,npbf,npbf2,ngee,
      x                    ngtg1,ng1,ng2,ng3,ng4,
      x                    NG2CHK,NG3CHK,NG4CHK,

@@ -1,6 +1,7 @@
 !======================================================================
       subroutine RXCHF_scf_MPI(nproc,rank,
-     x                         nelec,NAE,NBE,NEBFLT,NPBFLT,NUCST,
+     x                         nelec,NAE,NAE_alp,NAE_beta,
+     x                         NBE,NEBFLT,NPBFLT,NUCST,
      x                         npebf,nebf,nebf2,npbf,npbf2,ngee,
      x                         ngtg1,ng1,ng2,ng3,ng4,
      x                         NG2CHK,NG3CHK,NG4CHK,
@@ -33,7 +34,19 @@
 !     VECAE  ::  REGULAR ELECTRON MOS
 !     VECAE0 ::  OLD REGULAR ELECTRON MOS
 !     AEE    ::  REGULAR ELECTRON ORBITAL EIGENVALUES
-!
+!     NAE_alp    ::  NUMBER OF ALPHA REGULAR ELECTRONS
+!     DAE_alp    ::  NEW REGULAR ALPHA ELECTRON DENSITY MATRIX
+!     DAE0_alp   ::  OLD REGULAR ALPHA ELECTRON DENSITY MATRIX
+!     VECAE_alp  ::  REGULAR ALPHA ELECTRON MOS
+!     VECAE0_alp ::  OLD REGULAR ALPHA ELECTRON MOS
+!     AEE_alp    ::  REGULAR ALPHA ELECTRON ORBITAL EIGENVALUES
+!     NAE_beta    ::  NUMBER OF BETA REGULAR ELECTRONS
+!     DAE_beta    ::  NEW REGULAR BETA ELECTRON DENSITY MATRIX
+!     DAE0_beta   ::  OLD REGULAR BETA ELECTRON DENSITY MATRIX
+!     VECAE_beta  ::  REGULAR BETA ELECTRON MOS
+!     VECAE0_beta ::  OLD REGULAR BETA ELECTRON MOS
+!     AEE_beta    ::  REGULAR BETA ELECTRON ORBITAL EIGENVALUES
+
 !     * FOR SPECIAL ELECTRONS:
 !     NBE    ::  NUMBER OF SPECIAL ELECTRONS
 !     DBE    ::  NEW SPECIAL ELECTRON DENSITY MATRIX
@@ -75,7 +88,9 @@
       integer NG2CHK,NG3CHK,NG4CHK
       integer nelec
       integer NAE,NBE
+      integer NAE_alp,NAE_beta
       integer NPRA,NPRB
+      integer NPRA_alp, NPRA_beta
       integer NEBFLT
       integer NUCST
       integer nebf
@@ -151,6 +166,8 @@
       double precision TOLE
       double precision diffE
       double precision diffAE
+      double precision diffAE_alp 
+      double precision diffAE_beta
       double precision diffBE
       double precision diffP
 
@@ -179,16 +196,30 @@
 
       double precision DAE(NEBF,NEBF)
       double precision DAE0(NEBF,NEBF)
+      double precision DAE_alp(NEBF,NEBF)
+      double precision DAE0_alp(NEBF,NEBF)
+      double precision DAE_beta(NEBF,NEBF)
+      double precision DAE0_beta(NEBF,NEBF)
       double precision DBE(NEBF,NEBF)
       double precision DBE0(NEBF,NEBF)
       double precision VECAE(NEBF,NEBF)
       double precision VECAE0(NEBF,NEBF)
+      double precision VECAE_alp(NEBF,NEBF)
+      double precision VECAE0_alp(NEBF,NEBF)
+      double precision VECAE_beta(NEBF,NEBF)
+      double precision VECAE0_beta(NEBF,NEBF)
       double precision VECBE(NEBF,NEBF)
       double precision VECBE0(NEBF,NEBF)
       double precision AEE(NEBF)
+      double precision AEE_alp(NEBF)
+      double precision AEE_beta(NEBF)
       double precision BEE(NEBF)
       double precision FAE(nebf,nebf)
       double precision XFAE(nebf,nebf)
+      double precision FAE_alp(nebf,nebf)
+      double precision XFAE_alp(nebf,nebf)
+      double precision FAE_beta(nebf,nebf)
+      double precision XFAE_beta(nebf,nebf)
       double precision FBE(nebf,nebf)
       double precision XFBE(nebf,nebf)
 
@@ -215,15 +246,21 @@
       logical LSOSCF,LSOSCFA,LSOSCFB
       logical EIGAVL
       integer NA
+      integer NA_alp
+      integer NA_beta
       integer NB
       integer ITER
       integer ITSOA ! SOSCF iteration counter
+      integer ITSOA_alp
+      integer ITSOA_beta
       integer ITSOB ! SOSCF iteration counter
       integer L0,L1
       integer L0wA,L1wA
+      integer L0wA_alp,L1wA_alp,L0wA_beta,L1wA_beta
       integer L0wB,L1wB
       integer NFT15
       integer NFT16
+      integer NFT17
       double precision FLT(NEBFLT) !FLT: Lower triangle focke
       double precision, allocatable :: HSTARTA(:)
       double precision, allocatable :: GRADA(:)
@@ -238,6 +275,32 @@
       double precision, allocatable :: XA(:)
       double precision ORBGRDA
       double precision GA(nebf,nebf) !G(L0,L0)
+      double precision, allocatable :: HSTARTA_alp(:)
+      double precision, allocatable :: GRADA_alp(:)
+      double precision, allocatable :: PGRADA_alp(:)
+      double precision, allocatable :: DISPLIA_alp(:)
+      double precision, allocatable :: DGRADA_alp(:)  ! WRK1
+      double precision, allocatable :: DISPLA_alp(:)  ! WRK2
+      double precision, allocatable :: UPDTA_alp(:)   ! WRK3
+      double precision, allocatable :: DISPLNA_alp(:) ! WRK1+NPR
+      double precision, allocatable :: DGRADIA_alp(:) ! WRK2+NPR
+      double precision, allocatable :: UPDTIA_alp(:)  ! WRK3+NPR
+      double precision, allocatable :: XA_alp(:)
+      double precision ORBGRDA_alp
+      double precision GA_alp(nebf,nebf) !G(L0,L0)
+      double precision, allocatable :: HSTARTA_beta(:)
+      double precision, allocatable :: GRADA_beta(:)
+      double precision, allocatable :: PGRADA_beta(:)
+      double precision, allocatable :: DISPLIA_beta(:)
+      double precision, allocatable :: DGRADA_beta(:)  ! WRK1
+      double precision, allocatable :: DISPLA_beta(:)  ! WRK2
+      double precision, allocatable :: UPDTA_beta(:)   ! WRK3
+      double precision, allocatable :: DISPLNA_beta(:) ! WRK1+NPR
+      double precision, allocatable :: DGRADIA_beta(:) ! WRK2+NPR
+      double precision, allocatable :: UPDTIA_beta(:)  ! WRK3+NPR
+      double precision, allocatable :: XA_beta(:)
+      double precision ORBGRDA_beta
+      double precision GA_beta(nebf,nebf) !G(L0,L0)
       double precision WRK(nebf) !WRK(L0)
       double precision, allocatable :: HSTARTB(:)
       double precision, allocatable :: GRADB(:)
@@ -269,6 +332,19 @@ C ARS( OCBSE variables
       double precision, allocatable :: wFLTAw(:),wFLTBw(:)         ! flattened wFEw
       double precision, allocatable :: wGAw(:,:),wGBw(:,:)         ! exponential transformation
       double precision, allocatable :: wWRKAw(:),wWRKBw(:)         ! work array (L0w)
+      integer nocca_alp,nocca_beta
+      integer nwbfA_alp,NwbfA_beta                                          ! # bf in W basis
+      integer nwbfltA_alp,nwbfltA_beta                                      ! one-dimensional size
+      double precision, allocatable :: tempvecA_alp(:,:),
+     x                                 tempvecA_beta(:,:) ! transformation matrix
+      double precision, allocatable :: WA_alp(:,:),WA_beta(:,:)             ! transformation matrix
+      double precision, allocatable :: wFAEw_alp(:,:),wFAEw_beta(:,:)       ! Fock matrix in W basis
+      double precision, allocatable :: wvecAEw_alp(:,:),
+     x                                 wvecAEw_beta(:,:)   ! eigenvectors in W basis from curr it
+      double precision, allocatable :: wAEenw_alp(:),wAEenw_beta(:)         ! eigenvalues
+      double precision, allocatable :: wFLTAw_alp(:),wFLTAw_beta(:)         ! flattened wFEw
+      double precision, allocatable :: wGAw_alp(:,:),wGAw_beta(:,:)         ! exponential transformation
+      double precision, allocatable :: wWRKAw_alp(:),wWRKAw_beta(:)         ! work array (L0w)
 C )
 C ARS( DIIS variables
       logical LDIIS
@@ -295,7 +371,21 @@ C ARS( SORXCHF variables
       double precision, allocatable :: DISPLIB0(:)
       double precision, allocatable :: WA0(:,:)         ! W bases at previous iteration
       double precision, allocatable :: WB0(:,:)
-C )
+      double precision, allocatable :: HESSA_alp(:,:)       ! Hessian at current iteration
+      double precision, allocatable :: HESSA_beta(:,:)
+      double precision, allocatable :: HESSA0_alp(:,:)      ! Hessian at previous iteration
+      double precision, allocatable :: HESSA0_beta(:,:)
+!     double precision, allocatable :: GRADA(:)         ! Gradient at current iteration
+!     double precision, allocatable :: GRADB(:)
+      double precision, allocatable :: GRADA0_alp(:)        ! Gradient at previous iteration
+      double precision, allocatable :: GRADA0_beta(:)
+!     double precision, allocatable :: DISPLIA(:)       ! Displ vec at current iteration
+!     double precision, allocatable :: DISPLIB(:)
+      double precision, allocatable :: DISPLIA0_alp(:)      ! Displ vec at previous iteration
+      double precision, allocatable :: DISPLIA0_beta(:)
+      double precision, allocatable :: WA0_alp(:,:)         ! W bases at previous iteration
+      double precision, allocatable :: WA0_beta(:,:)
+C )C )
 C ARS( testing variables
       logical LNOINT
       double precision FBEmo(nebf,nebf)
@@ -333,6 +423,10 @@ C )
  9054 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
      * 'ALPHA DENS       BETA DENS        QMP DENS         ',
      * 'ORBGRAD_A        ORBGRAD_B        DIIS ERR  ')
+ 9055 FORMAT(/' ITER      TOTAL ENERGY        E CHANGE       ',
+     * 'ALPHA_alp DENS   ALPHA_beta DENS  BETA DENS        ',
+     *  'QMP DENS         ',
+     * 'ORBGRAD_A_alp    ORBGRAD_A_beta   ORBGRAD_B ')
 
  9100 FORMAT(1X,I3,F20.10,F17.10,3F17.10)
 
@@ -341,6 +435,8 @@ C )
  9151 FORMAT(1X,I3,F20.10,F17.10,5F17.10)
 
  9152 FORMAT(1X,I3,F20.10,F17.10,6F17.10)
+ 
+ 9153 FORMAT(1X,I3,F20.10,F17.10,7F17.10)
 
  9200 FORMAT(/1X,'FINAL NEORXCHF ENERGY IS',F20.10,' AFTER',I4,
      *           ' ITERATIONS')
@@ -413,12 +509,14 @@ C )
       else if (OCBSETYP.eq.2) then
        LOCBSE2=.true.
       end if
-
-      if (nae.gt.1) then
-       nocca=nae/2
-      else
-       nocca=nae
-      end if
+cKRB this is changed for UHF for specials
+c      if (nae.gt.1) then
+c       nocca=nae/2
+c      else
+       nocca=nae_alp
+       nocca_alp =nae_alp
+       nocca_beta=nae_beta
+c      end if
       if (nbe.gt.1) then
        noccb=nbe/2
       else
@@ -503,6 +601,14 @@ C )
 
        else
         if(rank.eq.0) write(*,*) "Using LOCBSE"
+        nwbfA_alp=nebf-noccb
+        nwbfltA_alp=nwbfA_alp*(nwbfA_alp+1)/2
+        L0wA_alp=nwbfA_alp
+        L1wA_alp=nwbfA_alp
+        nwbfA_beta=nebf-noccb
+        nwbfltA_beta=nwbfA_beta*(nwbfA_beta+1)/2
+        L0wA_beta=nwbfA_beta
+        L1wA_beta=nwbfA_beta
         nwbfA=nebf-noccb
         nwbfltA=nwbfA*(nwbfA+1)/2
         L0wA=nwbfA
@@ -524,12 +630,51 @@ C )
          allocate(wGAw(nwbfA,nwbfA))
          if(allocated(wWRKAw)) deallocate(wWRKAw)
          allocate(wWRKAw(nwbfA))
+
+        if(allocated(tempvecA_alp)) deallocate(tempvecA_alp)
+        allocate(tempvecA_alp(nebf,nwbfA_alp))
+        if(allocated(WA_alp)) deallocate(WA_alp)
+        allocate(WA_alp(nebf,nwbfA_alp))
+        if(allocated(wFAEw_alp)) deallocate(wFAEw_alp)
+        allocate(wFAEw_alp(nwbfA_alp,nwbfA_alp))
+        if(allocated(wvecAEw_alp)) deallocate(wvecAEw_alp)
+        allocate(wvecAEw_alp(nwbfA_alp,nwbfA_alp))
+        if(allocated(wAEenw_alp)) deallocate(wAEenw_alp)
+        allocate(wAEenw_alp(nwbfA_alp))
+        if(allocated(wFLTAw_alp)) deallocate(wFLTAw_alp)
+        allocate(wFLTAw_alp(nwbfltA_alp))
+        if(allocated(wGAw_alp)) deallocate(wGAw_alp)
+        allocate(wGAw_alp(nwbfA_alp,nwbfA_alp))
+        if(allocated(wWRKAw_alp)) deallocate(wWRKAw_alp)
+        allocate(wWRKAw_alp(nwbfA_alp))
+
+        if(allocated(tempvecA_beta)) deallocate(tempvecA_beta)
+        allocate(tempvecA_beta(nebf,nwbfA_beta))
+        if(allocated(WA_beta)) deallocate(WA_beta)
+        allocate(WA_beta(nebf,nwbfA_beta))
+        if(allocated(wFAEw_beta)) deallocate(wFAEw_beta)
+        allocate(wFAEw_beta(nwbfA_beta,nwbfA_beta))
+        if(allocated(wvecAEw_beta)) deallocate(wvecAEw_beta)
+        allocate(wvecAEw_beta(nwbfA,nwbfA_beta))
+        if(allocated(wAEenw_beta)) deallocate(wAEenw_beta)
+        allocate(wAEenw_beta(nwbfA_beta))
+        if(allocated(wFLTAw_beta)) deallocate(wFLTAw_beta)
+        allocate(wFLTAw_beta(nwbfltA_beta))
+        if(allocated(wGAw_beta)) deallocate(wGAw_beta)
+        allocate(wGAw_beta(nwbfA_beta,nwbfA_beta))
+        if(allocated(wWRKAw_beta)) deallocate(wWRKAw_beta)
+        allocate(wWRKAw_beta(nwbfA_beta))
+        
         end if
         if(LSORXCHF) then
          SOGTOL=0.40d+00
          npra=(nebf-nocca-noccb)*nocca ! occ-vir pairs for regular elecs
+         npra_alp=(nebf-nocca_alp-noccb)*nocca_alp ! occ-vir pairs for alpha regular elecs
+         npra_beta=(nebf-nocca_beta-noccb)*nocca_beta ! occ-vir pairs for beta regular elecs
          nprb=(nebf-noccb-nocca)*noccb ! occ-vir pairs for special elecs
          NA=nocca
+         NA_alp = nocca_alp
+         NA_beta = nocca_beta
          NB=noccb
          if (rank.eq.0) then
           if(allocated(WA0))      deallocate(WA0)
@@ -564,6 +709,39 @@ C )
           allocate(DISPLIB(NPRB))
           allocate(DISPLIA0(NPRA))
           allocate(DISPLIB0(NPRB))
+          
+          if(allocated(WA0_alp))      deallocate(WA0_alp)
+          if(allocated(WA0_beta))      deallocate(WA0_beta)
+          if(allocated(HSTARTA_alp))  deallocate(HSTARTA_alp)
+          if(allocated(HSTARTA_beta))  deallocate(HSTARTA_beta)
+          if(allocated(HESSA_alp))    deallocate(HESSA_alp)
+          if(allocated(HESSA_beta))    deallocate(HESSA_beta)
+          if(allocated(HESSA0_alp))   deallocate(HESSA0_alp)
+          if(allocated(HESSA0_beta))   deallocate(HESSA0_beta)
+          if(allocated(GRADA_alp))    deallocate(GRADA_alp)
+          if(allocated(GRADA_beta))    deallocate(GRADA_beta)
+          if(allocated(GRADA0_alp))   deallocate(GRADA0_alp)
+          if(allocated(GRADA0_beta))   deallocate(GRADA0_beta)
+          if(allocated(DISPLIA_alp))  deallocate(DISPLIA_alp)
+          if(allocated(DISPLIA_beta))  deallocate(DISPLIA_beta)
+          if(allocated(DISPLIA0_alp)) deallocate(DISPLIA0_alp)
+          if(allocated(DISPLIA0_beta)) deallocate(DISPLIA0_beta)
+          allocate(WA0_alp(nebf,nwbfA_alp))
+          allocate(WA0_beta(nebf,nwbfA_beta))
+          allocate(HSTARTA_alp(NPRA_alp))
+          allocate(HSTARTA_beta(NPRA_beta))
+          allocate(HESSA_alp(NPRA_alp,NPRA_alp))
+          allocate(HESSA_beta(NPRA_beta,NPRA_beta))
+          allocate(HESSA0_alp(NPRA_alp,NPRA_alp))
+          allocate(HESSA0_beta(NPRA_beta,NPRA_beta))
+          allocate(GRADA_alp(NPRA_alp))
+          allocate(GRADA_beta(NPRA_beta))
+          allocate(GRADA0_alp(NPRA_alp))
+          allocate(GRADA0_beta(NPRA_beta))
+          allocate(DISPLIA_alp(NPRA_alp))
+          allocate(DISPLIA_beta(NPRA_beta))
+          allocate(DISPLIA0_alp(NPRA_alp))
+          allocate(DISPLIA0_beta(NPRA_beta))
          end if
         end if
 
@@ -657,8 +835,10 @@ C )
         if(rank.eq.0) write(*,*)'ABOUT TO CALL guess_A_elec'
 !       call guess_elec(nelec,nebf,xxse,GAM_ecore,DE)
         if ((LOCBSE).or.(LOCBSE2)) then
-          call RXCHFmult_guess_elec(nae,nbe,nebf,xxse,GAM_ecore,
-     x                          DAE,DBE,VECAE0,VECBE0)
+          call RXCHFmult_guess_elec_uhf(nae,nbe,nebf,xxse,GAM_ecore,
+     x                          DAE,DBE,VECAE0,VECBE0,
+     x                          nae_alp,nae_beta,DAE_alp,DAE_beta,
+     x                           VECAE0_alp,VECAE0_beta)
           if(rank.eq.0) write(*,*)'BACK FROM guess_elec for OCBSE'
         else
          call RXCHFmult_guess_A_elec(NAE,nebf,xxse,GAM_ecore,DAE,VECAE0)
@@ -697,7 +877,8 @@ C ARS( debug: print out initial guess MOs here
        write(*,*) "------------------"
        write(*,*)
        WRITE(*,9610)
-       call PREVNU(vecAE0,AEE,nebf,nebf,nebf)
+       WRITE(*,*) "ALPHA ELECTRONS"
+       call PREVNU(vecAE0_alp,AEE_alp,nebf,nebf,nebf)
        WRITE(*,9620)
        call PREVNU(vecBE0,BEE,nebf,nebf,nebf)
 C vecP not defined yet
@@ -711,13 +892,18 @@ C )
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !-------------SETUP-FOR-POSSIBLE-SOSCF---------------------------------(
+c@@@krb think we should not ever be here
       if (LSOSCF) then
+         write(*,*) 'krb shouldnt ever be here, since should' 
+         write(*,*) 'use SORXCHF'
+         call exit
          SOGTOL=0.40d+00
          SMALL=1.0D-06
          L0=nebf
          L1=nebf
          LSOSCFA=.true.
          LSOSCFB=.true.
+c@@@krb taking this out right now
          if(nae.eq.1) LSOSCFA=.FALSE.
          if(nbe.eq.1) LSOSCFB=.FALSE.
       else
@@ -807,6 +993,8 @@ C )
 
 !     ZERO OUT 'OLD' DENSITY MATRICES
       DAE0=0.0d+00
+      DAE0_alp=0.0d+00
+      DAE0_beta=0.0d+00
       DBE0=0.0d+00
       DP0=0.0d+00
 
@@ -816,11 +1004,17 @@ C )
 
       DO I=1,MAXIT
 
-C Call HF Fock build for NAE regular electrons
-         call RXCHF_fock_hf_MPI(nproc,rank,
+C Call UHF Fock build for NAE regular electrons
+c@@@krb taking this out for uhf for regulars
+c         call RXCHF_fock_hf_MPI(nproc,rank,
+c     x                          LCMF,nebf,nebf2,NAE,ngee,
+c     x                          DAE,GAM_ecore,GAM_ee,
+c     x                          FAE,E_HF,E_HF_ecore,E_HF_ee)
+         call RXCHF_fock_uhf_MPI(nproc,rank,
      x                          LCMF,nebf,nebf2,NAE,ngee,
      x                          DAE,GAM_ecore,GAM_ee,
-     x                          FAE,E_HF,E_HF_ecore,E_HF_ee)
+     x							FAE,E_HF,E_HF_ecore,E_HF_ee,
+     x                           DAE_alp,DAE_beta,FAE_alp,FAE_beta)
 
 C Call XCHF Fock build for NBE special electrons and one QM particle
          call RXCHF_fock_xchf_MPI(nproc,rank,
@@ -861,15 +1055,19 @@ C ARS( no interaction
           E_HF=0.0d+00
       else
           call add2fock(npbf,FPint,FP)
-          call add2fock(nebf,FAEint,FAE)
+          call add2fock(nebf,FAEint,FAE_alp)
+          call add2fock(nebf,FAEint,FAE_beta)
           call add2fock(nebf,FBEint,FBE)
       end if
 C )
 
           IF ((LCMF).and.(rank.eq.0)) then
            write(*,*)
-           write(*,*) "FAE:"
-           call prt_lower_triangle(nebf,nebflt,FAE)
+           write(*,*) "FAE_alp:"
+           call prt_lower_triangle(nebf,nebflt,FAE_alp)
+           write(*,*)
+           write(*,*) "FAE_beta:"
+           call prt_lower_triangle(nebf,nebflt,FAE_beta)
            write(*,*)
            write(*,*) "FBE:"
            call prt_lower_triangle(nebf,nebflt,FBE)
@@ -913,23 +1111,33 @@ C )
          if(LSOSCFB) ITSOB=0
          if(LSORXCHF) then
           ITSOA=0
+          ITSOA_alp=0
+          ITSOA_beta=0
           ITSOB=0
           if(rank.eq.0) then
            if(allocated(HESSA0)) HESSA0=0.0d+00
+           if(allocated(HESSA0_alp)) HESSA0_alp=0.0d+00
+           if(allocated(HESSA0_beta)) HESSA0_beta=0.0d+00
            if(allocated(HESSB0)) HESSB0=0.0d+00
            if(allocated(GRADA0)) GRADA0=0.0d+00
+           if(allocated(GRADA0_alp)) GRADA0_alp=0.0d+00
+           if(allocated(GRADA0_beta)) GRADA0_beta=0.0d+00
            if(allocated(GRADB0)) GRADB0=0.0d+00
           end if
          end if
          ORBGRDA=0.0d+00
+         ORBGRDA_alp=0.0d+00
+         ORBGRDA_beta=0.0d+00
          ORBGRDB=0.0d+00
          if(allocated(PGRADA)) PGRADA=0.0D+00
+         if(allocated(PGRADA_alp)) PGRADA_alp=0.0D+00
+         if(allocated(PGRADA_beta)) PGRADA_beta=0.0D+00
          if(allocated(PGRADB)) PGRADB=0.0D+00
 
          if (rank.eq.0) then
           write(*,2001) I
           if((LSOSCFA).and.(LSOSCFB)) then 
-           WRITE(*,9052)
+           WRITE(*,9055)
           else if ((LSOSCFA).and.(.not.(LSOSCFB))) then
            WRITE(*,9050)
           else if ((LSOSCFB).and.(.not.(LSOSCFA))) then
@@ -937,7 +1145,7 @@ C )
           else if ((LSORXCHF).and.(LDIIS)) then
            WRITE(*,9054)
           else if (LSORXCHF) then
-           WRITE(*,9052)
+           WRITE(*,9055)
           else if (LDIIS) then
            WRITE(*,9053)
           else
@@ -955,11 +1163,16 @@ C )
          do ielec=1,maxmicroit
 
        if((.not.((locbse).or.(locbse2))).or.(ielec.eq.1)) then
-C Call HF Fock build for NAE regular electrons
-           call RXCHF_fock_hf_MPI(nproc,rank,
-     x                            LCMF,nebf,nebf2,NAE,ngee,
-     x                            DAE,GAM_ecore,GAM_ee,
-     x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
+C Call UHF Fock build for NAE regular electrons
+c         call RXCHF_fock_hf_MPI(nproc,rank,
+c     x                          LCMF,nebf,nebf2,NAE,ngee,
+c     x                          DAE,GAM_ecore,GAM_ee,
+c     x                          FAE,E_HF,E_HF_ecore,E_HF_ee)
+         call RXCHF_fock_uhf_MPI(nproc,rank,
+     x                          LCMF,nebf,nebf2,NAE,ngee,
+     x                          DAE,GAM_ecore,GAM_ee,
+     x							FAE,E_HF,E_HF_ecore,E_HF_ee,
+     x                           DAE_alp,DAE_beta,FAE_alp,FAE_beta)
 
 C Call XCHF Fock build for NBE special electrons and one QM particle
          call RXCHF_fock_xchf_MPI(nproc,rank,
@@ -1000,7 +1213,8 @@ C ARS( no interaction
             E_HF=0.0d+00
       else
             call add2fock(npbf,FPint,FP)
-            call add2fock(nebf,FAEint,FAE)
+            call add2fock(nebf,FAEint,FAE_alp)
+            call add2fock(nebf,FAEint,FAE_beta)
             call add2fock(nebf,FBEint,FBE)
       end if
 C )
@@ -1015,26 +1229,25 @@ C )
 
           if (rank.eq.0) then
 
-! Regular electrons
+! Regular alpha electrons
 
-! Transform FAE (calculated at end of previous iteration) to new WA basis
-!  - WA constructed from vecAE0 and vecBE0 (previous iteration MOs)
-!  - vecAE in AO basis from previous iteration is transformed to new WA basis
+! Transform FAE_alp (calculated at end of previous iteration) to new WA_alp basis
+!  - WA_alp constructed from vecAE0_alp and vecBE0 (previous iteration MOs)
+!  - vecAE_alp in AO basis from previous iteration is transformed to new WA_alp basis
 !    (relevant for SOSCF only)
-
-           do j=1,nebf-nocca-noccb
-             tempvecA(:,j)=vecBE0(:,j+noccb)
+           do j=1,nebf-nocca_alp-noccb
+             tempvecA_alp(:,j)=vecBE0(:,j+noccb)
            end do
-           do j=1,nocca
-             tempvecA(:,j+nebf-nocca-noccb)=vecAE0(:,j)
+           do j=1,nae_alp
+             tempvecA_alp(:,j+nebf-nocca_alp-noccb)=vecAE0_alp(:,j)
            end do
            if(LCMF) then
-            write(*,*) "regular tempvecA"
-            call checkovlap(nwbfA,nebf,tempvecA,xxse)
+            write(*,*) "regular tempvecA_alp"
+            call checkovlap(nwbfA_alp,nebf,tempvecA_alp,xxse)
            end if
 
-           call RXCHFmult_OCBSE_transF(nebf,nwbfA,tempvecA,
-     x                                 FAE,WA,wFAEw)
+           call RXCHFmult_OCBSE_transF(nebf,nwbfA_alp,tempvecA_alp,
+     x                                 FAE_alp,WA_alp,wFAEw_alp)
 
 !-----------------------POSSIBLE-SOSCF-ALPHA----------------------------(
          if((LSORXCHF).or.(LSOSCFA)) THEN
@@ -1042,59 +1255,67 @@ C )
            EIGAVL = ITER.GT.1
          end if
          IF((LSORXCHF.or.LSOSCFA) .AND. (EIGAVL)) THEN
-           call pack_LT(nwbfA,nwbfLTA,wFAEw,wFLTAw)
-           call RXCHFmult_OCBSE_transVt(nebf,nwbfA,WA,
-     x                                  xxse,vecAE,wvecAEw)
+           call pack_LT(nwbfA_alp,nwbfLTA_alp,wFAEw_alp,wFLTAw_alp)
+           call RXCHFmult_OCBSE_transVt(nebf,nwbfA_alp,WA_alp,
+     x                                  xxse,vecAE_alp,wvecAEw_alp)
            if(LCMF) then
-            write(*,*) "regular transVt vecAE"
-            call checkovlap(nebf,nebf,vecAE,xxse)
+            write(*,*) "regular transVt vecAE_alp"
+            call checkovlap(nebf,nebf,vecAE_alp,xxse)
            end if
-           call SOGRAD(GRADA,wFLTAw,wvecAEw,wWRKAw,NPRA,NA,
-     x                 L0wA,L1wA,NwBFLTA,ORBGRDA)
+           call SOGRAD(GRADA_alp,wFLTAw_alp,wvecAEw_alp,wWRKAw_alp,
+     x                      NPRA_alp,NA_alp,
+     x                 L0wA_alp,L1wA_alp,NwBFLTA_alp,ORBGRDA_alp)
 C      write(*,*) "regular grada:",grada
-            IF(ORBGRDA.LT.SOGTOL  .OR.  ITSOA.GT.0) THEN
-              IF(ITSOA.EQ.0) THEN
+            IF(ORBGRDA_alp.LT.SOGTOL  .OR.  ITSOA_alp.GT.0) THEN
+              IF(ITSOA_alp.EQ.0) THEN
                  WRITE(*,9800)
-                 call SOHESS(HSTARTA,wAEenw,NPRA,L0wA,NA,NA)
-C                 write(*,*) "regular hstarta:",hstarta
+                 call SOHESS(HSTARTA_alp,wAEenw_alp,NPRA_alp,
+     x              L0wA_alp,NA_alp,NA_alp)
+c                 write(*,*) "regular hstarta:",hstarta
                  if(LSORXCHF) then
-                  do j=1,npra
-                    HESSA0(j,j)=HSTARTA(j)
-                    DISPLIA0(j)=-HSTARTA(j)*GRADA(j)
+                  do j=1,npra_alp
+                    HESSA0_alp(j,j)=HSTARTA_alp(j)
+                    DISPLIA0_alp(j)=-HSTARTA_alp(j)*GRADA_alp(j)
                   end do
                  end if
               END IF
-              ITSOA = ITSOA+1
+              ITSOA_alp = ITSOA_alp+1
               IF(LSORXCHF) then
-               call RXCHF_SOCHGBAS(NPRA,NA,nwbfA,nebf,WA0,WA,xxse,
-     x                             GRADA0,HESSA0,DISPLIA0)
-               call RXCHF_SONEWT(NPRA,ITSOA,HESSA0,HESSA,GRADA0,
-     x                           GRADA,DISPLIA0,DISPLIA)
-C      write(*,*) "grad:",GRADA
-C      write(*,*) "grad0:",GRADA0
-C      write(*,*) "displia:",DISPLIA
+               call RXCHF_SOCHGBAS(NPRA_alp,NA_alp,nwbfA_alp,nebf,
+     x                             WA0_alp,WA_alp,xxse,
+     x                      GRADA0_alp,HESSA0_alp,DISPLIA0_alp)
+               call RXCHF_SONEWT(NPRA_alp,ITSOA_alp,HESSA0_alp,
+     x                         HESSA_alp,GRADA0_alp,
+     x                        GRADA_alp,DISPLIA0_alp,DISPLIA_alp)
+c      write(*,*) "grad:",GRADA
+c      write(*,*) "grad0:",GRADA0
+c      write(*,*) "displia:",DISPLIA
               ELSE
-               call SONEWT(HSTARTA,GRADA,PGRADA,DISPLIA,DGRADA,
-     x                     DISPLA,UPDTA,DISPLNA,DGRADIA,UPDTIA,
-     x                     ORBGRDA,NPRA,ITSOA,NFT15)
+               call SONEWT(HSTARTA_alp,GRADA_alp,PGRADA_alp,
+     x                DISPLIA_alp,DGRADA_alp,
+     x        DISPLA_alp,UPDTA_alp,DISPLNA_alp,DGRADIA_alp,UPDTIA_alp,
+     x                     ORBGRDA_alp,NPRA_alp,ITSOA_alp,NFT15)
 C                 write(*,*) "regular displia:",displia
               END IF
-              call SOTRAN(DISPLIA,wvecAEw,wGAw,wWRKAw,NPRA,
-     x                    L0wA,L1wA,NA,NA,ORBGRDA)
+              call SOTRAN(DISPLIA_alp,wvecAEw_alp,wGAw_alp,
+     x                 wWRKAw_alp,NPRA_alp,
+     x                    L0wA_alp,L1wA_alp,NA_alp,NA_alp,ORBGRDA_alp)
               IF(LSORXCHF) THEN
-                CALL DCOPY(NPRA,GRADA,1,GRADA0,1)
-                CALL DCOPY(NPRA,DISPLIA,1,DISPLIA0,1)
-                CALL COPYDEN(HESSA0,HESSA,NPRA)
+                CALL DCOPY(NPRA_alp,GRADA_alp,1,GRADA0_alp,1)
+                CALL DCOPY(NPRA_alp,DISPLIA_alp,1,DISPLIA0_alp,1)
+                CALL COPYDEN(HESSA0_alp,HESSA_alp,NPRA_alp)
               ELSE
-                CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
+                CALL DCOPY(NPRA_alp,GRADA_alp,1,PGRADA_alp,1)
               END IF
-              call RXCHFmult_OCBSE_transV(nebf,nwbfA,WA,wvecAEw,wAEenw, ! eigenvalues useless
-     x                                    vecAE,AEe)
+              call RXCHFmult_OCBSE_transV(nebf,nwbfA_alp,WA_alp,
+     x               wvecAEw_alp,wAEenw_alp, ! eigenvalues useless
+     x                                    vecAE_alp,AEe_alp)
               if(LCMF) then
-               write(*,*) "regular transV vecAE"
-               call checkovlap(nebf,nebf,vecAE,xxse)
+               write(*,*) "regular transV vecAE_alp"
+               call checkovlap(nebf,nebf,vecAE_alp,xxse)
               end if
-              call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+              call RXCHFmult_construct_DE_uhf(NAE_alp,nebf,
+     x              vecAE_alp,DAE_alp)
               GO TO 250
             END IF
          END IF
@@ -1103,16 +1324,134 @@ C                 write(*,*) "regular displia:",displia
 ! No SOSCF
 !  - Diagonalize Fock matrix in WA basis of this iteration
 !  - Obtain updated vecAE in WA basis of this iteration
-           call RXCHFmult_OCBSE_diag(nebf,nwbfA,WA,wFAEw,
-     x                               wvecAEw,wAEenw,vecAE,AEe)
+           call RXCHFmult_OCBSE_diag(nebf,nwbfA_alp,WA_alp,wFAEw_alp,
+     x                      wvecAEw_alp,wAEenw_alp,vecAE_alp,AEe_alp)
            if(LCMF) then
-            write(*,*) "regular diag vecAE"
-            call checkovlap(nebf,nebf,vecAE,xxse)
+            write(*,*) "regular diag vecAE_alp"
+            call checkovlap(nebf,nebf,vecAE_alp,xxse)
            end if
-           call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
+           call RXCHFmult_construct_DE_uhf(NAE_alp,nebf,
+     x         vecAE_alp,DAE_alp)
 
   250 CONTINUE
 
+! Regular beta electrons
+
+! Transform FAE_beta (calculated at end of previous iteration) to new WA_beta basis
+!  - WA_beta constructed from vecAE0_beta and vecBE0 (previous iteration MOs)
+!  - vecAE_beta in AO basis from previous iteration is transformed to new WA_beta basis
+!    (relevant for SOSCF only)
+           do j=1,nebf-nocca_alp-noccb
+             tempvecA_beta(:,j)=vecBE0(:,j+noccb)
+           end do
+           do j=1,nae_alp
+             tempvecA_beta(:,j+nebf-nocca_alp-noccb)=vecAE0_alp(:,j)
+           end do
+           
+           if(LCMF) then
+            write(*,*) "regular tempvecA_beta"
+            call checkovlap(nwbfA_beta,nebf,tempvecA_beta,xxse)
+           end if
+
+           call RXCHFmult_OCBSE_transF(nebf,nwbfA_beta,tempvecA_beta,
+     x                                 FAE_beta,WA_beta,wFAEw_beta)
+
+!-----------------------POSSIBLE-SOSCF-ALPHA----------------------------(
+         if((LSORXCHF).or.(LSOSCFA)) THEN
+           ITER=IELEC
+           EIGAVL = ITER.GT.1
+         end if
+         IF((LSORXCHF.or.LSOSCFA) .AND. (EIGAVL)) THEN
+           call pack_LT(nwbfA_beta,nwbfLTA_beta,wFAEw_beta,wFLTAw_beta)
+           call RXCHFmult_OCBSE_transVt(nebf,nwbfA_beta,WA_beta,
+     x                                  xxse,vecAE_beta,wvecAEw_beta)
+           if(LCMF) then
+            write(*,*) "regular transVt vecAE_beta"
+            call checkovlap(nebf,nebf,vecAE_beta,xxse)
+           end if
+           call SOGRAD(GRADA_beta,wFLTAw_beta,wvecAEw_beta,wWRKAw_beta,
+     x                      NPRA_beta,NA_beta,
+     x                 L0wA_beta,L1wA_beta,NwBFLTA_beta,ORBGRDA_beta)
+C      write(*,*) "regular grada:",grada
+            IF(ORBGRDA_beta.LT.SOGTOL  .OR.  ITSOA_beta.GT.0) THEN
+              IF(ITSOA_beta.EQ.0) THEN
+c                 WRITE(*,*) '********* krb this is for beta *********'
+                 WRITE(*,9800)
+                 call SOHESS(HSTARTA_beta,wAEenw_beta,NPRA_beta,
+     x              L0wA_beta,NA_beta,NA_beta)
+C                 write(*,*) "regular hstarta:",hstarta
+                 if(LSORXCHF) then
+                  do j=1,npra_beta
+                    HESSA0_beta(j,j)=HSTARTA_beta(j)
+                    DISPLIA0_beta(j)=-HSTARTA_beta(j)*GRADA_beta(j)
+                  end do
+                 end if
+              END IF
+              ITSOA_beta = ITSOA_beta+1
+              IF(LSORXCHF) then
+               call RXCHF_SOCHGBAS(NPRA_beta,NA_beta,nwbfA_beta,nebf,
+     x                             WA0_beta,WA_beta,xxse,
+     x                      GRADA0_beta,HESSA0_beta,DISPLIA0_beta)
+               call RXCHF_SONEWT(NPRA_beta,ITSOA_beta,HESSA0_beta,
+     x                         HESSA_beta,GRADA0_beta,
+     x                        GRADA_beta,DISPLIA0_beta,DISPLIA_beta)
+C      write(*,*) "grad:",GRADA
+C      write(*,*) "grad0:",GRADA0
+C      write(*,*) "displia:",DISPLIA
+              ELSE
+               call SONEWT(HSTARTA_beta,GRADA_beta,PGRADA_beta,
+     x                DISPLIA_beta,DGRADA_beta,
+     x     DISPLA_beta,UPDTA_beta,DISPLNA_beta,DGRADIA_beta,UPDTIA_beta,
+     x                     ORBGRDA_beta,NPRA_beta,ITSOA_beta,NFT17)
+C                 write(*,*) "regular displia:",displia
+              END IF
+              call SOTRAN(DISPLIA_beta,wvecAEw_beta,wGAw_beta,
+     x                 wWRKAw_beta,NPRA_beta,
+     x                L0wA_beta,L1wA_beta,NA_beta,NA_beta,ORBGRDA_beta)
+              IF(LSORXCHF) THEN
+                CALL DCOPY(NPRA_beta,GRADA_beta,1,GRADA0_beta,1)
+                CALL DCOPY(NPRA_beta,DISPLIA_beta,1,DISPLIA0_beta,1)
+                CALL COPYDEN(HESSA0_beta,HESSA_beta,NPRA_beta)
+              ELSE
+                CALL DCOPY(NPRA_beta,GRADA_beta,1,PGRADA_beta,1)
+              END IF
+              call RXCHFmult_OCBSE_transV(nebf,nwbfA_beta,WA_beta,
+     x               wvecAEw_beta,wAEenw_beta, ! eigenvalues useless
+     x                                    vecAE_beta,AEe_beta)
+              if(LCMF) then
+               write(*,*) "regular transV vecAE_beta"
+               call checkovlap(nebf,nebf,vecAE_beta,xxse)
+              end if
+              call RXCHFmult_construct_DE_uhf(NAE_beta,nebf,
+     x              vecAE_beta,DAE_beta)
+              GO TO 300
+            END IF
+         END IF
+!-----------------------POSSIBLE-SOSCF-ALPHA----------------------------)
+
+! No SOSCF
+!  - Diagonalize Fock matrix in WA basis of this iteration
+!  - Obtain updated vecAE in WA basis of this iteration
+           call RXCHFmult_OCBSE_diag(nebf,nwbfA_beta,WA_beta,wFAEw_beta,
+     x                               wvecAEw_beta,wAEenw_beta,
+     x                        vecAE_beta,AEe_beta)
+           if(LCMF) then
+            write(*,*) "regular diag vecAE_beta"
+            call checkovlap(nebf,nebf,vecAE_beta,xxse)
+           end if
+           call RXCHFmult_construct_DE_uhf(NAE_beta,nebf,
+     x                      vecAE_beta,DAE_beta)
+
+  300 CONTINUE
+
+c add together alpha and beta density matrices
+       dae = 0.0
+       do k = 1,nebf
+         do l = 1, nebf
+            DAE(k,l) = DAE_alp(k,l)+DAE_beta(k,l)
+         enddo
+       enddo
+     
 ! Special electrons
 
 ! Transform FBE (calculated at end of previous iteration) to new WB basis
@@ -1120,11 +1459,11 @@ C                 write(*,*) "regular displia:",displia
 !  - vecBE in AO basis from previous iteration is transformed to new WB basis
 !    (relevant for SOSCF only)
 
-           do j=1,nebf-nocca-noccb
-             tempvecB(:,j)=vecAE(:,j+nocca)
+           do j=1,nebf-nocca_alp-noccb
+             tempvecB(:,j)=vecAE_alp(:,j+nocca_alp)
            end do
            do j=1,noccb
-             tempvecB(:,j+nebf-nocca-noccb)=vecBE0(:,j)
+             tempvecB(:,j+nebf-nocca_alp-noccb)=vecBE0(:,j)
            end do
            if(LCMF) then
             write(*,*) "special tempvecB"
@@ -1133,7 +1472,6 @@ C                 write(*,*) "regular displia:",displia
 
            call RXCHFmult_OCBSE_transF(nebf,nwbfB,tempvecB,
      x                                 FBE,WB,wFBEw)
-
 !-----------------------POSSIBLE-SOSCF-BETA----------------------------(
          if((LSORXCHF).or.(LSOSCFB)) THEN
            ITER=IELEC
@@ -1188,7 +1526,9 @@ C                 write(*,*) "special displib:",displib
               END IF
               call RXCHFmult_OCBSE_transV(nebf,nwbfB,WB,wvecBEw,wBEenw, ! eigenvalues useless
      x                                    vecBE,BEe)
-              if(LCMF) then
+c            write(6,*) 'krb  vecbe after'
+c                  call PREVNU(vecbe,AEE,nebf,nebf,nebf)
+                  if(LCMF) then
                write(*,*) "special transV vecBE"
                call checkovlap(nebf,nebf,vecBE,xxse)
               end if
@@ -1203,13 +1543,16 @@ C                 write(*,*) "special displib:",displib
 !  - Obtain updated vecBE in WB basis of this iteration
            call RXCHFmult_OCBSE_diag(nebf,nwbfB,WB,wFBEw,
      x                               wvecBEw,wBEenw,vecBE,BEe)
-           if(LCMF) then
+c            write(6,*) 'krb  vecbe after2'
+c                  call PREVNU(vecbe,AEE,nebf,nebf,nebf)
+            if(LCMF) then
             write(*,*) "special diag vecBE"
             call checkovlap(nebf,nebf,vecBE,xxse)
            end if
            call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
 
   350 CONTINUE
+
 
 C --------------------------- POTENTIAL DIIS ---------------------------
       if(LDIIS) then
@@ -1251,17 +1594,27 @@ C --------------------------- POTENTIAL DIIS ---------------------------
       end if
 C ----------------------------------------------------------------------
 
-           WA0(:,:)=WA(:,:)
+           WA0_alp(:,:)=WA_alp(:,:)
+           WA0_beta(:,:)=WA_beta(:,:)
            WB0(:,:)=WB(:,:)
 
           end if ! rank 0
 
 
-          call MPI_BCAST(VECAE,nebf2_,MPI_DOUBLE_PRECISION,
-     x                   0,MPI_COMM_WORLD,ierr)
-          call MPI_BCAST(AEe,nebf_,MPI_DOUBLE_PRECISION,
-     x                   0,MPI_COMM_WORLD,ierr)
           call MPI_BCAST(DAE,nebf2_,MPI_DOUBLE_PRECISION,
+     x                   0,MPI_COMM_WORLD,ierr)
+     
+          call MPI_BCAST(VECAE_alp,nebf2_,MPI_DOUBLE_PRECISION,
+     x                   0,MPI_COMM_WORLD,ierr)
+          call MPI_BCAST(AEe_alp,nebf_,MPI_DOUBLE_PRECISION,
+     x                   0,MPI_COMM_WORLD,ierr)
+          call MPI_BCAST(DAE_alp,nebf2_,MPI_DOUBLE_PRECISION,
+     x                   0,MPI_COMM_WORLD,ierr)
+          call MPI_BCAST(VECAE_beta,nebf2_,MPI_DOUBLE_PRECISION,
+     x                   0,MPI_COMM_WORLD,ierr)
+          call MPI_BCAST(AEe_beta,nebf_,MPI_DOUBLE_PRECISION,
+     x                   0,MPI_COMM_WORLD,ierr)
+          call MPI_BCAST(DAE_beta,nebf2_,MPI_DOUBLE_PRECISION,
      x                   0,MPI_COMM_WORLD,ierr)
           call MPI_BCAST(VECBE,nebf2_,MPI_DOUBLE_PRECISION,
      x                   0,MPI_COMM_WORLD,ierr)
@@ -1270,22 +1623,30 @@ C ----------------------------------------------------------------------
           call MPI_BCAST(DBE,nebf2_,MPI_DOUBLE_PRECISION,
      x                   0,MPI_COMM_WORLD,ierr)
 
-          CALL DENDIF(DAE0,DAE,NEBF,DIFFAE)
+          CALL DENDIF(DAE0_alp,DAE_alp,NEBF,DIFFAE_alp)
+          CALL DENDIF(DAE0_beta,DAE_beta,NEBF,DIFFAE_beta)
           CALL DENDIF(DBE0,DBE,NEBF,DIFFBE)
 
-          CALL COPYDEN(DAE0,DAE,NEBF)
+          CALL COPYDEN(DAE0_alp,DAE_alp,NEBF)
+          CALL COPYDEN(DAE0_beta,DAE_beta,NEBF)
           CALL COPYDEN(DBE0,DBE,NEBF)
 
-          CALL COPYDEN(vecAE0,vecAE,NEBF)
+          CALL COPYDEN(vecAE0_alp,vecAE_alp,NEBF)
+          CALL COPYDEN(vecAE0_beta,vecAE_beta,NEBF)
           CALL COPYDEN(vecBE0,vecBE,NEBF)
 
 ! Calculate energy for this it and Fock matrices for next it
 
-C Call HF Fock build for NAE regular electrons
-           call RXCHF_fock_hf_MPI(nproc,rank,
-     x                            LCMF,nebf,nebf2,NAE,ngee,
-     x                            DAE,GAM_ecore,GAM_ee,
-     x                            FAE,E_HF,E_HF_ecore,E_HF_ee)
+C Call UHF Fock build for NAE regular electrons
+c         call RXCHF_fock_hf_MPI(nproc,rank,
+c     x                          LCMF,nebf,nebf2,NAE,ngee,
+c     x                          DAE,GAM_ecore,GAM_ee,
+c     x                          FAE,E_HF,E_HF_ecore,E_HF_ee)
+         call RXCHF_fock_uhf_MPI(nproc,rank,
+     x                          LCMF,nebf,nebf2,NAE,ngee,
+     x                          DAE,GAM_ecore,GAM_ee,
+     x							FAE,E_HF,E_HF_ecore,E_HF_ee,
+     x                           DAE_alp,DAE_beta,FAE_alp,FAE_beta)
 
 C Call XCHF Fock build for NBE special electrons and one QM particle
          call RXCHF_fock_xchf_MPI(nproc,rank,
@@ -1326,15 +1687,19 @@ C ARS( no interaction
             E_HF=0.0d+00
       else
             call add2fock(npbf,FPint,FP)
-            call add2fock(nebf,FAEint,FAE)
+            call add2fock(nebf,FAEint,FAE_alp)
+            call add2fock(nebf,FAEint,FAE_beta)
             call add2fock(nebf,FBEint,FBE)
       end if
 C )
 
             IF ((LCMF).and.(rank.eq.0)) then
              write(*,*)
-             write(*,*) "FAE:"
-             call prt_lower_triangle(nebf,nebflt,FAE)
+             write(*,*) "FAE_alp:"
+             call prt_lower_triangle(nebf,nebflt,FAE_alp)
+             write(*,*)
+             write(*,*) "FAE_beta:"
+             call prt_lower_triangle(nebf,nebflt,FAE_beta)
              write(*,*)
              write(*,*) "FBE:"
              call prt_lower_triangle(nebf,nebflt,FBE)
@@ -1716,7 +2081,7 @@ C )
 !        --> PRINT SUMMARY OF THIS ITERATION
          if (rank.eq.0) then
           if((LSOSCFA).and.(LSOSCFB)) then
-             WRITE(*,9151) IELEC,E_total,Delta_E_tot,
+             WRITE(*,9153) IELEC,E_total,Delta_E_tot,
      x                     DIFFAE,DIFFBE,DIFFP,ORBGRDA,ORBGRDB
           else if ((LSOSCFA).and.(.not.(LSOSCFB))) then
              WRITE(*,9150) IELEC,E_total,Delta_E_tot,
@@ -1728,8 +2093,9 @@ C )
              WRITE(*,9152) IELEC,E_total,Delta_E_tot,
      x                     DIFFAE,DIFFBE,DIFFP,ORBGRDA,ORBGRDB,errDIIS
           else if (LSORXCHF) then
-             WRITE(*,9151) IELEC,E_total,Delta_E_tot,
-     x                     DIFFAE,DIFFBE,DIFFP,ORBGRDA,ORBGRDB
+             WRITE(*,9153) IELEC,E_total,Delta_E_tot,
+     x                     DIFFAE_alp,DIFFAE_beta,DIFFBE,DIFFP,
+     x                      ORBGRDA_alp,ORBGRDA_beta,ORBGRDB
           else if (LDIIS) then
              WRITE(*,9150) IELEC,E_total,Delta_E_tot,
      x                     DIFFAE,DIFFBE,DIFFP,errDIIS
@@ -1740,7 +2106,8 @@ C )
 C ARS( debug: print out MOs here
           if (LCMF) then
            WRITE(*,9610)
-           call PREVNU(vecAE,AEE,nebf,nebf,nebf)
+           WRITE(*,*) 'ALPHA ORBITALS'
+           call PREVNU(vecAE_alp,AEE_alp,nebf,nebf,nebf)
            WRITE(*,9620)
            call PREVNU(vecBE,BEE,nebf,nebf,nebf)
            WRITE(*,9700)
@@ -1749,15 +2116,18 @@ C ARS( debug: print out MOs here
 C )
 C ARS( check orthonormality of MOs
           if(LCMF) then
-           write(*,*) "Regular MO overlap matrix:"
-           call checkovlap(nebf,nebf,vecAE,xxse)
+           write(*,*) "Regular ALPHA MO overlap matrix:"
+           call checkovlap(nebf,nebf,vecAE_alp,xxse)
+           write(*,*) "Regular BETA MO overlap matrix:"
+           call checkovlap(nebf,nebf,vecAE_beta,xxse)
            write(*,*) "Special MO overlap matrix:"
            call checkovlap(nebf,nebf,vecBE,xxse)
           end if
 C )
 ! Output the vectors for this iteration for restart if necessary:
-          call write_MOs(860,nebf,VECAE)
-          call write_MOs(861,nebf,VECBE)
+          call write_MOs(860,nebf,VECAE_alp)
+          call write_MOs(861,nebf,VECAE_beta)
+          call write_MOs(862,nebf,VECBE)
           call write_MOs(853,npbf,VECP)
          end if ! rank 0
 
@@ -1808,7 +2178,11 @@ C )
 
 !  OUTPUT ELEC AND NUC EIGENVALUES AND EIGENVECTORS
        WRITE(*,9610)
-       call PREVNU(vecAE,AEE,nebf,nebf,nebf)
+       WRITE(*,*) '******ALPHA EIGENVALUES *****'
+       call PREVNU(vecAE_alp,AEE_alp,nebf,nebf,nebf)
+       WRITE(*,9610)
+       WRITE(*,*) '******BETA EIGENVALUES *****'
+       call PREVNU(vecAE_beta,AEE_beta,nebf,nebf,nebf)
        WRITE(*,9620)
        call PREVNU(vecBE,BEE,nebf,nebf,nebf)
        WRITE(*,9700)
@@ -1820,7 +2194,8 @@ C )
 !     IFIL=853 :: FinalCP.dat
 !     IFIL=860 :: FinalCAE.dat
 !     IFIL=861 :: FinalCBE.dat
-       call write_MOs(860,nebf,VECAE)
+       call write_MOs(870,nebf,VECAE_alp)
+       call write_MOs(871,nebf,VECAE_beta)       
        call write_MOs(861,nebf,VECBE)
        call write_MOs(853,npbf,VECP)
 ! PUNCH-OUT-THE-FINAL-VECTORS-FOR-E-AND-NUC----------------------------)
@@ -1844,6 +2219,25 @@ C )
        if(allocated(wFBEw))    deallocate(wFBEw)
        if(allocated(WB))       deallocate(WB)
        if(allocated(tempvecB)) deallocate(tempvecB)
+       
+       if(allocated(wWRKAw_alp))   deallocate(wWRKAw_alp)
+       if(allocated(wGAw_alp))     deallocate(wGAw_alp)
+       if(allocated(wFLTAw_alp))   deallocate(wFLTAw_alp)
+       if(allocated(wAEenw_alp))   deallocate(wAEenw_alp)
+       if(allocated(wvecAEw_alp))  deallocate(wvecAEw_alp)
+       if(allocated(wFAEw_alp))    deallocate(wFAEw_alp)
+       if(allocated(WA_alp))       deallocate(WA_alp)
+       if(allocated(tempvecA_alp)) deallocate(tempvecA_alp)
+       
+       if(allocated(wWRKAw_beta))   deallocate(wWRKAw_beta)
+       if(allocated(wGAw_beta))     deallocate(wGAw_beta)
+       if(allocated(wFLTAw_beta))   deallocate(wFLTAw_beta)
+       if(allocated(wAEenw_beta))   deallocate(wAEenw_beta)
+       if(allocated(wvecAEw_beta))  deallocate(wvecAEw_beta)
+       if(allocated(wFAEw_beta))    deallocate(wFAEw_beta)
+       if(allocated(WA_beta))       deallocate(WA_beta)
+       if(allocated(tempvecA_beta)) deallocate(tempvecA_beta)
+       
       end if
       if((LDIIS).and.(rank.eq.0)) then
        if(allocated(errvec)) deallocate(errvec)
