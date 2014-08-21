@@ -18,7 +18,8 @@
      x                         XCHF_GAM3,INT_GAM3,
      x                         INT_GAM3ex1,INT_GAM3ex2,
      x                         LG4IC,dimXCHF4,dimINT4,
-     x                         XCHF_GAM4,INT_GAM4)
+     x                         int_pinds,int_einds,INT_GAM4,
+     x                         xchf_pinds,xchf_einds,XCHF_GAM4)
 
 !
 ! PERFORM A NUCLEAR-ELECTRONIC RESTRICTED XC HARTREE-FOCK CALCULATION
@@ -124,6 +125,10 @@
       double precision INT_GAM3ex2(dimINT3)        ! Exchange GAM3 integrals
       double precision XCHF_GAM4(dimXCHF4)         ! XCHF GAM4 integrals
       double precision INT_GAM4(dimINT4)           ! Interaction GAM4 integrals
+      integer(kind=4)  int_pinds(dimINT4)          ! Packed prot indices
+      integer(kind=8)  int_einds(dimINT4)          ! Packed elec indices
+      integer(kind=4)  xchf_pinds(dimXCHF4)        ! Packed prot indices
+      integer(kind=8)  xchf_einds(dimXCHF4)        ! Packed elec indices
 
 ! Local variables
       double precision zero,one
@@ -830,8 +835,8 @@ C Call XCHF Fock build for NBE special electrons and one QM particle
      x                            dimXCHF2,dimXCHF3,dimXCHF4,
      x                            NG2CHK,NG3CHK,NG4CHK,
      x                            DBE,DP,
-     x                            XCHF_GAM2,XCHF_GAM2s,
-     x                            XCHF_GAM3,XCHF_GAM4,
+     x                            XCHF_GAM2,XCHF_GAM2s,XCHF_GAM3,
+     x                            xchf_pinds,xchf_einds,XCHF_GAM4,
      x                            FBE,FP,SBE_XCHF,SP_XCHF,
      x                            E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
      x                            E_XCHF_gam3,E_XCHF_gam4,
@@ -846,7 +851,8 @@ C Call interaction Fock build for all particles
      x                           dimINT2ex,dimINT3ex,
      x                           NG2CHK,NG3CHK,NG4CHK,
      x                           DAE,DBE,DP,
-     x                           INT_GAM2,INT_GAM3,INT_GAM4,
+     x                           INT_GAM2,INT_GAM3,
+     x                           int_pinds,int_einds,INT_GAM4,
      x                           INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
      x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
      x                           FPint,FAEint,FBEint, 
@@ -952,6 +958,11 @@ C )
           errDIIS=zero
          end if
 
+CC Initialize for microiterations
+C         DAE0=0.0d+00
+C         DBE0=0.0d+00
+C         E_total_old=0.0d+00
+
          do ielec=1,maxmicroit
 
        if((.not.((locbse).or.(locbse2))).or.(ielec.eq.1)) then
@@ -969,8 +980,8 @@ C Call XCHF Fock build for NBE special electrons and one QM particle
      x                            dimXCHF2,dimXCHF3,dimXCHF4,
      x                            NG2CHK,NG3CHK,NG4CHK,
      x                            DBE,DP,
-     x                            XCHF_GAM2,XCHF_GAM2s,
-     x                            XCHF_GAM3,XCHF_GAM4,
+     x                            XCHF_GAM2,XCHF_GAM2s,XCHF_GAM3,
+     x                            xchf_pinds,xchf_einds,XCHF_GAM4,
      x                            FBE,FP,SBE_XCHF,SP_XCHF,
      x                            E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
      x                            E_XCHF_gam3,E_XCHF_gam4,
@@ -985,7 +996,8 @@ C Call interaction Fock build for all particles
      x                           dimINT2ex,dimINT3ex,
      x                           NG2CHK,NG3CHK,NG4CHK,
      x                           DAE,DBE,DP,
-     x                           INT_GAM2,INT_GAM3,INT_GAM4,
+     x                           INT_GAM2,INT_GAM3,
+     x                           int_pinds,int_einds,INT_GAM4,
      x                           INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
      x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
      x                           FPint,FAEint,FBEint, 
@@ -1031,6 +1043,14 @@ C )
            if(LCMF) then
             write(*,*) "regular tempvecA"
             call checkovlap(nwbfA,nebf,tempvecA,xxse)
+           end if
+
+! Phase WA wrt WA0 (for consistency in second order transformation)
+           if((LSORXCHF).and.(ielec.gt.1)) then
+            call RXCHFmult_OCBSE_phase(nebf,nwbfA,xxse,WA0,tempvecA)
+            call RXCHFmult_OCBSE_phase(nebf,nocca,xxse,
+     x                tempvecA(:,nebf-nocca-noccb+1:nwbfA),
+     x                vecAE(:,1:nocca))
            end if
 
            call RXCHFmult_OCBSE_transF(nebf,nwbfA,tempvecA,
@@ -1129,6 +1149,14 @@ C                 write(*,*) "regular displia:",displia
            if(LCMF) then
             write(*,*) "special tempvecB"
             call checkovlap(nwbfB,nebf,tempvecB,xxse)
+           end if
+
+! Phase WB wrt WB0 (for consistency in second order transformation)
+           if((LSORXCHF).and.(ielec.gt.1)) then
+            call RXCHFmult_OCBSE_phase(nebf,nwbfB,xxse,WB0,tempvecB)
+            call RXCHFmult_OCBSE_phase(nebf,noccb,xxse,
+     x                tempvecB(:,nebf-nocca-noccb+1:nwbfB),
+     x                vecBE(:,1:noccb))
            end if
 
            call RXCHFmult_OCBSE_transF(nebf,nwbfB,tempvecB,
@@ -1295,8 +1323,8 @@ C Call XCHF Fock build for NBE special electrons and one QM particle
      x                            dimXCHF2,dimXCHF3,dimXCHF4,
      x                            NG2CHK,NG3CHK,NG4CHK,
      x                            DBE,DP,
-     x                            XCHF_GAM2,XCHF_GAM2s,
-     x                            XCHF_GAM3,XCHF_GAM4,
+     x                            XCHF_GAM2,XCHF_GAM2s,XCHF_GAM3,
+     x                            xchf_pinds,xchf_einds,XCHF_GAM4,
      x                            FBE,FP,SBE_XCHF,SP_XCHF,
      x                            E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
      x                            E_XCHF_gam3,E_XCHF_gam4,
@@ -1311,7 +1339,8 @@ C Call interaction Fock build for all particles
      x                           dimINT2ex,dimINT3ex,
      x                           NG2CHK,NG3CHK,NG4CHK,
      x                           DAE,DBE,DP,
-     x                           INT_GAM2,INT_GAM3,INT_GAM4,
+     x                           INT_GAM2,INT_GAM3,
+     x                           int_pinds,int_einds,INT_GAM4,
      x                           INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
      x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
      x                           FPint,FAEint,FBEint, 
@@ -1544,8 +1573,8 @@ C Call XCHF Fock build for NBE special electrons and one QM particle
      x                            dimXCHF2,dimXCHF3,dimXCHF4,
      x                            NG2CHK,NG3CHK,NG4CHK,
      x                            DBE,DP,
-     x                            XCHF_GAM2,XCHF_GAM2s,
-     x                            XCHF_GAM3,XCHF_GAM4,
+     x                            XCHF_GAM2,XCHF_GAM2s,XCHF_GAM3,
+     x                            xchf_pinds,xchf_einds,XCHF_GAM4,
      x                            FBE,FP,SBE_XCHF,SP_XCHF,
      x                            E_XCHF,E_XCHF_gam1,E_XCHF_gam2,
      x                            E_XCHF_gam3,E_XCHF_gam4,
@@ -1560,7 +1589,8 @@ C Call interaction Fock build for all particles
      x                           dimINT2ex,dimINT3ex,
      x                           NG2CHK,NG3CHK,NG4CHK,
      x                           DAE,DBE,DP,
-     x                           INT_GAM2,INT_GAM3,INT_GAM4,
+     x                           INT_GAM2,INT_GAM3,
+     x                           int_pinds,int_einds,INT_GAM4,
      x                           INT_GAM2ex,INT_GAM3ex1,INT_GAM3ex2,
      x                           S_total,S_gam2,SBE_XCHF,SP_XCHF,
      x                           FPint,FAEint,FBEint, 

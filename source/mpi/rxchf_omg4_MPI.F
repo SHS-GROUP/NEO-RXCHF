@@ -1,23 +1,25 @@
 C=======================================================================
       subroutine RXCHF_OMG4_MPI(nproc,rank,
      x                          Nchunks,nebf,npbf,
-     x                          ng4,ng4loc,
+     x                          ng4,
      x                          DAE,DBE,DP,
-     x                          GM4,
+     x                          pinds,einds,GM4,
      x                          FAE,FBE,FP,E_OMG4)
 
 C Add interaction OMG4 contributions to all Fock matrices
 C=======================================================================
       implicit none
       include 'mpif.h'
+      include 'omp_lib.h'
 
 C Input variables
       integer           nproc,rank
       integer           Nchunks
-      integer           ng4        ! Total number of integrals
-      integer           ng4loc     ! Number of integrals on MPI proc
+      integer           ng4        ! Number of nontrivial integrals on MPI proc
       integer           nebf,npbf
-      double precision  GM4(ng4loc)  ! GAM4 integrals
+      integer(kind=4)   pinds(ng4)
+      integer(kind=8)   einds(ng4)
+      double precision  GM4(ng4)  ! GAM4 integrals
       double precision  DAE(nebf,nebf)
       double precision  DBE(nebf,nebf)
       double precision  DP(npbf,npbf)
@@ -29,9 +31,9 @@ C Output variables
       double precision  E_OMG4
 
 C Local variables
-      integer           istat,ichunk,istart,iend,ng4_seg
-      integer           Loopi,imas
+      integer           i
       integer           ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,iec4,jec4
+      double precision  val
       double precision  XFAE(nebf,nebf)
       double precision  XFBE(nebf,nebf)
       double precision  XFP(npbf,npbf)
@@ -39,15 +41,15 @@ C Local variables
       double precision  TFBE(nebf,nebf)
       double precision  TFP(npbf,npbf)
       double precision  TE_OMG4
+      double precision  three
 
-      integer,allocatable :: loop_map(:,:)
-
-      integer   mpistart,mpiend,arrstart
 #if MPI32
       integer*4 ierr,nebf2,npbf2
 #else
       integer ierr,nebf2,npbf2
 #endif
+
+      three=3.0d+00
 
 C Initialize
       XFAE      = 0.0d+00
@@ -67,78 +69,50 @@ C Initialize
       npbf2=npbf*npbf
 #endif
 
-! Each process has ng4/nproc integrals according to rank
-! Last process also has ng4%nproc remaining integrals
-      call get_mpi_range(ng4,nproc,rank,mpistart,mpiend)
-      if(rank.eq.(nproc-1)) mpiend=ng4
+C Form intermediate Fock matrices
 
-C Chop up calculation of OMG4 terms
-      do ichunk=1,Nchunks
+!$omp parallel 
+!$ompx shared(three)
+!$ompx shared(ng4)
+!$ompx shared(nebf,npbf)
+!$ompx shared(DAE,DBE,DP)
+!$ompx shared(pinds)
+!$ompx shared(einds)
+!$ompx shared(GM4)
+!$ompx private(i) 
+!$ompx private(ip,jp) 
+!$ompx private(iec1,jec1)
+!$ompx private(iec2,jec2)
+!$ompx private(iec3,jec3)
+!$ompx private(iec4,jec4)
+!$ompx private(val)
+!$ompx reduction(+:TFAE)
+!$ompx reduction(+:TFBE)
+!$ompx reduction(+:TFP)
+!$ompx reduction(+:TE_OMG4)
 
-! Have threads chop calculation of mpiend-mpistart+1=ng4/nproc integrals
-         call loop_size(mpistart,mpiend,Nchunks,ichunk-1,istart,iend)
-         ng4_seg=1+iend-istart
+!$omp do SCHEDULE(RUNTIME)
+      do i=1,ng4
 
-         if(allocated(loop_map)) deallocate(loop_map)
-         allocate( loop_map(ng4_seg,10),stat=istat )
+         call bitunpack(pinds(i),einds(i),ip,jp,
+     x                  iec1,jec1,iec2,jec2,iec3,jec3,iec4,jec4)
 
-C Nested loop compression for this chunk:
-         Loopi=0
-         imas=0
-         do ip=1,npbf
-         do jp=1,npbf
-            do iec1=1,nebf
-            do jec1=1,nebf
-               do iec2=1,nebf
-               do jec2=1,nebf
-                  do iec3=1,nebf
-                  do jec3=1,nebf
-                     do iec4=1,nebf
-                     do jec4=1,nebf
+! GM4(ip,jp,ie1,je1,ie2,je2,ie3,je3,ie4,je4) contributes to
+! F^e(ie1,je1),F^q(ie2,je2),F^p(ip,jp)
+         val=GM4(i)
 
-                            imas=imas+1 ! imas is master_index
-                            if(imas.ge.istart.and.imas.le.iend) then
-                               Loopi=Loopi+1
-                               loop_map(Loopi,1)=jec4
-                               loop_map(Loopi,2)=iec4
-                               loop_map(Loopi,3)=jec3
-                               loop_map(Loopi,4)=iec3
-                               loop_map(Loopi,5)=jec2
-                               loop_map(Loopi,6)=iec2
-                               loop_map(Loopi,7)=jec1
-                               loop_map(Loopi,8)=iec1
-                               loop_map(Loopi,9)=jp
-                               loop_map(Loopi,10)=ip
+         TFAE(iec1,jec1)=TFAE(iec1,jec1)+DP(ip,jp)*DBE(iec2,jec2)*
+     x                   DBE(iec3,jec3)*DBE(iec4,jec4)*val
+         TFP(ip,jp)=TFP(ip,jp)+DAE(iec1,jec1)*DBE(iec2,jec2)*
+     x              DBE(iec3,jec3)*DBE(iec4,jec4)*val
+         TFBE(iec2,jec2)=TFBE(iec2,jec2)+three*DAE(iec1,jec1)*
+     x                   DBE(iec3,jec3)*DBE(iec4,jec4)*DP(ip,jp)*val
+         TE_OMG4=TE_OMG4+DP(ip,jp)*DAE(iec1,jec1)*
+     x             DBE(iec2,jec2)*DBE(iec3,jec3)*DBE(iec4,jec4)*val
 
-! Save coordinates of first value for array index shifts
-                     if ((ichunk.eq.1).and.(Loopi.eq.1)) then
-                        call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                           iec2,jec2,iec3,jec3,iec4,jec4,arrstart)
-                     end if
-
-                            end if
-
-                     end do
-                     end do
-                  end do
-                  end do
-               end do
-               end do
-            end do
-            end do
-         end do
-         end do
-
-         call RXCHF_OMG4_thread_MPI(istart,iend,ng4_seg,ng4loc,
-     x                              nebf,npbf,
-     x                              loop_map,arrstart,
-     x                              DAE,DBE,DP,
-     x                              GM4,
-     x                              TFAE,TFBE,TFP,TE_OMG4)
-
-      end do !end loop over chunks
-
-      if(allocated(loop_map)) deallocate(loop_map)
+      end do
+!$omp end do
+!$omp end parallel      
 
 C Update Fock matrices
 C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
@@ -164,23 +138,25 @@ C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
 C=======================================================================
       subroutine XCHF_OMG4_MPI(nproc,rank,
      x                         Nchunks,nebf,npbf,
-     x                         ng4,ng4loc,
+     x                         ng4,
      x                         DE,DP,
-     x                         GM4,
+     x                         pinds,einds,GM4,
      x                         FE,FP,E_OMG4)
 
 C Add XCHF OMG4 contributions to all Fock matrices
 C=======================================================================
       implicit none
       include 'mpif.h'
+      include 'omp_lib.h'
 
 C Input variables
       integer           nproc,rank
       integer           Nchunks
-      integer           ng4        ! Total number of integrals
-      integer           ng4loc     ! Number of integrals on MPI proc
+      integer           ng4        ! Number of nontrivial integrals on MPI proc
       integer           nebf,npbf
-      double precision  GM4(ng4loc)  ! GAM4 integrals
+      integer(kind=4)   pinds(ng4)
+      integer(kind=8)   einds(ng4)
+      double precision  GM4(ng4)  ! GAM4 integrals
       double precision  DE(nebf,nebf)
       double precision  DP(npbf,npbf)
 
@@ -190,23 +166,23 @@ C Output variables
       double precision  E_OMG4
 
 C Local variables
-      integer           istat,ichunk,istart,iend,ng4_seg
-      integer           Loopi,imas
+      integer           i
       integer           ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,iec4,jec4
+      double precision  val
       double precision  XFE(nebf,nebf)
       double precision  XFP(npbf,npbf)
       double precision  TFE(nebf,nebf)
       double precision  TFP(npbf,npbf)
       double precision  TE_OMG4
+      double precision  four
 
-      integer,allocatable :: loop_map(:,:)
-
-      integer   mpistart,mpiend,arrstart
 #if MPI32
       integer*4 ierr,nebf2,npbf2
 #else
       integer ierr,nebf2,npbf2
 #endif
+
+      four=4.0d+00
 
 C Initialize
       XFE       = 0.0d+00
@@ -224,78 +200,47 @@ C Initialize
       npbf2=npbf*npbf
 #endif
 
-! Each process has ng4/nproc integrals according to rank
-! Last process also has ng4%nproc remaining integrals
-      call get_mpi_range(ng4,nproc,rank,mpistart,mpiend)
-      if(rank.eq.(nproc-1)) mpiend=ng4
+C Form intermediate Fock matrices
 
-C Chop up calculation of OMG4 terms
-      do ichunk=1,Nchunks
+!$omp parallel 
+!$ompx shared(four)
+!$ompx shared(ng4)
+!$ompx shared(nebf,npbf)
+!$ompx shared(DE,DP)
+!$ompx shared(pinds)
+!$ompx shared(einds)
+!$ompx shared(GM4)
+!$ompx private(i) 
+!$ompx private(ip,jp) 
+!$ompx private(iec1,jec1)
+!$ompx private(iec2,jec2)
+!$ompx private(iec3,jec3)
+!$ompx private(iec4,jec4)
+!$ompx private(val)
+!$ompx reduction(+:TFE)
+!$ompx reduction(+:TFP)
+!$ompx reduction(+:TE_OMG4)
 
-! Have threads chop calculation of mpiend-mpistart+1=ng4/nproc integrals
-         call loop_size(mpistart,mpiend,Nchunks,ichunk-1,istart,iend)
-         ng4_seg=1+iend-istart
+!$omp do SCHEDULE(RUNTIME)
+      do i=1,ng4
 
-         if(allocated(loop_map)) deallocate(loop_map)
-         allocate( loop_map(ng4_seg,10),stat=istat )
+         call bitunpack(pinds(i),einds(i),ip,jp,
+     x                  iec1,jec1,iec2,jec2,iec3,jec3,iec4,jec4)
 
-C Nested loop compression for this chunk:
-         Loopi=0
-         imas=0
-         do ip=1,npbf
-         do jp=1,npbf
-            do iec1=1,nebf
-            do jec1=1,nebf
-               do iec2=1,nebf
-               do jec2=1,nebf
-                  do iec3=1,nebf
-                  do jec3=1,nebf
-                     do iec4=1,nebf
-                     do jec4=1,nebf
+! GM4(ip,jp,ie1,je1,ie2,je2,ie3,je3,ie4,je4) contributes to
+! F^e(ie1,je1),F^p(ip,jp)
+         val=GM4(i)
 
-                            imas=imas+1 ! imas is master_index
-                            if(imas.ge.istart.and.imas.le.iend) then
-                               Loopi=Loopi+1
-                               loop_map(Loopi,1)=jec4
-                               loop_map(Loopi,2)=iec4
-                               loop_map(Loopi,3)=jec3
-                               loop_map(Loopi,4)=iec3
-                               loop_map(Loopi,5)=jec2
-                               loop_map(Loopi,6)=iec2
-                               loop_map(Loopi,7)=jec1
-                               loop_map(Loopi,8)=iec1
-                               loop_map(Loopi,9)=jp
-                               loop_map(Loopi,10)=ip
+         TFE(iec1,jec1)=TFE(iec1,jec1)+DP(ip,jp)*DE(iec2,jec2)*
+     x                   DE(iec3,jec3)*DE(iec4,jec4)*four*val
+         TFP(ip,jp)=TFP(ip,jp)+DE(iec1,jec1)*DE(iec2,jec2)*
+     x              DE(iec3,jec3)*DE(iec4,jec4)*val
+         TE_OMG4=TE_OMG4+DP(ip,jp)*DE(iec1,jec1)*
+     x             DE(iec2,jec2)*DE(iec3,jec3)*DE(iec4,jec4)*val
 
-! Save coordinates of first value for array index shifts
-                     if ((ichunk.eq.1).and.(Loopi.eq.1)) then
-                        call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                           iec2,jec2,iec3,jec3,iec4,jec4,arrstart)
-                     end if
-
-                            end if
-
-                     end do
-                     end do
-                  end do
-                  end do
-               end do
-               end do
-            end do
-            end do
-         end do
-         end do
-
-         call XCHF_OMG4_thread_MPI(istart,iend,ng4_seg,ng4loc,
-     x                             nebf,npbf,
-     x                             loop_map,arrstart,
-     x                             DE,DP,
-     x                             GM4,
-     x                             TFE,TFP,TE_OMG4)
-
-      end do !end loop over chunks
-
-      if(allocated(loop_map)) deallocate(loop_map)
+      end do
+!$omp end do
+!$omp end parallel      
 
 C Update Fock matrices
 C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
@@ -311,221 +256,6 @@ C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
 
       call add2fock(nebf,XFE,FE)
       call add2fock(npbf,XFP,FP)
-
-      return
-      end
-C=======================================================================
-      subroutine RXCHF_OMG4_thread_MPI(istart,iend,ng4_seg,ng4,
-     x                                 nebf,npbf,
-     x                                 loop_map,arrstart,
-     x                                 DAE,DBE,DP,
-     x                                 GM4,
-     x                                 XFAE,XFBE,XFP,E_OMG4)
-C=======================================================================
-      implicit none
-      include 'omp_lib.h'
-
-C Input variables
-      integer           istart,iend,ng4_seg
-      integer           nebf   ! Number contracted electronic basis functions
-      integer           npbf   ! Number nuclear basis functions
-      integer           ng4
-      integer           arrstart
-      integer           loop_map(ng4_seg,10)
-      double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
-      double precision  DP(npbf,npbf)
-      double precision  GM4(ng4)  ! GAM4   integrals
-
-C Output variables
-      double precision  XFAE(nebf,nebf)
-      double precision  XFBE(nebf,nebf)
-      double precision  XFP(npbf,npbf)
-      double precision  E_OMG4
-
-C Local variables
-      integer           IFIL
-      integer           id
-      integer           loopi,iLP
-      integer           ip,jp
-      integer           iec1,jec1  !
-      integer           iec2,jec2  ! Contracted elec basis function indices
-      integer           iec3,jec3  !
-      integer           iec4,jec4  !
-      integer           imap,ia
-      double precision  val
-      double precision  wtime
-      double precision  three
-      three=3.0d+00
-
-C GM4ICR stored as:
-C        ip,jp : QM particle indicies
-C    iec1,jec1 : regular electron indicies
-C    iec2,jec2 : special electron 1 indicies
-C    iec3,jec3 : special electron 2 indicies
-C    iec4,jec4 : special electron 3 indicies
-
-!$omp parallel 
-!$ompx shared(three)
-!$ompx shared(loop_map,arrstart)
-!$ompx shared(istart,iend)
-!$ompx shared(nebf,npbf,ng4_seg)
-!$ompx shared(ng4)
-!$ompx shared(DAE,DBE,DP)
-!$ompx shared(GM4)
-!$ompx private(iLp) 
-!$ompx private(imap)
-!$ompx private(ip,jp) 
-!$ompx private(iec1,jec1)
-!$ompx private(iec2,jec2)
-!$ompx private(iec3,jec3)
-!$ompx private(iec4,jec4)
-!$ompx private(ia)
-!$ompx private(val)
-!$ompx reduction(+:XFAE)
-!$ompx reduction(+:XFBE)
-!$ompx reduction(+:XFP)
-!$ompx reduction(+:E_OMG4)
-
-!$omp do SCHEDULE(RUNTIME)
-      do iLP=istart,iend
-
-         imap=iLp-istart+1
-         jec4=loop_map(imap,1)
-         iec4=loop_map(imap,2)
-         jec3=loop_map(imap,3)
-         iec3=loop_map(imap,4)
-         jec2=loop_map(imap,5)
-         iec2=loop_map(imap,6)
-         jec1=loop_map(imap,7)
-         iec1=loop_map(imap,8)
-         jp =loop_map(imap,9)
-         ip =loop_map(imap,10)
-
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec2,iec3,jec3,iec4,jec4,ia)
-
-! GM4(ip,jp,ie1,je1,ie2,je2,ie3,je3,ie4,je4) contributes to
-! F^e(ie1,je1),F^q(ie2,je2),F^p(ip,jp)
-         val=GM4(ia-arrstart+1)
-
-         XFAE(iec1,jec1)=XFAE(iec1,jec1)+DP(ip,jp)*DBE(iec2,jec2)*
-     x                   DBE(iec3,jec3)*DBE(iec4,jec4)*val
-         XFP(ip,jp)=XFP(ip,jp)+DAE(iec1,jec1)*DBE(iec2,jec2)*
-     x              DBE(iec3,jec3)*DBE(iec4,jec4)*val
-         XFBE(iec2,jec2)=XFBE(iec2,jec2)+three*DAE(iec1,jec1)*
-     x                   DBE(iec3,jec3)*DBE(iec4,jec4)*DP(ip,jp)*val
-         E_OMG4=E_OMG4+DP(ip,jp)*DAE(iec1,jec1)*
-     x             DBE(iec2,jec2)*DBE(iec3,jec3)*DBE(iec4,jec4)*val
-
-      end do
-!$omp end do
-!$omp end parallel      
-
-      return
-      end
-C=======================================================================
-      subroutine XCHF_OMG4_thread_MPI(istart,iend,ng4_seg,ng4,
-     x                                nebf,npbf,
-     x                                loop_map,arrstart,
-     x                                DE,DP,
-     x                                GM4,
-     x                                XFE,XFP,E_OMG4)
-C=======================================================================
-      implicit none
-      include 'omp_lib.h'
-
-C Input variables
-      integer           istart,iend,ng4_seg
-      integer           nebf   ! Number contracted electronic basis functions
-      integer           npbf   ! Number nuclear basis functions
-      integer           ng4
-      integer           arrstart
-      integer           loop_map(ng4_seg,10)
-      double precision  DE(nebf,nebf)
-      double precision  DP(npbf,npbf)
-      double precision  GM4(ng4)  ! GAM4   integrals
-
-C Output variables
-      double precision  XFE(nebf,nebf)
-      double precision  XFP(npbf,npbf)
-      double precision  E_OMG4
-
-C Local variables
-      integer           IFIL
-      integer           id
-      integer           loopi,iLP
-      integer           ip,jp
-      integer           iec1,jec1  !
-      integer           iec2,jec2  ! Contracted elec basis function indices
-      integer           iec3,jec3  !
-      integer           iec4,jec4  !
-      integer           imap,ia
-      double precision  val
-      double precision  wtime
-      double precision  four
-      four=4.0d+00
-
-C GM4ICR stored as:
-C        ip,jp : QM particle indicies
-C    iec1,jec1 : regular electron indicies
-C    iec2,jec2 : special electron 1 indicies
-C    iec3,jec3 : special electron 2 indicies
-C    iec4,jec4 : special electron 3 indicies
-
-!$omp parallel 
-!$ompx shared(four)
-!$ompx shared(loop_map,arrstart)
-!$ompx shared(istart,iend)
-!$ompx shared(nebf,npbf,ng4_seg)
-!$ompx shared(ng4)
-!$ompx shared(DE,DP)
-!$ompx shared(GM4)
-!$ompx private(iLp) 
-!$ompx private(imap)
-!$ompx private(ip,jp) 
-!$ompx private(iec1,jec1)
-!$ompx private(iec2,jec2)
-!$ompx private(iec3,jec3)
-!$ompx private(iec4,jec4)
-!$ompx private(ia)
-!$ompx private(val)
-!$ompx reduction(+:XFE)
-!$ompx reduction(+:XFP)
-!$ompx reduction(+:E_OMG4)
-
-!$omp do SCHEDULE(RUNTIME)
-      do iLP=istart,iend
-
-         imap=iLp-istart+1
-         jec4=loop_map(imap,1)
-         iec4=loop_map(imap,2)
-         jec3=loop_map(imap,3)
-         iec3=loop_map(imap,4)
-         jec2=loop_map(imap,5)
-         iec2=loop_map(imap,6)
-         jec1=loop_map(imap,7)
-         iec1=loop_map(imap,8)
-         jp =loop_map(imap,9)
-         ip =loop_map(imap,10)
-
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec2,iec3,jec3,iec4,jec4,ia)
-
-! GM4(ip,jp,ie1,je1,ie2,je2,ie3,je3,ie4,je4) contributes to
-! F^e(ie1,je1),F^p(ip,jp)
-         val=GM4(ia-arrstart+1)
-
-         XFE(iec1,jec1)=XFE(iec1,jec1)+DP(ip,jp)*DE(iec2,jec2)*
-     x                   DE(iec3,jec3)*DE(iec4,jec4)*four*val
-         XFP(ip,jp)=XFP(ip,jp)+DE(iec1,jec1)*DE(iec2,jec2)*
-     x              DE(iec3,jec3)*DE(iec4,jec4)*val
-         E_OMG4=E_OMG4+DP(ip,jp)*DE(iec1,jec1)*
-     x             DE(iec2,jec2)*DE(iec3,jec3)*DE(iec4,jec4)*val
-
-      end do
-!$omp end do
-!$omp end parallel      
 
       return
       end

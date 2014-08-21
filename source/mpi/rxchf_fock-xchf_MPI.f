@@ -6,7 +6,8 @@ C======================================================================
      x                               SZG2ICR,SZG3ICR,SZG4ICR,
      x                               NG2CHK,NG3CHK,NG4CHK,
      x                               DE,DP,
-     x                               GM2ICR,GM2sICR,GM3ICR,GM4ICR,
+     x                               GM2ICR,GM2sICR,GM3ICR,
+     x                               pinds,einds,GM4ICR,
      x                               focke,fockp,SEtot,SPtot,
      x                               E_total,E_gam1,E_gam2,
      x                               E_gam3,E_gam4,
@@ -45,6 +46,8 @@ C Input variables
       double precision  GM2ICR(SZG2ICR)
       double precision  GM2sICR(SZG2ICR)
       double precision  GM3ICR(SZG3ICR)
+      integer(kind=4)   pinds(SZG4ICR)
+      integer(kind=8)   einds(SZG4ICR)
       double precision  GM4ICR(SZG4ICR)
 
 C Output variables
@@ -130,9 +133,9 @@ C Local variables
 
             call XCHF_OMG4_MPI(nproc,rank,
      x                         NG4CHK,nebf,npbf,
-     x                         ng4,SZG4ICR,
+     x                         SZG4ICR,
      x                         DE,DP,
-     x                         GM4ICR,
+     x                         pinds,einds,GM4ICR,
      x                         focke,fockp,E_gam4)
 
             end if

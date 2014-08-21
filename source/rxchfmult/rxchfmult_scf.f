@@ -1831,6 +1831,113 @@ C )
       end
 
 !======================================================================
+      subroutine RXCHFmult_OCBSE_phase(nebf,nwbf,
+     x                                 Selec,vecAE0,vecAE)
+!
+!     OCBSE Procedure:
+!       - Phase vectors of current it against those of previous it
+!
+!======================================================================
+      implicit none
+! Input Variables
+      integer nebf
+      integer nwbf
+      double precision vecAE0(nebf,nwbf)
+      double precision Selec(nebf,nebf)
+! Input/Outuput Variables
+      double precision vecAE(nebf,nwbf)
+! Local variables
+      integer i,j
+      integer maxind
+      double precision vecAEp(nebf,nwbf)
+      double precision val
+      double precision maxovlap
+      double precision zero1(nebf),zero2(nwbf)
+      double precision zero
+      parameter(zero=0.0d+00)
+
+      logical debug
+      debug=.false.
+
+! Initialize
+      vecAEp=zero
+      zero2=zero
+
+      if (debug) then
+       write(*,*) "PHASE vecAE0 to phase against:"
+       call PREVNU(vecAE0,zero2,nwbf,nebf,nebf)
+      end if
+
+      if (debug) then
+       write(*,*) "PHASE vecAE before phasing:"
+       call PREVNU(vecAE,zero2,nwbf,nebf,nebf)
+      end if
+
+! Iterate over each of the [nwbf] vectors
+      do i=1,nwbf
+
+! For vec_i of the old set, find vec_j of the new set that matches most
+        maxind=0
+        maxovlap=zero
+        do j=1,nwbf
+          call RXCHFmult_vecovlap(nebf,vecAE0(:,i),vecAE(:,j),Selec,val)
+          if(abs(val).gt.abs(maxovlap)) then
+           maxind=j
+           maxovlap=val
+          end if
+        end do
+
+! Phase found vector if needed
+        if(maxovlap.ge.0) then
+         vecAEp(:,i)=vecAE(:,maxind)
+        else
+         vecAEp(:,i)=-vecAE(:,maxind)
+        end if
+
+! Destroy vector to ensure it is not found again for another vec_i
+        vecAE(:,maxind)=zero
+
+      end do
+
+      vecAE(:,:)=vecAEp(:,:)
+
+      if (debug) then
+       write(*,*) "PHASE vecAE after phasing:"
+       call PREVNU(vecAE,zero2,nwbf,nebf,nebf)
+      end if
+
+      return
+      end
+
+!======================================================================
+      subroutine RXCHFmult_vecovlap(n,x,y,Selec,ans)
+!
+!     Calculate overlap of two MOs <x | y>
+!
+!======================================================================
+      implicit none
+! Input Variables
+      integer n
+      double precision x(n)
+      double precision y(n)
+      double precision Selec(n,n)
+! Output Variables
+      double precision ans
+! Local Variables
+      integer i,j
+
+      ans=0.0d+00
+
+      do i=1,n
+      do j=1,n
+        ans=ans+x(i)*y(j)*Selec(i,j)
+      end do
+      end do
+
+      return
+      end
+
+!======================================================================
       subroutine RXCHFmult_OCBSE_transF(nebf,nwbf,
      x                                  vecAE,FBE,WB,wFBEw)
 !
@@ -2514,6 +2621,7 @@ C )
       double precision :: aux(n,n)
       double precision :: sqcdf,scal
       double precision :: ddot
+      logical          :: debug
 
       double precision, parameter :: zero=0.0d+00
       double precision, parameter :: one=1.0d+00
@@ -2521,9 +2629,13 @@ C )
       double precision, parameter :: bigrot=0.1d+00
       double precision, parameter :: small=1.0d-08
 
+      debug=.false.
+
       H=zero
       D=zero
       aux=zero
+      del=zero
+      v=zero
 
       maxG=zero
       do i=1,n
@@ -2538,10 +2650,15 @@ C )
       else if (maxG.lt.small) then
 
        H(:,:)=H0(:,:)
-       call RXCHF_matmult(n,n,n,1,H0,G,D)
+C       call RXCHF_matmult(n,n,n,1,H0,G,D)
+       call dgemv('n',n,n,one,H0,n,G,1,zero,D,1)
        do i=1,n
          D(i)=-D(i)
        end do
+
+       if(debug) then
+        write(*,*) "small displacement:",D
+       end if
 
       else
 
@@ -2553,37 +2670,70 @@ C )
        alp=ddot(n,D0,1,del,1)
        alp=one/alp
 
-       call RXCHF_matmult(n,n,n,1,H0,del,v)
+       if(debug) then
+        write(*,*) "alp:",alp
+       end if
 
-       c1=ddot(n,del,1,v,1)
-       c1=alp*c1
-       c1=c1+one
-       c1=alp*c1
-       c2=-alp
-       do i=1,n
-       do j=1,n
-         E=c1*D0(j)*D0(i)
-         E=E+c2*(D0(j)*v(i)+v(j)*D0(i))
-         H(j,i)=H0(j,i)+E
-       end do
-       end do
+C       if (abs(alp).gt.(1.0d+00/small)) then
+C
+C        H(:,:)=H0(:,:)
+C        call dgemv('n',n,n,one,H0,n,G,1,zero,D,1)
+C        do i=1,n
+C          D(i)=-D(i)
+C        end do
+C        write(*,*) "small displacement:",D
+C
+C       else
 
-       call RXCHF_matmult(n,n,n,1,H,G,D)
-       do i=1,n
-         D(i)=-D(i)
-       end do
+C       call RXCHF_matmult(n,n,n,1,H0,del,v)
+        call dgemv('n',n,n,one,H0,n,del,1,zero,v,1)
+
+        if(debug) then
+         write(*,*) "v:",v
+        end if
+
+        c1=ddot(n,del,1,v,1)
+        c1=alp*c1
+        c1=c1+one
+        c1=alp*c1
+        c2=-alp
+        if(debug) then
+         write(*,*) "c1,c2:",c1,c2
+        end if
+        do i=1,n
+        do j=1,n
+          E=c1*D0(j)*D0(i)
+          E=E+c2*(D0(j)*v(i)+v(j)*D0(i))
+          H(j,i)=H0(j,i)+E
+        end do
+        end do
+
+C       call RXCHF_matmult(n,n,n,1,H,G,D)
+        call dgemv('n',n,n,one,H,n,G,1,zero,D,1)
+        do i=1,n
+          D(i)=-D(i)
+        end do
+
+        if(debug) then
+         write(*,*) "large displacement:",D
+        end if
+
+C       end if
 
       end if
 
 ! Scale displacement in case value is too large (poached from GAMESS)
-      SQCDF = SQRT(DDOT(n,D,1,D,1)/n)
+      SQCDF = dSQRT(DDOT(n,D,1,D,1)/dble(n))
       IF(SQCDF.GT.TOOBIG  .AND.  it.GT.5) THEN
          WRITE(*,9011) SQCDF
          it = 0
       END IF
       IF(SQCDF.GT.BIGROT) THEN
          IF(it.GT.0) WRITE(*,9020) SQCDF
-         SCAL=SQRT(BIGROT/SQCDF)
+         SCAL=dSQRT(BIGROT/SQCDF)
+         if(debug) then
+          write(*,*) "scal:",scal
+         end if
          CALL DSCAL(n,SCAL,D,1)
       END IF
 
