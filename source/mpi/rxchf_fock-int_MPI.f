@@ -7,7 +7,8 @@ C======================================================================
      x                              SZG2exICR,SZG3exICR,
      x                              NG2CHK,NG3CHK,NG4CHK,
      x                              DAE,DBE,DP,
-     x                              GM2ICR,GM3ICR,GM4ICR,
+     x                              GM2ICR,GM3ICR,
+     x                              pinds,einds,GM4ICR,
      x                              GM2exICR,GM3ex1ICR,GM3ex2ICR,
      x                              S_total,S_OMG2,XSBE,XSP,
      x                              FP,FAE,FBE, 
@@ -34,6 +35,8 @@ C Input variables
       double precision  DP(npbf,npbf)
       double precision  GM2ICR(SZG2ICR)
       double precision  GM3ICR(SZG3ICR)
+      integer(kind=4)   pinds(SZG4ICR)
+      integer(kind=8)   einds(SZG4ICR)
       double precision  GM4ICR(SZG4ICR)
       double precision  GM2exICR(SZG2exICR)
       double precision  GM3ex1ICR(SZG3exICR)
@@ -122,9 +125,9 @@ C Include GAM4 contributions
 
         call RXCHF_OMG4_MPI(nproc,rank,
      x                      NG4CHK,nebf,npbf,
-     x                      ng4,SZG4ICR,
+     x                      SZG4ICR,
      x                      DAE,DBE,DP,
-     x                      GM4ICR,
+     x                      pinds,einds,GM4ICR,
      x                      XFAE,XFBE,XFP,E_OMG4)
 
        end if

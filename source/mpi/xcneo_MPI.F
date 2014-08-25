@@ -138,8 +138,8 @@
       namelist /scfctrl/ ldbg,lsoscf,ldiis,lsorxchf,ocbsetyp
       namelist /geminal/ bgem,ggem
       namelist /xcuhf  / nae,nbe
-      namelist /rxchf  / nae,nbe,exchlev,nae_alp,nae_beta
-      namelist /rxcuhf / naalpe,nabete
+      namelist /rxchf  / nae,nbe,exchlev
+      namelist /rxcuhf / nae_alp,nae_beta
 
 #if MPI32
       call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc4,ierr)
@@ -341,21 +341,11 @@ C       end if
          write(*,*) "Not equal. Exiting..."
          inperr=.true.
         end if
-        if((nae_alp+nae_beta).ne.nae) then
-         write(*,*) "Num regular alpha electrons:",NAE_alp
-         write(*,*) "Num regular beta  electrons:",NAE_beta
-         write(*,*) "Num regular       electrons:",NAE
-         write(*,*) "Not equal. Exiting..."
-         inperr=.true.
+        if(.not.(LRXCUHF)) then
+         nae_alp=nae/2
+         nae_beta=nae/2
         end if
-         if((nae_beta).gt.nae_alp) then
-         write(*,*) "Num regular alpha electrons:",NAE
-         write(*,*) "Num regular beta  electrons:",NBE
-         write(*,*) "Num of alpha electrons must be equal or greater"
-         write(*,*) "than number of beta electrons. Exiting..."
-         inperr=.true.
-        end if
-        end if
+       end if
 
        if (((LRXCHF).or.(LRXCUHF)).and.(nelec.ge.4).and.(exchlev.eq.2))
      x       then
@@ -424,23 +414,18 @@ C       end if
         write(*,*)
         write(*,nml=rxcuhf)
         write(*,*)
-       end if
-
-       if(LRXCUHF) then
-C Ensure num beta reg elecs > num alpha reg elecs since special electron is assigned spin alpha
-        if (NAalpE.gt.NAbetE) then  
-         write(*,*) "Exchanging NAalpE and NAbetE since special"
-         write(*,*) "electron is assumed to have spin alpha"
-         junk=NAalpE
-         NAalpE=NAbetE
-         NAbetE=junk
+        if((nae_beta).gt.nae_alp) then
+         write(*,*) "Num regular alpha electrons:",NAE_alp
+         write(*,*) "Num regular beta  electrons:",NAE_beta
+         write(*,*) "Num of alpha electrons must be equal or greater"
+         write(*,*) "than number of beta electrons. Exiting..."
+         inperr=.true.
         end if
-        if (NAE.ne.(NAalpE+NAbetE)) then
-         write(*,*) "# of regular electrons should be # alpha + # beta"
-         write(*,*) "   NAE: ",NAE
-         write(*,*) "   NAalpE: ",NAalpE
-         write(*,*) "   NAbetE: ",NAbetE
-         write(*,*) "Exiting..."
+        if((nae_alp+nae_beta).ne.nae) then
+         write(*,*) "Num regular alpha electrons:",NAE_alp
+         write(*,*) "Num regular beta  electrons:",NAE_beta
+         write(*,*) "Num regular       electrons:",NAE
+         write(*,*) "Not equal. Exiting..."
          inperr=.true.
         end if
        end if
@@ -551,6 +536,8 @@ C Ensure num beta reg elecs > num alpha reg elecs since special electron is assi
       call MPI_BCAST(nelec,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(NAE,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(NBE,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(NAE_alp,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(NAE_beta,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(NUCST,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(LNEOHF,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(LXCUHF,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
@@ -839,7 +826,7 @@ C Ensure num beta reg elecs > num alpha reg elecs since special electron is assi
 
       call RXCHF_driver_MPI(nproc,rank,
      x                      nblocks,blockrank,
-     x                      nelec,nae,nbe,nucst,
+     x                      nelec,nae,nbe,nae_alp,nae_beta,nucst,
      x                      nebf,npebf,npbf,nat,ngtg,
      x                      ng1,ng2,ng3,ng4,ngee,
      x                      ng1prm,ng2prm,ng3prm,
@@ -851,8 +838,9 @@ C Ensure num beta reg elecs > num alpha reg elecs since special electron is assi
      x                      read_GAM2,read_GAM3,read_GAM4,
      x                      LG2IC1,LG3IC1,LG4IC,
      x                      LG2DSCF,LG3DSCF,LG4DSCF,
+     x                      LRXCUHF,
      x                      LSOSCF,LDIIS,LSORXCHF,OCBSETYP,
-     x                      LDBG,EXCHLEV,NAE_ALP,NAE_beta)
+     x                      LDBG,EXCHLEV)
 
       write(*,*) "Process is finished:",rank
 

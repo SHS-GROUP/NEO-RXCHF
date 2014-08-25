@@ -1,7 +1,7 @@
 C=======================================================================
       subroutine RXCHF_driver_MPI(nproc,rank,
      x                            nblocks,blockrank,
-     x                            nelec,nae,nbe,nucst,
+     x                            nelec,nae,nbe,nae_alp,nae_beta,nucst,
      x                            nebf,npebf,npbf,nat,ngtg1,
      x                            ng1,ng2,ng3,ng4,ngee,
      x                            ng1prm,ng2prm,ng3prm,
@@ -13,8 +13,9 @@ C=======================================================================
      x                            read_GAM2,read_GAM3,read_GAM4,
      x                            LG2IC,LG3IC,LG4IC,
      x                            LG2DSCF,LG3DSCF,LG4DSCF,
+     x                            LRXCUHF,
      x                            LSOSCF,LDIIS,LSORXCHF,OCBSETYP,
-     x                            LDBG,EXCHLEV,NAE_ALP,NAE_BETA)
+     x                            LDBG,EXCHLEV)
 
 C Driver to calculate RXCHF integrals for nbe > 1
 C   XCHF_GAM* : integrals needed for XCHF contribution
@@ -61,6 +62,7 @@ C Input variables
       logical LG2DSCF                  ! Direct SCF for 3-particle integrals
       logical LG3DSCF                  ! Direct SCF for 4-particle integrals
       logical LG4DSCF                  ! Direct SCF for 5-particle integrals
+      logical LRXCUHF                  ! Flag for RXCUHF (separate SCF routine)
       logical LSOSCF                   ! SOSCF where applicable
       logical LDIIS                    ! DIIS where applicable
       logical LSORXCHF                 ! SORXCHF where applicable
@@ -103,6 +105,7 @@ C Local variables
       integer      dimINT2ex            ! Dimensions of exchange integral arrays
       integer      dimINT3ex            !
       logical      LXCHFSYMM            ! Flag to symmetrize XCHF3 integrals (nbe > 2)
+      integer      unitno
       double precision              :: wtime,wtime1,wtime2  ! Timing variables
       double precision, allocatable :: XCHF_GAM2(:)         ! 3-particle XCHF integrals
       double precision, allocatable :: XCHF_GAM2s(:)        ! 3-particle XCHF overlap integrals
@@ -114,6 +117,10 @@ C Local variables
       double precision, allocatable :: INT_GAM2ex(:)        ! 3-particle exchange integrals
       double precision, allocatable :: INT_GAM3ex1(:)       ! 4-particle exchange integrals
       double precision, allocatable :: INT_GAM3ex2(:)       ! 4-particle exchange integrals
+      integer(kind=4),  allocatable :: int_pinds(:)         ! Packed prot indices of nontrival INT_GAM4
+      integer(kind=8),  allocatable :: int_einds(:)         ! Packed elec indices of nontrival INT_GAM4
+      integer(kind=4),  allocatable :: xchf_pinds(:)        ! Packed prot indices of nontrival XCHF_GAM4
+      integer(kind=8),  allocatable :: xchf_einds(:)        ! Packed elec indices of nontrival XCHF_GAM4
 
 C Calculate integrals
       wtime = MPI_WTIME()
@@ -137,6 +144,7 @@ C Set logical flag for -ae
 
 C Variable for file I/O
       write(istring,'(I4.4)') rank
+      unitno=rank+200
 
 C nbe >= 1
 C  - calculate two-particle XCHF integrals and write to disk
@@ -288,13 +296,21 @@ C     => XCHF_GAM2 only needed if nbe >= 2
         if(allocated(INT_GAM3ex1)) deallocate(INT_GAM3ex1)
         if(allocated(INT_GAM3ex2)) deallocate(INT_GAM3ex2)
         if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
+        if(allocated(int_pinds)) deallocate(int_pinds)
+        if(allocated(int_einds)) deallocate(int_einds)
         if(allocated(INT_GAM4)) deallocate(INT_GAM4)
+        if(allocated(xchf_pinds)) deallocate(xchf_pinds)
+        if(allocated(xchf_einds)) deallocate(xchf_einds)
         if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
         allocate(INT_GAM3(dimINT3))
         allocate(INT_GAM3ex1(dimINT3ex))
         allocate(INT_GAM3ex2(dimINT3ex))
         allocate(XCHF_GAM3(dimXCHF3))
+        allocate(int_pinds(dimINT4))
+        allocate(int_einds(dimINT4))
         allocate(INT_GAM4(dimINT4))
+        allocate(xchf_pinds(dimXCHF4))
+        allocate(xchf_einds(dimXCHF4))
         allocate(XCHF_GAM4(dimXCHF4))
 
       else
@@ -477,9 +493,17 @@ C     => XCHF_GAM3 only needed if nbe >= 3
           if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
           allocate(XCHF_GAM3(dimXCHF3))
 
+          if(allocated(int_pinds)) deallocate(int_pinds)
+          if(allocated(int_einds)) deallocate(int_einds)
           if(allocated(INT_GAM4)) deallocate(INT_GAM4)
+          if(allocated(xchf_pinds)) deallocate(xchf_pinds)
+          if(allocated(xchf_einds)) deallocate(xchf_einds)
           if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
+          allocate(int_pinds(dimINT4))
+          allocate(int_einds(dimINT4))
           allocate(INT_GAM4(dimINT4))
+          allocate(xchf_pinds(dimXCHF4))
+          allocate(xchf_einds(dimXCHF4))
           allocate(XCHF_GAM4(dimXCHF4))
 
         else
@@ -500,127 +524,137 @@ C  - calculate interaction five-particle integrals and store in memory
 C     => INT_GAM4
 C  - assume there is enough memory for each process to store GAM2s
 
-! Have each process calculate and store its ng4/proc integrals
-! Assign residual integrals to last process
-            if (rank.eq.(nproc-1)) then
-             dimINT4=ng4/nproc+mod(ng4,nproc)
-            else
-             dimINT4=ng4/nproc
-            end if
+            if (.not.(read_GAM4)) then
 
-! This array now local to each process and correspond to only its chunk of integrals
-            if(allocated(INT_GAM4)) deallocate(INT_GAM4)
-            allocate(INT_GAM4(dimINT4))
-
-            if (read_GAM4) then
-
-! Read chunk with process (restart job requires same number of processes)
-             if (rank.eq.0) then
-              write(*,*)
-              write(*,*) "---------------------------"
-              write(*,*) " Reading:         INT_GAM4 "
-              write(*,*) "---------------------------"
-              write(*,*)
-             end if
-
-             call RXCHF_readint_mpi(nproc,rank,dimINT4,17,
-     x                              "INT_GAM4-"//istring//".ufm",
-     x                              INT_GAM4)
-
-            else
-
-             if(nbe.le.3) then     ! Otherwise calc INT_GAM4 and XCHF_GAM4 together
-
-              if (rank.eq.0) then
-               write(*,*)
-               write(*,*) "---------------------------"
-               write(*,*) " Calculating:     INT_GAM4 "
-               write(*,*) "---------------------------"
-               write(*,*)
-              end if
-
-              call RXCHF_GAM4_MPI(nproc,rank,
-     x                            ng4chk,nebf,npbf,ngee,ng2,ng4,
-     x                            dimXCHF2,dimINT4,
-     x                            XCHF_GAM2s,INT_GAM4)
-
-C! Write integrals to disk (chunk calculated by each process)
-C            call RXCHF_writeint_mpi(nproc,rank,dimINT4,17,
-C     x                              "INT_GAM4-"//istring//".ufm",
-C     x                              INT_GAM4)
-C            if(rank.eq.0) write(*,*) "INT_GAM4 written to disk"
-
-             end if
-
-            end if
-
-            if (nbe.le.3) then
-
-              dimXCHF4=1
-              if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
-              allocate(XCHF_GAM4(dimXCHF4))
-
-            else
-
-C nbe >= 4
-C  - calculate XCHF five-particle integrals and store in memory
-C     => XCHF_GAM4
-C  - assume there is enough memory for each process to store GAM2s
-
-! Have each process calculate and store its ng4/proc integrals
-! Assign residual integrals to last process
-              if (rank.eq.(nproc-1)) then
-               dimXCHF4=ng4/nproc+mod(ng4,nproc)
-              else
-               dimXCHF4=ng4/nproc
-              end if
-
-! This array now local to each process and correspond to only its chunk of integrals
-              if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
-              allocate(XCHF_GAM4(dimXCHF4))
-
-              if (read_GAM4) then
-
-! Read chunk with process (restart job requires same number of processes)
-               if (rank.eq.0) then
-                write(*,*)
-                write(*,*) "---------------------------"
-                write(*,*) " Reading:        XCHF_GAM4 "
-                write(*,*) "---------------------------"
-                write(*,*)
-               end if
-
-               call RXCHF_readint_mpi(nproc,rank,dimXCHF4,18,
-     x                                "XCHF_GAM4-"//istring//".ufm",
-     x                                XCHF_GAM4)
-
-              else
+              if(nbe.le.3) then     ! Otherwise calc INT_GAM4 and XCHF_GAM4 together
 
                if (rank.eq.0) then
                 write(*,*)
                 write(*,*) "---------------------------"
                 write(*,*) " Calculating:     INT_GAM4 "
-                write(*,*) " Calculating:    XCHF_GAM4 "
                 write(*,*) "---------------------------"
                 write(*,*)
                end if
 
+! Dimension of all INT_GAM4 integrals
+               if (rank.eq.(nproc-1)) then
+                dimINT4=ng4/nproc+mod(ng4,nproc)
+               else
+                dimINT4=ng4/nproc
+               end if
+ 
+! Calculate INT_GAM4 (routine writes nontrivial INT_GAM4 to disk)
+               call RXCHF_GAM4_MPI(nproc,rank,
+     x                             ng4chk,nebf,npbf,ngee,ng2,ng4,
+     x                             dimXCHF2,dimINT4,
+     x                             XCHF_GAM2s)
+
+              else
+
+C nbe >= 4
+C  - calculate INT and XCHF five-particle integrals and store in memory
+C     => INT_GAM4
+C     => XCHF_GAM4
+C  - assume there is enough memory for each process to store GAM2s
+
+               if (rank.eq.0) then
+                write(*,*)
+                write(*,*) "---------------------------"
+                write(*,*) " Calculating:     INT_GAM4 "
+                write(*,*) "                 XCHF_GAM4 "
+                write(*,*) "---------------------------"
+                write(*,*)
+               end if
+
+! Dimension of all INT_GAM4 and XCHF_GAM4 integrals
+               if (rank.eq.(nproc-1)) then
+                dimXCHF4=ng4/nproc+mod(ng4,nproc)
+               else
+                dimXCHF4=ng4/nproc
+               end if
+
+! Calculate INT_GAM4 and XCHF_GAM4 (routine writes nontrivial GAM4s to disk)
                call XCHF_GAM4_MPI(nproc,rank,
      x                            ng4chk,nebf,npbf,ngee,ng2,ng4,
      x                            dimXCHF2,dimXCHF4,
-     x                            XCHF_GAM2s,INT_GAM4,XCHF_GAM4)
+     x                            XCHF_GAM2s)
 
-! Write integrals to disk (chunk calculated by each process)
-             call RXCHF_writeint_mpi(nproc,rank,dimINT4,17,
-     x                               "INT_GAM4-"//istring//".ufm",
-     x                               INT_GAM4)
-             if(rank.eq.0) write(*,*) "INT_GAM4 written to disk"
-             call RXCHF_writeint_mpi(nproc,rank,dimXCHF4,18,
-     x                               "XCHF_GAM4-"//istring//".ufm",
-     x                               XCHF_GAM4)
-             if(rank.eq.0) write(*,*) "XCHF_GAM4 written to disk"
+              end if ! nbe >= 3
 
-              end if ! read GAM4
+            end if ! not read_GAM4
+
+! Always read nontrivial INT_GAM4
+
+            if (rank.eq.0) then
+             write(*,*)
+             write(*,*) "---------------------------"
+             write(*,*) " Reading:         INT_GAM4 "
+             write(*,*) "---------------------------"
+             write(*,*)
+            end if
+
+!            call RXCHF_readint_mpi(nproc,rank,dimINT4,17,
+!     x                             "INT_GAM4-"//istring//".ufm",
+!     x                             INT_GAM4)
+
+            open(unit=unitno,file="INT_GAM4-"//istring//".ufm",
+     x           form="unformatted",action="read")
+            read(unitno) dimINT4 ! # of nontrivial INT_GAM4 integrals
+
+            if(allocated(int_pinds)) deallocate(int_pinds)
+            allocate(int_pinds(dimINT4))
+            if(allocated(int_einds)) deallocate(int_einds)
+            allocate(int_einds(dimINT4))
+            if(allocated(INT_GAM4)) deallocate(INT_GAM4)
+            allocate(INT_GAM4(dimINT4))
+            
+            call RXCHF_readbit_mpi(nproc,rank,dimINT4,unitno,
+     x                             int_pinds,int_einds,INT_GAM4)
+
+            close(unitno)
+
+            if (nbe.le.3) then
+
+! XCHF_GAM4 not needed for nbe <= 3
+              dimXCHF4=1
+              if(allocated(xchf_pinds)) deallocate(xchf_pinds)
+              allocate(xchf_pinds(dimXCHF4))
+              if(allocated(xchf_einds)) deallocate(xchf_einds)
+              allocate(xchf_einds(dimXCHF4))
+              if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
+              allocate(XCHF_GAM4(dimXCHF4))
+
+            else
+
+! Read nontrivial XCHF_GAM4 for nbe > 3
+
+              if (rank.eq.0) then
+               write(*,*)
+               write(*,*) "---------------------------"
+               write(*,*) " Reading:        XCHF_GAM4 "
+               write(*,*) "---------------------------"
+               write(*,*)
+              end if
+
+!              call RXCHF_readint_mpi(nproc,rank,dimXCHF4,18,
+!     x                               "XCHF_GAM4-"//istring//".ufm",
+!     x                               XCHF_GAM4)
+
+              open(unit=unitno,file="XCHF_GAM4-"//istring//".ufm",
+     x             form="unformatted",action="read")
+              read(unitno) dimXCHF4 ! # of nontrivial XCHF_GAM4 integrals
+
+              if(allocated(xchf_pinds)) deallocate(xchf_pinds)
+              allocate(xchf_pinds(dimXCHF4))
+              if(allocated(xchf_einds)) deallocate(xchf_einds)
+              allocate(xchf_einds(dimXCHF4))
+              if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
+              allocate(XCHF_GAM4(dimXCHF4))
+
+              call RXCHF_readbit_mpi(nproc,rank,dimXCHF4,unitno,
+     x                               xchf_pinds,xchf_einds,XCHF_GAM4)
+
+              close(unitno)
 
             end if ! nbe >= 4
 
@@ -643,34 +677,64 @@ C Kick-off SCF
       npbflt=npbf*(npbf+1)/2
 
       if ((read_GAM3).or.(nblocks.eq.1)) then
-       call RXCHF_scf_MPI(nproc,rank,
-     x                    nelec,nae,nae_alp,nae_beta,
-     x                    nbe,nebflt,npbflt,nucst,
-     x                    npebf,nebf,nebf2,npbf,npbf2,ngee,
-     x                    ngtg1,ng1,ng2,ng3,ng4,
-     x                    NG2CHK,NG3CHK,NG4CHK,
-     x                    read_CE,read_CP,
-     x                    LG4DSCF,LG3DSCF,LG2DSCF,
-     x                    LSOSCF,LDIIS,LSORXCHF,
-     x                    OCBSETYP,LDBG,LADDEXCH,
-     x                    ng2prm,ng3prm,nat,pmass,cat,zan,
-     x                    bcoef1,gamma1,
-     x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                    LG2IC,dimXCHF2,dimINT2,dimINT2ex,
-     x                    XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
-     x                    LG3IC,dimXCHF3,dimINT3,dimINT3ex,
-     x                    XCHF_GAM3,INT_GAM3,
-     x                    INT_GAM3ex1,INT_GAM3ex2,
-     x                    LG4IC,dimXCHF4,dimINT4,
-     x                    XCHF_GAM4,INT_GAM4)
+       if(LRXCUHF) then
+        call RXCHF_uscf_MPI(nproc,rank,
+     x                      nelec,nae,nae_alp,nae_beta,
+     x                      nbe,nebflt,npbflt,nucst,
+     x                      npebf,nebf,nebf2,npbf,npbf2,ngee,
+     x                      ngtg1,ng1,ng2,ng3,ng4,
+     x                      NG2CHK,NG3CHK,NG4CHK,
+     x                      read_CE,read_CP,
+     x                      LG4DSCF,LG3DSCF,LG2DSCF,
+     x                      LSOSCF,LDIIS,LSORXCHF,
+     x                      OCBSETYP,LDBG,LADDEXCH,
+     x                      ng2prm,ng3prm,nat,pmass,cat,zan,
+     x                      bcoef1,gamma1,
+     x                      KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                      LG2IC,dimXCHF2,dimINT2,dimINT2ex,
+     x                      XCHF_GAM2,INT_GAM2,
+     x                      INT_GAM2ex,XCHF_GAM2s,
+     x                      LG3IC,dimXCHF3,dimINT3,dimINT3ex,
+     x                      XCHF_GAM3,INT_GAM3,
+     x                      INT_GAM3ex1,INT_GAM3ex2,
+     x                      LG4IC,dimXCHF4,dimINT4,
+     x                      int_pinds,int_einds,INT_GAM4,
+     x                      xchf_pinds,xchf_einds,XCHF_GAM4)
+       else
+        call RXCHF_scf_MPI(nproc,rank,
+     x                     nelec,nae,nbe,nebflt,npbflt,nucst,
+     x                     npebf,nebf,nebf2,npbf,npbf2,ngee,
+     x                     ngtg1,ng1,ng2,ng3,ng4,
+     x                     NG2CHK,NG3CHK,NG4CHK,
+     x                     read_CE,read_CP,
+     x                     LG4DSCF,LG3DSCF,LG2DSCF,
+     x                     LSOSCF,LDIIS,LSORXCHF,
+     x                     OCBSETYP,LDBG,LADDEXCH,
+     x                     ng2prm,ng3prm,nat,pmass,cat,zan,
+     x                     bcoef1,gamma1,
+     x                     KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                     ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                     LG2IC,dimXCHF2,dimINT2,dimINT2ex,
+     x                     XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
+     x                     LG3IC,dimXCHF3,dimINT3,dimINT3ex,
+     x                     XCHF_GAM3,INT_GAM3,
+     x                     INT_GAM3ex1,INT_GAM3ex2,
+     x                     LG4IC,dimXCHF4,dimINT4,
+     x                     int_pinds,int_einds,INT_GAM4,
+     x                     xchf_pinds,xchf_einds,XCHF_GAM4)
+       end if
       end if
 
       wtime2 = MPI_WTIME() - wtime
 
 C Cleanup
       if(allocated(XCHF_GAM4))   deallocate(XCHF_GAM4)
+      if(allocated(xchf_einds))  deallocate(xchf_einds)
+      if(allocated(xchf_pinds))  deallocate(xchf_pinds)
       if(allocated(INT_GAM4))    deallocate(INT_GAM4)
+      if(allocated(int_einds))   deallocate(int_einds)
+      if(allocated(int_pinds))   deallocate(int_pinds)
       if(allocated(XCHF_GAM3))   deallocate(XCHF_GAM3)
       if(allocated(INT_GAM3ex2)) deallocate(INT_GAM3ex2)
       if(allocated(INT_GAM3ex1)) deallocate(INT_GAM3ex1)
@@ -733,6 +797,62 @@ C Read in from file
         read(unitno) arr((n/nchunk)*nchunk+1:n)
       end if
       close(unitno)
+
+      return
+      end
+
+C=======================================================================
+      subroutine RXCHF_readbit_mpi(nproc,rank,n,unitno,pinds,einds,arr)
+
+C Reads integrals from already-opened file with unit number [unitno]
+C into an n-dimensional array [arr]
+C Also stored are n-dimensional proton indices [ip jp] and
+C n-dimensional electron indices [i1 j1 i2 j2 i3 j3 i4 j4]
+C Indices and integrals must be written to an unformatted file
+C in chunks of size [nchunk]
+C=======================================================================
+      implicit none
+
+C Input variables
+      integer nproc,rank
+      integer n,unitno
+C Output variables
+      integer(kind=4)  pinds(n)
+      integer(kind=8)  einds(n)
+      double precision arr(n)
+C Local variables
+      integer i
+      integer nchunk
+      parameter(nchunk=100000000)
+
+C Initialize
+      pinds=0
+      einds=0
+      arr=0.0d+00
+
+C Read packed proton indices
+      do i=1,n/nchunk
+        read(unitno) pinds((i-1)*nchunk+1:i*nchunk)
+      end do
+      if(mod(n,nchunk).ne.0) then
+        read(unitno) pinds((n/nchunk)*nchunk+1:n)
+      end if
+
+C Read packed electron indices
+      do i=1,n/nchunk
+        read(unitno) einds((i-1)*nchunk+1:i*nchunk)
+      end do
+      if(mod(n,nchunk).ne.0) then
+        read(unitno) einds((n/nchunk)*nchunk+1:n)
+      end if
+
+C Read integrals
+      do i=1,n/nchunk
+        read(unitno) arr((i-1)*nchunk+1:i*nchunk)
+      end do
+      if(mod(n,nchunk).ne.0) then
+        read(unitno) arr((n/nchunk)*nchunk+1:n)
+      end if
 
       return
       end
