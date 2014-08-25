@@ -376,13 +376,6 @@ C       end if
         inperr=.true.
        end if
 
-       if((LRXCUHF).and.(nbe.gt.1)) then
-        write(*,*) "Open-shell RXCHF for more than one special"
-        write(*,*) "is currently not supported."
-        write(*,*) "Exiting..."
-        inperr=.true.
-       end if
-
        if ((LRXCHF.or.LRXCUHF).and.(NBE.gt.1).and.(EXCHLEV.gt.1)) then
         write(*,*) "Only RXCHF-ne and RXCHF-ae are currently"
         write(*,*) "supported for more than one special electron."
@@ -654,13 +647,14 @@ C       end if
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
-      if(LNEOHF.or.LXCUHF.or.LRXCUHF) then
+      if(LNEOHF.or.LXCUHF) then
        if (rank.eq.0) 
      x    write(*,*) "MPI code only supports RXCHF-ne/ae with NBE>1"
        return
       end if
 
-      if(.not.(LRXCHF.and.(NBE.ge.2).and.(EXCHLEV.lt.2))) then
+      if(.not.((LRXCHF.or.LRXCUHF).and.(NBE.ge.2).and.(EXCHLEV.lt.2)))
+     x  then
        if (rank.eq.0) 
      x    write(*,*) "MPI code only supports RXCHF-ne/ae with NBE>1"
        return
