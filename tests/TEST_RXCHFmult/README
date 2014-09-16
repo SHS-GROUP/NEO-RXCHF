@@ -5,6 +5,7 @@ TEST01
 
 System:      He (2 electrons) separated by 200 Ang from PsH (2 electron + 1 positron)
 Level:       NEO-RXCHF with PsH parameters (6s/6s basis set, NGTG=2) from 2012 JCP, and 3-21G/6-311G for helium
+             Also performed restricted basis set calculation for the 6-311G case
 Compare to:  Corresponding RHF calculation for He and XCHF calculation for PsH(ngtg=2 data from 2012 JCP)
 
 3-21G
@@ -25,6 +26,7 @@ Total       :                                -3.5950342313
 
 RXCHF-ne    : FINAL NEORXCHF ENERGY IS       -3.5950342311 AFTER   5 ITERATIONS
 RXCHF-ae    : FINAL NEORXCHF ENERGY IS       -3.5950342311 AFTER   5 ITERATIONS
+RXCHF(rest) : FINAL NEORXCHF ENERGY IS       -3.5950342311 AFTER   5 ITERATIONS
 
 
 ======
@@ -40,6 +42,8 @@ Notes:       When localized orbitals are given as a starting guess
              When normal guess is used
               - converges to the He(RHF) + LiPs(RXCHF-2e) solution (**)
              RXCHF-ae is not tested since in its current formalism, the correct limits are not obtained when N_s > 2
+             When normal guess is used with restricted basis set
+              - converges to the He(RHF) + LiPs(RXCHF-2e) solution (**)
 
 Localized-orbital guess
 
@@ -57,6 +61,7 @@ LiPs (RXCHF) : FINAL NEORXCHF ENERGY IS       -7.6390315022 AFTER   9 ITERATIONS
 Total        :                               -10.4747113758
 
 RXCHF        : FINAL NEORXCHF ENERGY IS      -10.4747113761 AFTER   9 ITERATIONS
+RXCHF(restr) : FINAL NEORXCHF ENERGY IS      -10.4478502207 AFTER  11 ITERATIONS
 
 
 ======
@@ -106,4 +111,21 @@ Compare to:  Corresponding NEO-HF calculation
 
 RXCHF  :  FINAL NEORXCHF ENERGY IS       -7.9270489806 AFTER   6 ITERATIONS
 NEO-HF :   FINAL NEOXCHF ENERGY IS       -7.9270489800 AFTER   9 ITERATIONS
+
+
+======
+TEST07
+======
+
+System:      LiH (4 electrons) with nontrivial geminals
+Level:       NEO-RXCHF-ne+restrbas / pc0*/5s
+Compare to:  Corresponding NEO-RXCHF-ne calculation / pc0/5s   (+) and
+             corresponding NEO-RXCHF-ne calculation / pc0*/5s (++)
+Notes:       Comparing restricted basis set calculation with one where the truncated orbitals
+             should not be used (in this case, px,py orbitals)
+             Occupied orbitals identical up to digits in log file even though energy differs slightly
+
+RXCHF+rb  :  FINAL NEORXCHF ENERGY IS       -7.9416633596 AFTER   7 ITERATIONS
+RXCHF(+)  :  FINAL NEORXCHF ENERGY IS       -7.9416633596 AFTER   7 ITERATIONS
+RXCHF(++) :  FINAL NEORXCHF ENERGY IS       -7.9416633601 AFTER   7 ITERATIONS
 

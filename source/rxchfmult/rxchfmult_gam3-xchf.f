@@ -1,11 +1,15 @@
 !=======================================================================
-      subroutine RXCHFmult_GAM3_IC1(Nchunks,nebf,npebf,npbf,
-     x                            ng3,ng3prm,nat,ngtg1,
-     x                            pmass,cat,zan,bcoef1,gamma1,
-     x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                            GM3_1ICR,GM3_2ICR)
+      subroutine RXCHFmult_GAM3_XCHF(Nchunks,
+     x                               nebf,npebf,npbf,
+     x                               ng3,nat,ngtg1,
+     x                               pmass,cat,zan,bcoef1,gamma1,
+     x                               KPESTR,KPEEND,
+     x                               AMPEB2C,AGEBFCC,
+     x                               ELCEX,ELCAM,ELCBFC,
+     x                               AGNBFCC,NUCEX,NUCAM,NUCBFC,
+     x                               XCHF_GAM3)
 
+C Calculates four-particle XCHF (G-ansatz) integrals
 !=======================================================================
       implicit none
       include 'omp_lib.h'
@@ -14,27 +18,26 @@
       integer ng3,nebf,npebf,npbf,ng3prm
       integer nat,ngtg1
 !-------Basis Set Info-------(
-      integer ELCAM(npebf,3)  ! Angular mom for electrons
-      integer NUCAM(npbf,3)   ! Angular mom for quantum nuclei
-      double precision ELCEX(npebf) ! Exponents: elec basis
-      double precision NUCEX(npbf)  ! Exponents: nuc basis
+      integer ELCAM(npebf,3)           ! Angular mom for electrons
+      integer NUCAM(npbf,3)            ! Angular mom for quantum nuclei
+      double precision ELCEX(npebf)    ! Exponents: elec basis
+      double precision NUCEX(npbf)     ! Exponents: nuc basis
       double precision ELCBFC(npebf,3) ! Basis centers: elec basis
       double precision NUCBFC(npbf,3)  ! basis centers: nuc basis
-      integer AMPEB2C(npebf) ! Map primitive index to contracted
-      double precision AGEBFCC(npebf) ! Map prim index to contract coef
-      double precision AGNBFCC(npbf)  ! Nuclear contract coef
-      integer KPESTR(nebf)  ! Map contracted index to primitive start
-      integer KPEEND(nebf)  ! Map contracted index to primitive end
+      integer AMPEB2C(npebf)           ! Map primitive index to contracted
+      double precision AGEBFCC(npebf)  ! Map prim index to contract coef
+      double precision AGNBFCC(npbf)   ! Nuclear contract coef
+      integer KPESTR(nebf)             ! Map contracted index to primitive start
+      integer KPEEND(nebf)             ! Map contracted index to primitive end
 !-------Basis Set Info-------)
-      double precision pmass    ! Mass of nonelectron quantum particle 
-      double precision zan(nat) ! Classical nuclear charges
-      double precision cat(3,nat) ! XYZ Coordinates of atoms
+      double precision pmass           ! Mass of nonelectron quantum particle 
+      double precision zan(nat)        ! Classical nuclear charges
+      double precision cat(3,nat)      ! XYZ Coordinates of atoms
       double precision bcoef1(ngtg1) 
       double precision gamma1(ngtg1)
 
 ! Variables Returned
-      double precision GM3_1ICR(ng3)  ! XCHF OMG3  integrals (full symm)
-      double precision GM3_2ICR(ng3)  ! INT  OMG3  integrals (partial symm)
+      double precision XCHF_GAM3(ng3)  ! XCHF OMG3  integrals (full symm)
 
 ! Local Variables
       integer istat,ichunk,istart,iend,ng3_seg
@@ -43,9 +46,7 @@
       integer Loopi,imas
       integer ip,jp,iec1,jec1,iec2,jec2,iec3,jec3
       integer,allocatable :: loop_map(:,:)
-      double precision,allocatable :: XG3_1ICR(:), XG3_2ICR(:)
-!     double precision,allocatable :: GAM_3(:)
-!     double precision,allocatable :: TMPARY(:)
+      double precision,allocatable :: XG3ICR(:)
 
       integer ia
       integer ia_123
@@ -74,11 +75,8 @@
      xomp_get_max_threads(),1
          wtime = omp_get_wtime()
 
-! Memory to hold un-symmetrized GAM3 integrals
-         if(allocated(XG3_1ICR)) deallocate(XG3_1ICR)
-         allocate( XG3_1ICR(ng3),stat=istat )
-         if(allocated(XG3_2ICR)) deallocate(XG3_2ICR)
-         allocate( XG3_2ICR(ng3),stat=istat )
+         if(allocated(XG3ICR)) deallocate(XG3ICR)
+         allocate( XG3ICR(ng3),stat=istat )
 
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_3--------------------------------(
       do ichunk=1,Nchunks
@@ -125,10 +123,10 @@
          end do
          end do
 
-         call RXCHFmult_thread_gam3_IC1(istart,iend,ng3_seg,ng3,
+         call RXCHFmult_thread_gam3_XCHF(istart,iend,ng3_seg,ng3,
      x                        nebf,npebf,npbf,nat,ngtg1,
      x                        pmass,cat,zan,bcoef1,gamma1,
-     x                        loop_map,XG3_1ICR,XG3_2ICR,
+     x                        loop_map,XG3ICR,
      x                        KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
@@ -209,37 +207,21 @@ c                           XGAM_3(ip,jp,ie3,je3,ie2,je2,ie1,je1)
 !                            read(905,REC=ia_321) x321
                              ! x321=GAM_3(ia_321)
 
-C RXCHFmult(
-C    index 1: regular electron
-C    index 2: special electron 1
-C    index 3: special electron 2
-C    index 4: proton
-C )
-
-C Fully symmetrized integrals in GM3_1ICR
-                       x123=XG3_1ICR(ia_123)
-                       x132=XG3_1ICR(ia_132)
-                       x213=XG3_1ICR(ia_213)
-                       x231=XG3_1ICR(ia_231)
-                       x312=XG3_1ICR(ia_312)
-                       x321=XG3_1ICR(ia_321)
+C Fully symmetrized integrals in XCHF_GAM3
+                       x123=XG3ICR(ia_123)
+                       x132=XG3ICR(ia_132)
+                       x213=XG3ICR(ia_213)
+                       x231=XG3ICR(ia_231)
+                       x312=XG3ICR(ia_312)
+                       x321=XG3ICR(ia_321)
                        xxxx=(x123+x132+x213+x231+x312+x321)/six
 
-                       GM3_1ICR(ia_123)=xxxx 
-                       GM3_1ICR(ia_132)=xxxx 
-                       GM3_1ICR(ia_213)=xxxx 
-                       GM3_1ICR(ia_231)=xxxx 
-                       GM3_1ICR(ia_312)=xxxx 
-                       GM3_1ICR(ia_321)=xxxx 
-
-C Partially symmetrized integrals in GM3_2ICR
-                       x123=XG3_2ICR(ia_123)
-                       x132=XG3_2ICR(ia_132)
-                       xxxx=(x123+x132)*half
-
-                       GM3_2ICR(ia_123)=xxxx 
-                       GM3_2ICR(ia_132)=xxxx 
-
+                       XCHF_GAM3(ia_123)=xxxx 
+                       XCHF_GAM3(ia_132)=xxxx 
+                       XCHF_GAM3(ia_213)=xxxx 
+                       XCHF_GAM3(ia_231)=xxxx 
+                       XCHF_GAM3(ia_312)=xxxx 
+                       XCHF_GAM3(ia_321)=xxxx 
 
                end do
                end do
@@ -252,8 +234,7 @@ C Partially symmetrized integrals in GM3_2ICR
 
       wtime = omp_get_wtime() - wtime
 
-      if(allocated(XG3_2ICR)) deallocate(XG3_2ICR)
-      if(allocated(XG3_1ICR)) deallocate(XG3_1ICR)
+      if(allocated(XG3ICR)) deallocate(XG3ICR)
 
       write(*,4000) wtime
 !--------------------SYMMETRIZE----------------------------------------)
@@ -285,10 +266,10 @@ C Partially symmetrized integrals in GM3_2ICR
       return
       end
 C=======================================================================
-      subroutine RXCHFmult_thread_gam3_IC1(istart,iend,ng3_seg,ng3,
+      subroutine RXCHFmult_thread_gam3_XCHF(istart,iend,ng3_seg,ng3,
      x                           nebf,npebf,npbf,nat,ngtg1,
      x                           pmass,cat,zan,bcoef1,gamma1,
-     x                           loop_map,XG3_1ICR,XG3_2ICR,
+     x                           loop_map,XG3ICR,
      x                           KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                           ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
@@ -328,14 +309,13 @@ C-------Basis Set Info-------)
       double precision bcoef1(ngtg1) 
       double precision gamma1(ngtg1)
       integer loop_map(ng3_seg,8)
-      double precision XG3_1ICR(ng3),XG3_2ICR(ng3)
-!     double precision GAM_3(ng3_seg)
+      double precision XG3ICR(ng3)
 
 ! Variables Returned
 
 ! Local Variables
       integer imap,ia
-      double precision OMG3_1,OMG3_2
+      double precision OMG3
 
 !---OPENMP-RELATED-VARIABLES-----(
       integer IFIL
@@ -353,7 +333,7 @@ C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------(
 !!!!!!!!!!!!$ompx shared(GAM_3)
 !$omp parallel 
 !$ompx shared(loop_map)
-!$ompx shared(XG3_1ICR,XG3_2ICR)
+!$ompx shared(XG3ICR)
 !$ompx shared(ELCEX,ELCAM,ELCBFC,NUCEX,NUCAM,NUCBFC) 
 !$ompx shared(KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC)
 !$ompx shared(nat,ngtg1,pmass,cat,zan,bcoef1,gamma1)
@@ -367,7 +347,7 @@ C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------(
 !$ompx private(iec2,jec2)
 !$ompx private(iec3,jec3)
 !$ompx private(ia) 
-!$ompx private(OMG3_1,OMG3_2)
+!$ompx private(OMG3)
 !$ompx private(id)
 
 !     id= omp_get_thread_num()
@@ -389,20 +369,19 @@ C--------------%%%--PARALLEL--LOOPS--%%%-------------------------------(
          jp =loop_map(imap,7)
          ip =loop_map(imap,8)
 
-         call RXCHFmult_contract_omega3_conv(ip,jp,iec1,jec1,iec2,jec2,
+         call RXCHFmult_contract_omega3_XCHF(ip,jp,iec1,jec1,iec2,jec2,
      x                            iec3,jec3,nebf,npebf,npbf,nat,ngtg1,
      x                            pmass,cat,zan,bcoef1,gamma1,
      x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                            OMG3_1,OMG3_2)
+     x                            OMG3)
 
 !        GAM_3(imap)=OMG3
 !        As Packed--> XGAM_3(je3,ie3,je2,ie2,je1,ie1,jp,ip)
 !        XGAM_3(ip,jp,ie1,je1,ie2,je2,ie3,je3) 
          call index_GAM_3PK(nebf,npbf,
      x          ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,ia)
-         XG3_1ICR(ia)=OMG3_1
-         XG3_2ICR(ia)=OMG3_2
+         XG3ICR(ia)=OMG3
 
       end do
 !$omp end do
@@ -420,13 +399,13 @@ C---OPENMP-TIMING------------------------------------------------------)
       return
       end
 C======================================================================
-      subroutine RXCHFmult_contract_omega3_conv(ip,jp,
+      subroutine RXCHFmult_contract_omega3_XCHF(ip,jp,
      x                            iec1,jec1,iec2,jec2,iec3,jec3,
      x                            nebf,npebf,npbf,nat,ngtg1,
      x                            pmass,cat,zan,bcoef1,gamma1,
      x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                            OMG3_1,OMG3_2)
+     x                            OMG3)
 
 C======================================================================
       implicit none
@@ -464,7 +443,7 @@ C-------Basis Set Info-------)
       double precision gamma1(ngtg1)
 
 C Variables Returned
-      double precision OMG3_1,OMG3_2
+      double precision OMG3
 
 C Local Variables
       integer ie1,je1
@@ -507,7 +486,7 @@ C Basis set-related local variables
       double precision B3,Bmat3(3) 
       double precision B4,Bmat4(3) 
 C--------------------------------)
-      double precision ans1,ans2
+      double precision ans
 
 
       ie1_start=KPESTR(iec1)
@@ -526,8 +505,7 @@ C--------------------------------)
       je2_end=KPEEND(jec2)
       je3_end=KPEEND(jec3)
 
-      OMG3_1=0.0d+00
-      OMG3_2=0.0d+00
+      OMG3=0.0d+00
 
       do ie1=ie1_start,ie1_end
       do je1=je1_start,je1_end
@@ -615,28 +593,22 @@ C  Get Nuclear Basis Function Contraction Coefficients
               Cof_jp=AGNBFCC(jp)
 
 C---------------------OMG_123------------------------------------------(
-              call RXCHFmult_xcalc_GAM3_MD(I1,J1,K1,A1,Amat1,
-     x                                     I2,J2,K2,A2,Amat2,
-     x                                     I3,J3,K3,A3,Amat3,
-     x                                     I4,J4,K4,A4,Amat4,
-     x                                     L1,M1,N1,B1,Bmat1,
-     x                                     L2,M2,N2,B2,Bmat2,
-     x                                     L3,M3,N3,B3,Bmat3,
-     x                                     L4,M4,N4,B4,Bmat4,
-     x                                     nat,ngtg1,
-     x                                     pmass,cat,zan,
-     x                                     bcoef1,gamma1,
-     x                                     ans1,ans2)
+              call RXCHFmult_XCHF_GAM3_MD(I1,J1,K1,A1,Amat1,
+     x                                    I2,J2,K2,A2,Amat2,
+     x                                    I3,J3,K3,A3,Amat3,
+     x                                    I4,J4,K4,A4,Amat4,
+     x                                    L1,M1,N1,B1,Bmat1,
+     x                                    L2,M2,N2,B2,Bmat2,
+     x                                    L3,M3,N3,B3,Bmat3,
+     x                                    L4,M4,N4,B4,Bmat4,
+     x                                    nat,ngtg1,
+     x                                    pmass,cat,zan,
+     x                                    bcoef1,gamma1,
+     x                                    ans)
 
 !                       call underflow(ans)
 
-                        OMG3_1=OMG3_1+ans1
-     x                      *Cof_ip*Cof_jp
-     x                      *Cof_ie1*Cof_je1
-     x                      *Cof_ie2*Cof_je2
-     x                      *Cof_ie3*Cof_je3
-
-                        OMG3_2=OMG3_2+ans2
+                        OMG3=OMG3+ans
      x                      *Cof_ip*Cof_jp
      x                      *Cof_ie1*Cof_je1
      x                      *Cof_ie2*Cof_je2
@@ -650,6 +622,400 @@ C---------------------OMG_123------------------------------------------)
         end do
       end do
       end do
+
+
+      return
+      end
+C======================================================================
+      subroutine RXCHFmult_XCHF_GAM3_MD(I1,J1,K1,A1,Amat1,
+     x                                  I2,J2,K2,A2,Amat2,
+     x                                  I3,J3,K3,A3,Amat3,
+     x                                  I4,J4,K4,A4,Amat4,
+     x                                  L1,M1,N1,B1,Bmat1,
+     x                                  L2,M2,N2,B2,Bmat2,
+     x                                  L3,M3,N3,B3,Bmat3,
+     x                                  L4,M4,N4,B4,Bmat4,
+     x                                  nat,ngtg1,
+     x                                  pmass,cat,zan,
+     x                                  bcoef1,gamma1,
+     x                                  ans)
+
+C Adapted ../gam_3_OMP.f to account for just G-ansatz XCHF terms
+C======================================================================
+      implicit none
+
+C Input Variables
+      integer nat
+      integer ngtg1
+      double precision pmass
+      double precision zan(nat)
+      double precision cat(3,nat)
+      double precision bcoef1(ngtg1)
+      double precision gamma1(ngtg1)
+
+      integer I1,J1,K1
+      integer I2,J2,K2
+      integer I3,J3,K3
+      integer I4,J4,K4
+      integer L1,M1,N1
+      integer L2,M2,N2
+      integer L3,M3,N3
+      integer L4,M4,N4
+
+      double precision A1,Amat1(3) 
+      double precision A2,Amat2(3) 
+      double precision A3,Amat3(3) 
+      double precision A4,Amat4(3) 
+      double precision B1,Bmat1(3) 
+      double precision B2,Bmat2(3) 
+      double precision B3,Bmat3(3) 
+      double precision B4,Bmat4(3) 
+
+C Variables Returned
+      double precision ans   ! XCHF OMG3 contribution
+
+C Local Variables
+      integer iii    ! Index for looping over natoms
+      integer ik,il  ! Indices for geminal loops
+      integer iat
+
+      double precision gamA14
+      double precision gamA24
+      double precision gamA34
+      double precision gamB14
+      double precision gamB24
+      double precision gamB34
+      double precision gamA
+      double precision gamB
+
+      double precision cmat(3)
+      double precision znuc
+
+      double precision gVEE
+      double precision xgVEE
+      double precision xx,yy,zz
+      double precision zero,half,one,two,four
+      parameter(zero=0.0d+00,one=1.0d+00,two=2.0d+00,four=4.0d+00)
+      parameter(half=0.5d+00)
+
+      double precision gHEg
+      double precision gVEEg1
+      double precision gVEEg2
+!      double precision gVEPg1  ! INT_GAM3 only
+      double precision xgHEg
+      double precision xgVEEg1 
+      double precision xgVEEg2 
+!      double precision xgVEPg1 ! INT_GAM3 only
+
+      double precision xmass,coulomb_sign
+      double precision xke,Vc
+      double precision val_vec 
+    
+      integer NQUAD_coul
+      integer NQUAD_ovlap
+
+
+CXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+C     BASIS FUNCTIONS: ASSIGN CENTERS, EXPONENTS, ANGULAR MOM.
+C
+
+C     *****ie1 ::  electron 1 bra *****
+C     *****ie2 ::  electron 2 bra *****      
+C     *****ie3 ::  electron 3 bra *****      
+C     *****ip  ::  proton bra     *****
+
+C     *****je1 ::  electron 1 ket *****
+C     *****je2 ::  electron 2 ket *****
+C     *****je3 ::  electron 3 ket *****
+C     *****jp  ::  proton ket     *****
+
+CXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+C      gVEE=zero
+C
+C      DO IK=1,NGTG1
+C
+C         gamA=gamma1(ik)
+C         gamB=zero
+C
+CC  xgVEE
+CC  --- g(1,p)VEE(2,3)---
+C         call G2_MD_xggs(I1,J1,K1,A1,Amat1,
+C     1                   I4,J4,K4,A4,Amat4,
+C     2                   L1,M1,N1,B1,Bmat1,
+C     3                   L4,M4,N4,B4,Bmat4,
+C     4                   gamA,gamB,xx)
+C
+Cc        call pgiovlap(I1,J1,K1,A1,Amat1,
+Cc    x                 I4,J4,K4,A4,Amat4,
+Cc    x                 L1,M1,N1,B1,Bmat1,
+Cc    x                 L4,M4,N4,B4,Bmat4,
+Cc    x                 gamA,gamB,xx)
+C
+C
+C         call gfvee(I2,J2,K2,A2,Amat2,
+C     x              I3,J3,K3,A3,Amat3,
+C     x              L2,M2,N2,B2,Bmat2,
+C     x              L3,M3,N3,B3,Bmat3,
+C     x              yy)
+C
+C         call underflow(xx)
+C         call underflow(yy)
+C
+C         xgVEE=xx*yy
+C         gVEE=gVEE+(bcoef1(ik)*xgVEE)
+C
+CC End 1 gamma loop
+C      end do
+C Begin 2 gamma loop
+
+      gHEg=zero
+      gVEEg1=zero
+      gVEEg2=zero
+!      gVEPg1=zero ! INT_GAM3 only
+
+      DO IK=1,NGTG1
+         DO IL=1,NGTG1
+
+C>>>>>>>>>>>>>>>>>>>>  xgHEg <<<<<<<<<<<<<<<<<<<<
+c           ndim=3
+c           natom=nat
+c           xmass=one
+c           coulomb_sign=-one
+c           call o3_Hcore_val(NDIM,NATOM,
+c    x                        xmass,zan,cmat,
+c    x                        coulomb_sign,
+c    x                        I3,J3,K3,A3,Amat3,
+c    x                        L3,M3,N3,B3,Bmat3,
+c    x                        xx)
+CCCCCC-rather than call o3_Hcore_val evaluate 
+C everything right here...
+
+            xmass=one
+            coulomb_sign=-one
+
+            call gfke(I3,J3,K3,A3,Amat3,
+     x                L3,M3,N3,B3,Bmat3,
+     x                xmass,xke)
+            Vc = ZERO
+            do iat=1,nat
+                 Cmat(1)=cat(1,iat)
+                 Cmat(2)=cat(2,iat)
+                 Cmat(3)=cat(3,iat)
+                 call gfvec(I3,J3,K3,A3,Amat3,
+     x                      L3,M3,N3,B3,Bmat3,
+     x                      Cmat,val_vec)
+                 Vc = Vc + (zan(iat)*val_vec)
+             end do
+c            hcore = xke + (Vc*coulomb_sign)
+             xx = xke + (Vc*coulomb_sign)
+CCCCCC
+
+c           gamA14 = gamma1(ik)
+c           gamA24 = ZERO
+c           gamA34 = ZERO
+c           gamB14 = ZERO
+c           gamB24 = gamma1(il)
+c           gamB34 = ZERO
+
+            gamA = gamma1(ik)
+            gamB = gamma1(il)
+
+c           call G4ovlap_typ1(I1,J1,K1,A1,Amat1,
+c           call G3ovlap(I1,J1,K1,A1,Amat1,
+c    x                   I2,J2,K2,A2,Amat2,
+c    x                   I4,J4,K4,A4,Amat4,
+c    x                   L1,M1,N1,B1,Bmat1,
+c    x                   L2,M2,N2,B2,Bmat2,
+c    x                   L4,M4,N4,B4,Bmat4,
+c    x                   ZERO,gamA,ZERO,
+c    x                   ZERO,ZERO,gamB,yy)
+cc   4                gamA12,gamA13,gamA23,
+cc   4                gamB12,gamB13,gamB23,sval)
+            call G3_MD_xggs(I1,J1,K1,A1,Amat1,
+     x                      I2,J2,K2,A2,Amat2,
+     x                      I4,J4,K4,A4,Amat4,
+     x                      L1,M1,N1,B1,Bmat1,
+     x                      L2,M2,N2,B2,Bmat2,
+     x                      L4,M4,N4,B4,Bmat4,
+     x                      ZERO,gamA,ZERO,
+     x                      ZERO,ZERO,gamB,yy)
+
+C RXCHFmult(  reorder indicies for INT_GAM3 - should not affect XCHF_GAM3
+C    index 1: regular electron
+C    index 2: special electron 1
+C    index 3: special electron 2
+C    index 4: proton
+C )
+C           --g(e2,p1) V^{ep}(e1,p1) g(e3,p1)--
+            coulomb_sign  = -ONE
+            gamA14 = gamma1(ik)
+            gamA24 = ZERO
+            gamA34 = ZERO
+            gamB14 = ZERO
+            gamB24 = gamma1(il)
+            gamB34 = ZERO
+!           call rys_G4vee_r34(NQUAD_coul,NQUAD_ovlap,
+c           call interface_G4vee_r34(NQUAD_coul,NQUAD_ovlap,
+c    x                               I1,J1,K1,A1,Amat1,
+c    x                               I2,J2,K2,A2,Amat2,
+c    x                               I3,J3,K3,A3,Amat3,
+c    x                               I4,J4,K4,A4,Amat4,
+c    x                               L1,M1,N1,B1,Bmat1,
+c    x                               L2,M2,N2,B2,Bmat2,
+c    x                               L3,M3,N3,B3,Bmat3,
+c    x                               L4,M4,N4,B4,Bmat4,
+c    x                               gamA14,gamA24,gamA34,
+c    x                               gamB14,gamB24,gamB34,zz)
+            call G4_MD_xgVepg(I2,J2,K2,A2,Amat2,
+     *                        I3,J3,K3,A3,Amat3,
+     *                        I1,J1,K1,A1,Amat1,
+     *                        I4,J4,K4,A4,Amat4,
+     *                        L2,M2,N2,B2,Bmat2,
+     *                        L3,M3,N3,B3,Bmat3,
+     *                        L1,M1,N1,B1,Bmat1,
+     *                        L4,M4,N4,B4,Bmat4,
+     *                        gamA14,gamB24,
+     *                        zz)
+c           call G4Vep_AUX_g14g24V34(I1,J1,K1,A1,Amat1,
+c    *                               I2,J2,K2,A2,Amat2,
+c    *                               I3,J3,K3,A3,Amat3,
+c    *                               I4,J4,K4,A4,Amat4,
+c    *                               L1,M1,N1,B1,Bmat1,
+c    *                               L2,M2,N2,B2,Bmat2,
+c    *                               L3,M3,N3,B3,Bmat3,
+c    *                               L4,M4,N4,B4,Bmat4,
+c    *                               gamA14,zero,
+c    *                               zero,gamB24,
+c    *                               zz)
+
+             call underflow(xx)
+             call underflow(yy)
+             call underflow(zz)
+
+             xgHEg = ((xx*yy) + (zz*coulomb_sign) )
+!           xgVEPg1 = zz*coulomb_sign
+
+
+C>>>>>>>>>>>>>>>>>>>>  xgVEEg1 <<<<<<<<<<<<<<<<<<<<
+C RXCHFmult( reorder indicies for INT_GAM3 - should not affect XCHF_GAM3
+C    index 1: regular electron
+C    index 2: special electron 1
+C    index 3: special electron 2
+C    index 4: proton
+C )
+C  --- g(2,p)VEE(1,3)g(2,p)---
+            gamA=gamma1(ik)
+            gamB=gamma1(il)
+            call G2_MD_xggs(I2,J2,K2,A2,Amat2,
+     1                      I4,J4,K4,A4,Amat4,
+     2                      L2,M2,N2,B2,Bmat2,
+     3                      L4,M4,N4,B4,Bmat4,
+     4                      gamA,gamB,xx)
+
+c           call pgiovlap(I1,J1,K1,A1,Amat1,
+c    x                    I4,J4,K4,A4,Amat4,
+c    x                    L1,M1,N1,B1,Bmat1,
+c    x                    L4,M4,N4,B4,Bmat4,
+c    x                    gamA,gamB,xx)
+
+
+            call gfvee(I1,J1,K1,A1,Amat1,
+     x                 I3,J3,K3,A3,Amat3,
+     x                 L1,M1,N1,B1,Bmat1,
+     x                 L3,M3,N3,B3,Bmat3,
+     x                 yy)
+
+
+            call underflow(xx)
+            call underflow(yy)
+
+            xgVEEg1=xx*yy
+
+C>>>>>>>>>>>>>>>>>>>>  xgVEEg2 <<<<<<<<<<<<<<<<<<<<
+C ans = <GA(1)GA(2)GA(3)GB(4)|g(1,4)g(2,4)g(3,4)/(r1-r2)|GB(1)GB(2)GB(3)GB(4)>
+C ans = <ie1 ie2 ie3 ip|g(1,p)g(2,p)g(3,p)/(r1-r2)|je1 je2 je3 jp>
+            gamA14=gamma1(ik)
+            gamA24=zero
+            gamA34=zero
+            gamB14=zero
+            gamB24=zero
+            gamB34=gamma1(il)
+CCWS- 11-08-2010(:  There is a problem with the rys_G4Vee_r12
+C                   AC routine, so call a CS routine to 
+C                   evaluate the xgVEEg2 integral:
+c           NQUAD_coul=5
+c           NQUAD_ovlap=5
+c           call rys_G4Vee_r12(NQUAD_coul,NQUAD_ovlap,
+c    x                              I1,J1,K1,A1,Amat1,
+c    x                              I2,J2,K2,A2,Amat2,
+c    x                              I3,J3,K3,A3,Amat3,
+c    x                              I4,J4,K4,A4,Amat4,
+c    x                              L1,M1,N1,B1,Bmat1,
+c    x                              L2,M2,N2,B2,Bmat2,
+c    x                              L3,M3,N3,B3,Bmat3,
+c    x                              L4,M4,N4,B4,Bmat4,
+c    x                              gamA14,gamA24,gamA34,
+c    x                              gamB14,gamB24,gamB34,
+c    x                              xgVEEg2)
+C RXCHFmult(  reorder indicies for INT_GAM2 - should not affect XCHF_GAM2
+C    index 1: regular electron
+C    index 2: special electron 1
+C    index 3: special electron 2
+C    index 4: proton
+C  --- g(2,p)VEE(1,2)g(3,p)---
+            call G4_MD_xgVeeg(I2,J2,K2,A2,Amat2,
+     *                        I1,J1,K1,A1,Amat1,
+     *                        I3,J3,K3,A3,Amat3,
+     *                        I4,J4,K4,A4,Amat4,
+     *                        L2,M2,N2,B2,Bmat2,
+     *                        L1,M1,N1,B1,Bmat1,
+     *                        L3,M3,N3,B3,Bmat3,
+     *                        L4,M4,N4,B4,Bmat4,
+     *                        gamA14,gamB34,
+     *                        xgVEEg2)
+CCWS- 11-08-2010 )
+c           call G4Vee_AUX_g14g34V12(I1,J1,K1,A1,Amat1,
+c    *                               I2,J2,K2,A2,Amat2,
+c    *                               I3,J3,K3,A3,Amat3,
+c    *                               I4,J4,K4,A4,Amat4,
+c    *                               L1,M1,N1,B1,Bmat1,
+c    *                               L2,M2,N2,B2,Bmat2,
+c    *                               L3,M3,N3,B3,Bmat3,
+c    *                               L4,M4,N4,B4,Bmat4,
+c    *                               gamA14,gamB34,
+c    *                               xgVEEg2)
+
+
+C  Sum terms against bcoeff
+            gHEg  =gHEg  +(bcoef1(ik)*bcoef1(il)*xgHEg)
+            gVEEg1=gVEEg1+(bcoef1(ik)*bcoef1(il)*xgVEEg1)
+            gVEEg2=gVEEg2+(bcoef1(ik)*bcoef1(il)*xgVEEg2)
+!            gVEPg1=gVEPg1+(bcoef1(ik)*bcoef1(il)*xgVEPg1) ! INT_GAM3 only
+
+C End 2 gamma loop
+         end do
+      end do
+
+
+C Total integral build
+      ans = gHEg + gVEEg1*half + four*gVEEg2*half
+!      ans2 = gVEPg1 + gVEEg1 + two*gVEEg2
+CCWS-debug
+c                    write(*,*)'========='
+c                    write(*,*)'ie1=',ie1
+c                    write(*,*)'je1=',je1
+c                    write(*,*)'ie2=',ie2
+c                    write(*,*)'je2=',je2
+c                    write(*,*)'ie3=',ie3
+c                    write(*,*)'je3=',je3
+c                    write(*,*)'gHEg   =',gHEg
+c                    write(*,*)'gVEEg1 =',gVEEg1
+c                    write(*,*)'gVEEg2 =',gVEEg2
+c                    write(*,*)'ans    =',ans
+c                    write(*,*)'========='
+CCWS-debug
+
 
 
       return

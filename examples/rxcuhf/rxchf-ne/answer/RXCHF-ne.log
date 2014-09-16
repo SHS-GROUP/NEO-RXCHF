@@ -1,59 +1,88 @@
+
+ ============================================================
+        ______     _ _   _ _____ ___            ______       
+       / / / /    |   \ | | ____/ _ \           \ \ \ \      
+      / / / /     | |  \| |  _|| | | |_____      \ \ \ \     
+      \ \ \ \     | | |\  | |__| |_|  _____|     / / / /     
+       \_\_\_\    |  _| \_|_____\___/           /_/_/_/      
+                  |_|                                        
+                                                             
+ ============================================================
+
+ Running executable: 
+    /home/asirjoos/codes/RXCHF/NEO-RXCHF/bin/runRXCHF.exe
+ Input file: 
+    exam_rxcuhfne
  
- nat   =                     1
- npebf =                     8
- nebf  =                     8
- npbf  =                     6
- ngtg1 =                     8
- ngee  =                  4096
- ng1   =                  2304
- ng2   =                147456
- ng3   =               9437184
- ng4   =             603979776
- ng1prm=                  2304
- ng2prm=                147456
- ng3prm=               9437184
  
- PMASS   =   1.00000000000000     
- nelec   =                     4
- NAE     =                     3 = total number of regular electrons
- NBE     =                     1 = number of special electrons
+ &SYSINFO
+ NAT     =                     1,
+ NEBF    =                     8,
+ NPEBF   =                     8,
+ NPBF    =                     6,
+ NGTG    =                     8,
+ PMASS   =   1.00000000000000     ,
+ NELEC   =                     4,
  NUCST   =                     1
- LNEOHF  = F
- LXCUHF  = F
- LXCROHF = F
- LRXCHF  = F
- LRXCUHF  = T
- read_CE = F
- read_CP = F
- READ_GAM2= F
- READ_GAM3= F
- READ_GAM4= F
- NG4CHK  =                    50
- LGAM4   = T
- LG4DSCF = F
- LG4IC   = T
- NG3CHK  =                    50
- LG3DSCF = F
- LG3IC1  = T
- LG3IC2  = F
- NG2CHK  =                    50
- LG2DSCF = F
- LG2IC1  = T
- LCMF    = F
- LSOSCF  = T
+ /
+ 
+ 
+ &CONTROL
+ LNEOHF  = F,
+ LXCUHF  = F,
+ LXCROHF = F,
+ LRXCHF  = F,
+ LRXCUHF = T
+ /
+ 
+ 
+ &GUESSMO
+ READ_CE = F,
+ READ_CP = F
+ /
+ 
+ 
+ &INTCTRL
+ READ_GAM2       = F,
+ READ_GAM3       = F,
+ READ_GAM4       = F,
+ NG2CHK  =                     1,
+ NG3CHK  =                     1,
+ NG4CHK  =                     1
+ /
+ 
+ 
+ &SCFCTRL
+ LDBG    = F,
+ LSOSCF  = T,
  LOCBSE  = T
- EXCHLEV =                     0  (=2: fe; =1: ae; =0: ne)
- NAalpE =                     1 = number of alpha regular electrons
- NAbetE =                     2 = number of beta regular electrons
- Geminal parameters: k, b_k, gamm_k
-                     1   4.87920000000000       1.533000000000000E-002
-                     2   18.6874000000000       4.988000000000000E-002
-                     3   21.1435000000000       0.557580000000000     
-                     4   25.8560100000000       0.160320000000000     
-                     5   13.4063000000000        2.34570000000000     
-                     6   7.18280000000000        13.7323000000000     
-                     7   2.98040000000000        154.961000000000     
-                     8  0.549400000000000        1088.60000000000     
+ /
+ 
+ 
+ &RXCHF
+ NAE     =                     3,
+ NBE     =                     1,
+ EXCHLEV =                     0,
+ NEBFBE  =                     8
+ /
+ 
+ 
+ &RXCUHF
+ NAALPE  =                     1,
+ NABETE  =                     2
+ /
+ 
+ 
+ GEMINAL PARAMETERS
+   k          b_k                 gamma_k
+   1       4.8792000          0.15330000E-01
+   2       18.687400          0.49880000E-01
+   3       21.143500          0.55758000    
+   4       25.856010          0.16032000    
+   5       13.406300           2.3457000    
+   6       7.1828000           13.732300    
+   7       2.9804000           154.96100    
+   8      0.54940000           1088.6000    
  
  
  ========================================
@@ -64,82 +93,58 @@
  ========================================
  
  
+ ATOMIC COORDINATES (BOHR)
+ 
+ CHARGE -X COORDINATE- -Y COORDINATE- -Z COORDINATE-
+   3.0     0.00000000     0.00000000     0.00000000
+ 
+ 
   CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS 
  CONT INDEX    KPESTR     KPEEND
-
    1     1    1
-
    2     2    2
-
    3     3    3
-
    4     4    4
-
    5     5    5
-
    6     6    6
-
    7     7    7
-
    8     8    8
  
  ELECTRONIC BASIS FUNCTIONS:
  
  PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
  INDEX INDEX   MOM                  COEF
-
    1     1    0  0  0    0.026631  1.000000  0.000000  0.000000  0.000000
-
    2     2    0  0  0    0.099651  1.000000  0.000000  0.000000  0.000000
-
    3     3    0  0  0    0.372887  1.000000  0.000000  0.000000  0.000000
-
    4     4    0  0  0    1.395309  1.000000  0.000000  0.000000  0.000000
-
    5     5    0  0  0    5.221120  1.000000  0.000000  0.000000  0.000000
-
    6     6    0  0  0   19.536960  1.000000  0.000000  0.000000  0.000000
-
    7     7    0  0  0   73.105547  1.000000  0.000000  0.000000  0.000000
-
    8     8    0  0  0  273.554377  1.000000  0.000000  0.000000  0.000000
  ELECTRONIC BASIS FUNCTIONS:
  CONTRACT COEFF HAVE BEEN NORMALIZED
  
  PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
  INDEX INDEX   MOM                  COEF
-
    1     1    0  0  0    0.026631  0.046984  0.000000  0.000000  0.000000
-
    2     2    0  0  0    0.099651  0.126407  0.000000  0.000000  0.000000
-
    3     3    0  0  0    0.372887  0.340089  0.000000  0.000000  0.000000
-
    4     4    0  0  0    1.395309  0.914983  0.000000  0.000000  0.000000
-
    5     5    0  0  0    5.221120  2.461687  0.000000  0.000000  0.000000
-
    6     6    0  0  0   19.536960  6.622971  0.000000  0.000000  0.000000
-
    7     7    0  0  0   73.105547 17.818570  0.000000  0.000000  0.000000
-
    8     8    0  0  0  273.554377 47.939427  0.000000  0.000000  0.000000
  
  NUCLEAR BASIS FUNCTIONS:
  
  PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
  INDEX INDEX   MOM                  COEF
-
    1     1    0  0  0    0.012247  1.000000  0.000000  0.000000  0.000000
-
    2     2    0  0  0    0.028902  1.000000  0.000000  0.000000  0.000000
-
    3     3    0  0  0    0.068202  1.000000  0.000000  0.000000  0.000000
-
    4     4    0  0  0    0.160944  1.000000  0.000000  0.000000  0.000000
-
    5     5    0  0  0    0.379798  1.000000  0.000000  0.000000  0.000000
-
    6     6    0  0  0    0.896251  1.000000  0.000000  0.000000  0.000000
  
  NUCLEAR BASIS FUNCTIONS:
@@ -147,17 +152,11 @@
  
  PRIM  CONT    ANG       EXPONENT CONTRACT  -X- -Y- -Z-
  INDEX INDEX   MOM                  COEF
-
    1     1    0  0  0    0.012247  0.026239  0.000000  0.000000  0.000000
-
    2     2    0  0  0    0.028902  0.049958  0.000000  0.000000  0.000000
-
    3     3    0  0  0    0.068202  0.095117  0.000000  0.000000  0.000000
-
    4     4    0  0  0    0.160944  0.181099  0.000000  0.000000  0.000000
-
    5     5    0  0  0    0.379798  0.344806  0.000000  0.000000  0.000000
-
    6     6    0  0  0    0.896251  0.656496  0.000000  0.000000  0.000000
  
  CONTRACTED ELECTRONIC OVERLAP MATRIX
@@ -228,28 +227,20 @@
  npbf   =                     6
  ng1    =                  2304
   Available processors:           16
-  Available threads               16
+  Available threads                8
   Threads in use                   1
  **************************************
  
   Hello from process                      2
-  Hello from process                      8
-  Hello from process                      0
-  Hello from process                      7
-  Hello from process                     15
-  Hello from process                      9
- Threads in use          16
-  Hello from process                      3
-  Hello from process                      4
-  Hello from process                     14
-  Hello from process                     11
-  Hello from process                      5
-  Hello from process                     10
-  Hello from process                     13
-  Hello from process                      1
   Hello from process                      6
-  Hello from process                     12
- TIME TO CALCULATE GAM_1 INTEGRALS:    2.59954500198364     
+  Hello from process                      1
+  Hello from process                      0
+ Threads in use           8
+  Hello from process                      3
+  Hello from process                      5
+  Hello from process                      4
+  Hello from process                      7
+ TIME TO CALCULATE GAM_1 INTEGRALS:    1.35697698593140     
 
       +---------------------------------------------+
       |     CALCULATING 3-PARTICLE INTEGRALS        |
@@ -257,70 +248,22 @@
       +---------------------------------------------+
                                   
            NUMBER OF 3-PARTICLE INTEGRALS:        147456
-          NUMBER OF BLOCKS (USER DEFINED):            50
+          NUMBER OF BLOCKS (USER DEFINED):             1
                                   
           COMPUTATIONAL RESOURCES:
           ------------------------
              CORES PER NODE:  16
-                  AVAILABLE:  16
+                  AVAILABLE:   8
             NUMBER OF NODES:   1
 
-            TIME TO EVALUATE BLOCK     1       0.10
-            TIME TO EVALUATE BLOCK     2       0.10
-            TIME TO EVALUATE BLOCK     3       0.10
-            TIME TO EVALUATE BLOCK     4       0.10
-            TIME TO EVALUATE BLOCK     5       0.10
-            TIME TO EVALUATE BLOCK     6       0.10
-            TIME TO EVALUATE BLOCK     7       0.10
-            TIME TO EVALUATE BLOCK     8       0.10
-            TIME TO EVALUATE BLOCK     9       0.10
-            TIME TO EVALUATE BLOCK    10       0.10
-            TIME TO EVALUATE BLOCK    11       0.10
-            TIME TO EVALUATE BLOCK    12       0.10
-            TIME TO EVALUATE BLOCK    13       0.10
-            TIME TO EVALUATE BLOCK    14       0.10
-            TIME TO EVALUATE BLOCK    15       0.10
-            TIME TO EVALUATE BLOCK    16       0.10
-            TIME TO EVALUATE BLOCK    17       0.10
-            TIME TO EVALUATE BLOCK    18       0.11
-            TIME TO EVALUATE BLOCK    19       0.11
-            TIME TO EVALUATE BLOCK    20       0.10
-            TIME TO EVALUATE BLOCK    21       0.10
-            TIME TO EVALUATE BLOCK    22       0.10
-            TIME TO EVALUATE BLOCK    23       0.10
-            TIME TO EVALUATE BLOCK    24       0.10
-            TIME TO EVALUATE BLOCK    25       0.10
-            TIME TO EVALUATE BLOCK    26       0.10
-            TIME TO EVALUATE BLOCK    27       0.10
-            TIME TO EVALUATE BLOCK    28       0.10
-            TIME TO EVALUATE BLOCK    29       0.10
-            TIME TO EVALUATE BLOCK    30       0.10
-            TIME TO EVALUATE BLOCK    31       0.10
-            TIME TO EVALUATE BLOCK    32       0.10
-            TIME TO EVALUATE BLOCK    33       0.10
-            TIME TO EVALUATE BLOCK    34       0.10
-            TIME TO EVALUATE BLOCK    35       0.10
-            TIME TO EVALUATE BLOCK    36       0.10
-            TIME TO EVALUATE BLOCK    37       0.10
-            TIME TO EVALUATE BLOCK    38       0.10
-            TIME TO EVALUATE BLOCK    39       0.10
-            TIME TO EVALUATE BLOCK    40       0.12
-            TIME TO EVALUATE BLOCK    41       0.11
-            TIME TO EVALUATE BLOCK    42       0.10
-            TIME TO EVALUATE BLOCK    43       0.10
-            TIME TO EVALUATE BLOCK    44       0.10
-            TIME TO EVALUATE BLOCK    45       0.10
-            TIME TO EVALUATE BLOCK    46       0.10
-            TIME TO EVALUATE BLOCK    47       0.10
-            TIME TO EVALUATE BLOCK    48       0.10
-            TIME TO EVALUATE BLOCK    49       0.10
-            TIME TO EVALUATE BLOCK    50       0.10
+            TIME TO EVALUATE BLOCK     1      10.16
 
           TIMING SUMMARY FOR 3-PARTICLE INTEGRALS:
           ----------------------------------------
-            TIME TO EVALUATE ALL INTEGRALS:       5.0309
-              TIME TO SYMMETRIZE INTEGRALS:       0.0033
+            TIME TO EVALUATE ALL INTEGRALS:      10.1560
+              TIME TO SYMMETRIZE INTEGRALS:       0.0034
 
+ Writing GAM2 to GAM2.ufm
  Using LOCBSE2
  READ IN NUC REPULSION
  
@@ -361,12 +304,12 @@
    2       -7.4548686024    -0.0786549990     0.0028271599     0.2041481840     1.7290912389     3.5735181518     0.0611037484
    3       -7.4678783764    -0.0130097740     0.0015333176     0.0638503496     0.4687969137     3.5735181518     0.0064525390
  SOSCF IS SCALING ROTATION ANGLE MATRIX, SQCDF=    1.342399
-   4       -7.3254417403     0.1424366361     0.0005374580     3.4045350216     0.0877500578     3.5735181518     0.0082558678
+   4       -7.3254417403     0.1424366361     0.0005374580     3.4045350215     0.0877500578     3.5735181518     0.0082558678
  SOSCF IS SCALING ROTATION ANGLE MATRIX, SQCDF=    0.344154
-   5       -7.4480707855    -0.1226290452     0.0026862138     2.3712031627     0.0709298564     3.5735181518     0.1808104127
+   5       -7.4480707855    -0.1226290452     0.0026862138     2.3712031626     0.0709298564     3.5735181518     0.1808104127
  SOSCF IS SCALING ROTATION ANGLE MATRIX, SQCDF=    0.184310
    6       -7.4598327190    -0.0117619335     0.0006555714     1.2885069009     0.0152710239     3.5735181518     0.0892635500
-   7       -7.4684247176    -0.0085919986     0.0018513991     0.4416637084     0.1141640161     3.5735181518     0.0591090917
+   7       -7.4684247176    -0.0085919986     0.0018513991     0.4416637083     0.1141640161     3.5735181518     0.0591090917
    8       -7.4688064882    -0.0003817706     0.0005284373     0.0626188183     0.0562990424     3.5735181518     0.0085889727
    9       -7.4688702657    -0.0000637775     0.0003207328     0.0028293228     0.0046464005     3.5735181518     0.0083918413
   10       -7.4689431041    -0.0000728385     0.0000973581     0.0082749228     0.0000668255     3.5735181518     0.0072346740
@@ -384,18 +327,18 @@
  STARTING MICROITERATIONS FOR ITERATION   2
 
  ITER      TOTAL ENERGY        E CHANGE       ALPHA DENS       BETA DENS        SPEC DENS        QMP DENS         ORBGRAD_B 
-   1       -7.6076565758    -0.1386891876     0.0003194188     0.1027686794     0.1576819925     3.5718928909     0.0000000000
+   1       -7.6076565758    -0.1386891876     0.0003194188     0.1027686794     0.1576819925     3.5718928910     0.0000000000
           ---------------START SECOND ORDER SCF---------------
-   2       -7.6078586969    -0.0002021211     0.0002270813     0.0372127417     0.0097027371     3.5718928909     0.0062317424
-   3       -7.6079261983    -0.0000675014     0.0001028949     0.0358136839     0.0052562315     3.5718928909     0.0031082384
-   4       -7.6079343082    -0.0000081099     0.0000876447     0.0006778427     0.0053011632     3.5718928909     0.0001323148
-   5       -7.6079353760    -0.0000010678     0.0000145005     0.0004424967     0.0001483016     3.5718928909     0.0000982831
-   6       -7.6079357405    -0.0000003646     0.0000049963     0.0004168408     0.0000659663     3.5718928909     0.0000636075
-   7       -7.6079359654    -0.0000002248     0.0000034353     0.0000232140     0.0000676086     3.5718928909     0.0000022701
-   8       -7.6079360151    -0.0000000497     0.0000007383     0.0000343236     0.0000031167     3.5718928909     0.0000024408
-   9       -7.6079360357    -0.0000000206     0.0000003031     0.0000214632     0.0000054783     3.5718928909     0.0000020312
-  10       -7.6079360352     0.0000000005     0.0000000323     0.0000010409     0.0000034570     3.5718928909     0.0000010333
-  11       -7.6079360363    -0.0000000010     0.0000000166     0.0000005081     0.0000002065     3.5718928909     0.0000003154
+   2       -7.6078586969    -0.0002021211     0.0002270813     0.0372127417     0.0097027371     3.5718928910     0.0062317424
+   3       -7.6079261983    -0.0000675014     0.0001028949     0.0358136839     0.0052562315     3.5718928910     0.0031082384
+   4       -7.6079343082    -0.0000081099     0.0000876447     0.0006778427     0.0053011632     3.5718928910     0.0001323148
+   5       -7.6079353760    -0.0000010678     0.0000145005     0.0004424967     0.0001483016     3.5718928910     0.0000982831
+   6       -7.6079357405    -0.0000003646     0.0000049963     0.0004168408     0.0000659663     3.5718928910     0.0000636075
+   7       -7.6079359654    -0.0000002248     0.0000034353     0.0000232140     0.0000676086     3.5718928910     0.0000022701
+   8       -7.6079360151    -0.0000000497     0.0000007383     0.0000343236     0.0000031167     3.5718928910     0.0000024408
+   9       -7.6079360357    -0.0000000206     0.0000003031     0.0000214632     0.0000054783     3.5718928910     0.0000020312
+  10       -7.6079360352     0.0000000005     0.0000000323     0.0000010409     0.0000034570     3.5718928910     0.0000010333
+  11       -7.6079360363    -0.0000000010     0.0000000166     0.0000005081     0.0000002065     3.5718928910     0.0000003154
  CONVERGED ITERATION   2 IN  11 MICROITERATIONS
 
 
@@ -603,6 +546,6 @@
           +--------------------------------------+
           |    TIMING SUMMARY FOR CALCULATION    |
           +--------------------------------------+
-            TIME TO EVALUATE INTEGRALS:       7.6848
-                          TIME FOR SCF:      14.3077
+            TIME TO EVALUATE INTEGRALS:      11.5720
+                          TIME FOR SCF:       7.7635
 

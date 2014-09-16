@@ -1,8 +1,8 @@
 C======================================================================
-      subroutine RXCHFmult_GAM1_OMP_MD(nebf,npebf,npbf,ng1,ng1prm,nat,
-     x                                ngtg1,pmass,cat,zan,bcoef1,gamma1,
-     x                                AMPEB2C,AGEBFCC,AGNBFCC,ELCEX,
-     x                                NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+      subroutine RXCHFmult_GAM1_MD(nebf,npebf,npbf,ng1,ng1prm,nat,
+     x                             ngtg1,pmass,cat,zan,bcoef1,gamma1,
+     x                             AMPEB2C,AGEBFCC,AGNBFCC,ELCEX,
+     x                             NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
 
 C Adapted ../gam_1_OMP.f to adjust for XCHF with G ansatz
 C======================================================================

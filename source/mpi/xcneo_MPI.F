@@ -407,7 +407,8 @@ C       end if
         return
        end if
 
-       if((LRXCHF.or.LRXCUHF).and.(nebfBE.ne.nebf)) then
+       if((LRXCHF.or.LRXCUHF).and.(nebfBE.ne.nebf).and.(EXCHLEV.gt.0))
+     x   then
         write(*,*) "Cannot have restricted special electronic"
         write(*,*) "basis set for RXCHF-ae."
         write(*,*) "Exiting..."

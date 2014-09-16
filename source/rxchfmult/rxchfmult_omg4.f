@@ -1,5 +1,5 @@
 C=======================================================================
-      subroutine RXCHFmult_FAE_OMG4(Nchunks,nebf,npbf,ng4,
+      subroutine RXCHFmult_FAE_OMG4(Nchunks,nebf,nebfBE,npbf,ng4,
      x                              DAE,DBE,DP,GM4ICR,
      x                              FAE,E_AE_OMG4)
 
@@ -8,15 +8,21 @@ C to total energy for 5-particle terms
 C AO contracted integrals are stored in-core in GM4ICR
 C DAE : regular electronic density matrix
 C DBE : special electronic density matrix
+C
+C Strategy here is different than other GAM routines:
+C  - each contribution to GAM4 is calculated separately with
+C    symmetrization done each time for a given set of indices
+C  - when used in Fock builds, GAM4 already contains the set of six
+C    terms used in the derived expression
 C=======================================================================
       implicit none
 
 C Input variables
       integer           Nchunks
-      integer           ng4,nebf,npbf
+      integer           ng4,nebf,nebfBE,npbf
       double precision  GM4ICR(ng4)
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
 
 C Output variables
@@ -52,12 +58,12 @@ C Nested loop compression for this chunk:
          do jp=1,npbf
             do iec1=1,nebf
             do jec1=1,nebf
-               do iec2=1,nebf
-               do jec2=1,nebf
-                  do iec3=1,nebf
-                  do jec3=1,nebf
-                     do iec4=1,nebf
-                     do jec4=1,nebf
+               do iec2=1,nebfBE
+               do jec2=1,nebfBE
+                  do iec3=1,nebfBE
+                  do jec3=1,nebfBE
+                     do iec4=1,nebfBE
+                     do jec4=1,nebfBE
 
                             imas=imas+1 ! imas is master_index
                             if(imas.ge.istart.and.imas.le.iend) then
@@ -86,7 +92,7 @@ C Nested loop compression for this chunk:
          end do
 
          call RXCHFmult_thread_FAE_OMG4(istart,iend,ng4_seg,
-     x                                  ng4,nebf,npbf,
+     x                                  ng4,nebf,nebfBE,npbf,
      x                                  loop_map,DAE,DBE,DP,GM4ICR,
      x                                  XFAE,E_AE_OMG4)
 
@@ -101,7 +107,7 @@ C Update Fock matrix
       end
 C=======================================================================
       subroutine RXCHFmult_thread_FAE_OMG4(istart,iend,ng4_seg,
-     x                                     ng4,nebf,npbf,
+     x                                     ng4,nebf,nebfBE,npbf,
      x                                     loop_map,DAE,DBE,DP,GM4ICR,
      x                                     XFAE,E_AE_OMG4)
 C=======================================================================
@@ -111,11 +117,12 @@ C=======================================================================
 C Input variables
       integer           istart,iend,ng4_seg
       integer           nebf   ! Number contracted electronic basis functions
+      integer           nebfBE ! Number contracted electronic basis functions
       integer           npbf   ! Number nuclear basis functions
       integer           ng4
       integer           loop_map(ng4_seg,10)
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
       double precision  GM4ICR(ng4)
 
@@ -146,7 +153,7 @@ C    iec4,jec4 : special electron 3 indicies
 !$omp parallel 
 !$ompx shared(loop_map)
 !$ompx shared(istart,iend)
-!$ompx shared(nebf,npbf,ng4_seg)
+!$ompx shared(nebf,nebfBE,npbf,ng4_seg)
 !$ompx shared(ng4)
 !$ompx shared(DAE,DBE,DP)
 !$ompx shared(GM4ICR)
@@ -176,8 +183,12 @@ C    iec4,jec4 : special electron 3 indicies
          jp =loop_map(imap,9)
          ip =loop_map(imap,10)
 
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec2,iec3,jec3,iec4,jec4,ia)
+         call RXCHFmult_GAM_4PK(nebf,nebfBE,npbf,
+     x                          ip,jp,
+     x                          iec1,jec1,
+     x                          iec2,jec2,
+     x                          iec3,jec3,
+     x                          iec4,jec4,ia)
 
          val = GM4ICR(ia)
 
@@ -193,7 +204,7 @@ C    iec4,jec4 : special electron 3 indicies
       return
       end
 C=======================================================================
-      subroutine RXCHFmult_FP_OMG4(Nchunks,nebf,npbf,ng4,
+      subroutine RXCHFmult_FP_OMG4(Nchunks,nebf,nebfBE,npbf,ng4,
      x                             DAE,DBE,DP,GM4ICR,
      x                             FP,E_P_OMG4)
 
@@ -202,15 +213,21 @@ C to total energy for 5-particle terms
 C AO contracted integrals are stored in-core in GM4ICR
 C DAE : regular electronic density matrix
 C DBE : special electronic density matrix
+C
+C Strategy here is different than other GAM routines:
+C  - each contribution to GAM4 is calculated separately with
+C    symmetrization done each time for a given set of indices
+C  - when used in Fock builds, GAM4 already contains the set of six
+C    terms used in the derived expression
 C=======================================================================
       implicit none
 
 C Input variables
       integer           Nchunks
-      integer           ng4,nebf,npbf
+      integer           ng4,nebf,nebfBE,npbf
       double precision  GM4ICR(ng4)
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
 
 C Output variables
@@ -246,12 +263,12 @@ C Nested loop compression for this chunk:
          do jp=1,npbf
             do iec1=1,nebf
             do jec1=1,nebf
-               do iec2=1,nebf
-               do jec2=1,nebf
-                  do iec3=1,nebf
-                  do jec3=1,nebf
-                     do iec4=1,nebf
-                     do jec4=1,nebf
+               do iec2=1,nebfBE
+               do jec2=1,nebfBE
+                  do iec3=1,nebfBE
+                  do jec3=1,nebfBE
+                     do iec4=1,nebfBE
+                     do jec4=1,nebfBE
 
                             imas=imas+1 ! imas is master_index
                             if(imas.ge.istart.and.imas.le.iend) then
@@ -280,7 +297,7 @@ C Nested loop compression for this chunk:
          end do
 
          call RXCHFmult_thread_FP_OMG4(istart,iend,ng4_seg,
-     x                                 ng4,nebf,npbf,
+     x                                 ng4,nebf,nebfBE,npbf,
      x                                 loop_map,DAE,DBE,DP,GM4ICR,
      x                                 XFP,E_P_OMG4)
 
@@ -295,7 +312,7 @@ C Update Fock matrix
       end
 C=======================================================================
       subroutine RXCHFmult_thread_FP_OMG4(istart,iend,ng4_seg,
-     x                                    ng4,nebf,npbf,
+     x                                    ng4,nebf,nebfBE,npbf,
      x                                    loop_map,DAE,DBE,DP,GM4ICR,
      x                                    XFP,E_P_OMG4)
 C=======================================================================
@@ -305,11 +322,12 @@ C=======================================================================
 C Input variables
       integer           istart,iend,ng4_seg
       integer           nebf   ! Number contracted electronic basis functions
+      integer           nebfBE ! Number contracted electronic basis functions
       integer           npbf   ! Number nuclear basis functions
       integer           ng4
       integer           loop_map(ng4_seg,10)
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
       double precision  GM4ICR(ng4)
 
@@ -340,7 +358,7 @@ C    iec4,jec4 : special electron 3 indicies
 !$omp parallel 
 !$ompx shared(loop_map)
 !$ompx shared(istart,iend)
-!$ompx shared(nebf,npbf,ng4_seg)
+!$ompx shared(nebf,nebfBE,npbf,ng4_seg)
 !$ompx shared(ng4)
 !$ompx shared(DAE,DBE,DP)
 !$ompx shared(GM4ICR)
@@ -370,8 +388,12 @@ C    iec4,jec4 : special electron 3 indicies
          jp =loop_map(imap,9)
          ip =loop_map(imap,10)
 
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec2,iec3,jec3,iec4,jec4,ia)
+         call RXCHFmult_GAM_4PK(nebf,nebfBE,npbf,
+     x                          ip,jp,
+     x                          iec1,jec1,
+     x                          iec2,jec2,
+     x                          iec3,jec3,
+     x                          iec4,jec4,ia)
 
          val = GM4ICR(ia)
 
@@ -387,7 +409,7 @@ C    iec4,jec4 : special electron 3 indicies
       return
       end
 C=======================================================================
-      subroutine RXCHFmult_FBE_OMG4(Nchunks,nebf,npbf,ng4,
+      subroutine RXCHFmult_FBE_OMG4(Nchunks,nebf,nebfBE,npbf,ng4,
      x                              DAE,DBE,DP,GM4ICR,
      x                              FBE,E_BE_OMG4)
 
@@ -396,26 +418,32 @@ C to total energy for 5-particle terms
 C AO contracted integrals are stored in-core in GM4ICR
 C DAE : regular electronic density matrix
 C DBE : special electronic density matrix
+C
+C Strategy here is different than other GAM routines:
+C  - each contribution to GAM4 is calculated separately with
+C    symmetrization done each time for a given set of indices
+C  - when used in Fock builds, GAM4 already contains the set of six
+C    terms used in the derived expression
 C=======================================================================
       implicit none
 
 C Input variables
       integer           Nchunks
-      integer           ng4,nebf,npbf
+      integer           ng4,nebf,nebfBE,npbf
       double precision  GM4ICR(ng4)
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
 
 C Output variables
-      double precision  FBE(nebf,nebf)
+      double precision  FBE(nebfBE,nebfBE)
       double precision  E_BE_OMG4
 
 C Local variables
       integer           istat,ichunk,istart,iend,ng4_seg
       integer           Loopi,imas
       integer           ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,iec4,jec4
-      double precision  XFBE(nebf,nebf)
+      double precision  XFBE(nebfBE,nebfBE)
 
       integer,allocatable :: loop_map(:,:)
 
@@ -440,12 +468,12 @@ C Nested loop compression for this chunk:
          do jp=1,npbf
             do iec1=1,nebf
             do jec1=1,nebf
-               do iec2=1,nebf
-               do jec2=1,nebf
-                  do iec3=1,nebf
-                  do jec3=1,nebf
-                     do iec4=1,nebf
-                     do jec4=1,nebf
+               do iec2=1,nebfBE
+               do jec2=1,nebfBE
+                  do iec3=1,nebfBE
+                  do jec3=1,nebfBE
+                     do iec4=1,nebfBE
+                     do jec4=1,nebfBE
 
                             imas=imas+1 ! imas is master_index
                             if(imas.ge.istart.and.imas.le.iend) then
@@ -474,7 +502,7 @@ C Nested loop compression for this chunk:
          end do
 
          call RXCHFmult_thread_FBE_OMG4(istart,iend,ng4_seg,
-     x                                  ng4,nebf,npbf,
+     x                                  ng4,nebf,nebfBE,npbf,
      x                                  loop_map,DAE,DBE,DP,GM4ICR,
      x                                  XFBE,E_BE_OMG4)
 
@@ -483,13 +511,13 @@ C Nested loop compression for this chunk:
       if(allocated(loop_map)) deallocate(loop_map)
 
 C Update Fock matrix
-      call add2fock(nebf,XFBE,FBE)
+      call add2fock(nebfBE,XFBE,FBE)
 
       return
       end
 C=======================================================================
       subroutine RXCHFmult_thread_FBE_OMG4(istart,iend,ng4_seg,
-     x                                     ng4,nebf,npbf,
+     x                                     ng4,nebf,nebfBE,npbf,
      x                                     loop_map,DAE,DBE,DP,GM4ICR,
      x                                     XFBE,E_BE_OMG4)
 C=======================================================================
@@ -499,16 +527,17 @@ C=======================================================================
 C Input variables
       integer           istart,iend,ng4_seg
       integer           nebf   ! Number contracted electronic basis functions
+      integer           nebfBE ! Number contracted electronic basis functions
       integer           npbf   ! Number nuclear basis functions
       integer           ng4
       integer           loop_map(ng4_seg,10)
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
       double precision  GM4ICR(ng4)
 
 C Output variables
-      double precision  XFBE(nebf,nebf)
+      double precision  XFBE(nebfBE,nebfBE)
       double precision  E_BE_OMG4
 
 C Local variables
@@ -521,12 +550,6 @@ C Local variables
       integer           iec3,jec3  !
       integer           iec4,jec4  !
       integer           imap,ia
-      integer           ia_1234
-      integer           ia_1243
-      integer           ia_1324
-      integer           ia_1342
-      integer           ia_1423
-      integer           ia_1432
       double precision  val
       double precision  wtime
       double precision  three
@@ -544,7 +567,7 @@ C    iec4,jec4 : special electron 3 indicies
 !$ompx shared(three)
 !$ompx shared(loop_map)
 !$ompx shared(istart,iend)
-!$ompx shared(nebf,npbf,ng4_seg)
+!$ompx shared(nebf,nebfBE,npbf,ng4_seg)
 !$ompx shared(ng4)
 !$ompx shared(DAE,DBE,DP)
 !$ompx shared(GM4ICR)
@@ -574,8 +597,12 @@ C    iec4,jec4 : special electron 3 indicies
          jp =loop_map(imap,9)
          ip =loop_map(imap,10)
 
-         call index_GAM_4PK2(nebf,npbf,ip,jp,iec1,jec1,
-     x                       iec2,jec2,iec3,jec3,iec4,jec4,ia)
+         call RXCHFmult_GAM_4PK(nebf,nebfBE,npbf,
+     x                          ip,jp,
+     x                          iec1,jec1,
+     x                          iec2,jec2,
+     x                          iec3,jec3,
+     x                          iec4,jec4,ia)
 
          val = GM4ICR(ia)
 

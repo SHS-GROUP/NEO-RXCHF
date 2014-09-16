@@ -37,7 +37,8 @@
 &RXCHF
  nae=2,
  nbe=2,
- exchlev=1/
+ exchlev=1,
+ nebfBE=9/
 
 &SCFCTRL
  LDBG=T,
@@ -70,4 +71,15 @@
 4   4   0   0   0       2.907661102984304    1.00     0.000     0.000     0.000
 5   5   0   0   0      11.373636247044431    1.00     0.000     0.000     0.000
 6   6   0   0   0      44.489229280301468    1.00     0.000     0.000     0.000
+
+&ALTBAS
+ elindBE(1)=1,
+ elindBE(2)=2,
+ elindBE(3)=3,
+ elindBE(4)=4,
+ elindBE(5)=5,
+ elindBE(6)=6,
+ elindBE(7)=7,
+ elindBE(8)=8,
+ elindBE(9)=9/
 
