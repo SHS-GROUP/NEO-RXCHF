@@ -1,12 +1,23 @@
 !=======================================================================
       subroutine RXCHF_GAM2_MPI(nproc,rank,
-     x                          Nchunks,nebf,npebf,npbf,
-     x                          ng2,ng2loc,ng2prm,nat,ngtg1,
-     x                          pmass,cat,zan,bcoef1,gamma1,
-     x                          KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                          ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                          Nchunks,nebf,npebf,nebfBE,npebfBE,npbf,
+     x                          ng2_int,ng2_xchf,ng2loc_int,ng2loc_xchf,
+     x                          nat,ngtg1,pmass,cat,zan,bcoef1,gamma1,
+     x                          KPESTR,KPEEND,
+     x                          AMPEB2C,AGEBFCC,
+     x                          ELCEX,ELCAM,ELCBFC,
+     x                          KPESTR_be,KPEEND_be,
+     x                          AMPEB2C_be,AGEBFCC_be,
+     x                          ELCEX_be,ELCAM_be,ELCBFC_be,
+     x                          AGNBFCC,NUCEX,NUCAM,NUCBFC,
      x                          GM2_1,GM2_2,GM2s)
 
+! Calculates INT_GAM2 and XCHF_GAM2/s simultaneously
+!  - Calculates all quantities in with one index spanning all-electron
+!    basis set (of length dimINT2) in temporary storage
+!  - XCHF_GAM2/s over restricted basis (dimXCHF2) passed from temp
+!  - Requires extra memory for temp storage of XCHF_GAM2/s over dimINT2
+!      - 2*(nebf-nebfBE)^2 more dble prec values need to be stored
 !=======================================================================
       implicit none
       include 'mpif.h'
@@ -14,9 +25,13 @@
 
 ! Input Variables
       integer Nchunks
-      integer ng2             ! Total number of integrals
-      integer ng2loc          ! Number of integrals for MPI proc to calc
-      integer nebf,npebf,npbf,ng2prm
+      integer ng2_int         ! Total number of INT integrals
+      integer ng2_xchf        ! Total number of XCHF integrals
+      integer ng2loc_int      ! Number of INT integrals for MPI proc to calc
+      integer ng2loc_xchf     ! Number of XCHF integrals for MPI proc to calc
+      integer nebf,npebf
+      integer nebfBE,npebfBE
+      integer npbf
       integer nat,ngtg1
 !-------Basis Set Info-------(
       integer ELCAM(npebf,3)  ! Angular mom for electrons
@@ -30,6 +45,14 @@
       double precision AGNBFCC(npbf)  ! Nuclear contract coef
       integer KPESTR(nebf)  ! Map contracted index to primitive start
       integer KPEEND(nebf)  ! Map contracted index to primitive end
+! Special electron basis
+      integer ELCAM_be(npebfBE,3)           ! 
+      double precision ELCEX_be(npebfBE)    ! 
+      double precision ELCBFC_be(npebfBE,3) ! 
+      integer AMPEB2C_be(npebfBE)           ! Analogs for special electron basis
+      double precision AGEBFCC_be(npebfBE)  ! 
+      integer KPESTR_be(nebfBE)             ! 
+      integer KPEEND_be(nebfBE)             ! 
 !-------Basis Set Info-------)
       double precision pmass    ! Mass of nonelectron quantum particle 
       double precision zan(nat) ! Classical nuclear charges
@@ -38,9 +61,9 @@
       double precision gamma1(ngtg1)
 
 ! Variables Returned
-      double precision GM2_1(ng2loc)  ! XCHF OMG2   integrals (symm)
-      double precision GM2_2(ng2loc)  ! INT  OMG2   integrals (unsymm)
-      double precision GM2s(ng2loc)   ! XCHF OMG2s  integrals (symm)
+      double precision GM2_1(ng2loc_xchf)  ! XCHF OMG2   integrals (symm)
+      double precision GM2_2(ng2loc_int)   ! INT  OMG2   integrals (unsymm)
+      double precision GM2s(ng2loc_xchf)   ! XCHF OMG2s  integrals (symm)
 
 ! Local Variables
       integer istat,ichunk,istart,iend,ng2_seg
@@ -49,6 +72,9 @@
       integer Loopi,imas
       integer ip,jp,iec1,jec1,iec2,jec2,i,j
       integer,allocatable :: loop_map(:,:)
+
+      double precision, allocatable :: XGM2_1(:)  ! XCHF OMG2   integrals over INT range
+      double precision, allocatable :: XGM2s(:)   ! XCHF OMG2s  integrals over INT range
 
       integer nproc,rank
 #if MPI32
@@ -72,20 +98,27 @@
 !      integer*4 ng2loc4
 !      integer*4 ng2locarr(nproc),displarr(nproc)
 
+      if(allocated(XGM2_1)) deallocate(XGM2_1)
+      if(allocated(XGM2s)) deallocate(XGM2s)
+      allocate(XGM2_1(ng2loc_int))
+      allocate(XGM2s(ng2loc_int))
 
 ! Have each process calculate ng2/nproc integrals according to rank
 ! Have last process calculate ng2%nproc remaining integrals
-      call get_mpi_range(ng2,nproc,rank,mpistart,mpiend)
-      if(rank.eq.(nproc-1)) mpiend=ng2
+      call get_mpi_range(ng2_int,nproc,rank,mpistart,mpiend)
+      if(rank.eq.(nproc-1)) mpiend=ng2_int
 
       if (rank.eq.0) then
-       write(*,1000) ng2,nchunks
+       write(*,1000) ng2_int,nchunks
        write(*,1500) nproc,omp_get_max_threads()
       end if
 
       GM2_1=0.0d+00
       GM2_2=0.0d+00
       GM2s=0.0d+00
+
+      XGM2_1=0.0d+00
+      XGM2s=0.0d+00
 
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_2--------------------------------(
       wtime = MPI_WTIME()
@@ -106,8 +139,8 @@
             do jp=1,npbf
                do iec1=1,nebf
                do jec1=1,nebf
-                  do iec2=1,nebf
-                  do jec2=1,nebf
+                  do iec2=1,nebfBE
+                  do jec2=1,nebfBE
 
                       imas=imas+1 ! imas is master_index
                       if(imas.ge.istart.and.imas.le.iend) then
@@ -121,8 +154,10 @@
 
 ! Save coordinates of first value for array transfer later
                          if ((ichunk.eq.1).and.(Loopi.eq.1)) then
-                            call index_GAM_2PK(nebf,npbf,
-     x                               ip,jp,iec1,jec1,iec2,jec2,arrstart)
+                            call RXCHFmult_GAM_2PK(nebf,nebfBE,npbf,
+     x                                             ip,jp,
+     x                                             iec1,jec1,
+     x                                             iec2,jec2,arrstart)
                          end if
 
                       end if
@@ -134,13 +169,19 @@
             end do
             end do
 
-         call RXCHF_GAM2_thread_MPI(istart,iend,ng2_seg,ng2loc,
-     x                         nebf,npebf,npbf,nat,ngtg1,
-     x                         pmass,cat,zan,bcoef1,gamma1,
-     x                         loop_map,arrstart,
-     x                         GM2_1,GM2_2,GM2s,
-     x                         KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                         ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+         call RXCHF_GAM2_thread_MPI(istart,iend,ng2_seg,ng2loc_int,
+     x                              nebf,npebf,nebfBE,npebfBE,npbf,
+     x                              nat,ngtg1,pmass,cat,zan,
+     x                              bcoef1,gamma1,
+     x                              loop_map,arrstart,
+     x                              XGM2_1,GM2_2,XGM2s,
+     x                              KPESTR,KPEEND,
+     x                              AMPEB2C,AGEBFCC,
+     x                              ELCEX,ELCAM,ELCBFC,
+     x                              KPESTR_be,KPEEND_be,
+     x                              AMPEB2C_be,AGEBFCC_be,
+     x                              ELCEX_be,ELCAM_be,ELCBFC_be,
+     x                              AGNBFCC,NUCEX,NUCAM,NUCBFC)
 
       end do !end loop over chunks
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_2--------------------------------)
@@ -164,6 +205,18 @@
 !     x               GM2s(i)
 !      end do
 
+C Pass XCHF integrals
+      call RXCHF_GAM2_pass_MPI(nproc,rank,
+     x                         ng2_int,ng2_xchf,
+     x                         ng2loc_int,ng2loc_xchf,
+     x                         nebf,nebfBE,npbf,
+     x                         mpistart,mpiend,
+     x                         XGM2_1,XGM2s,
+     x                         GM2_1,GM2s)
+
+      if(allocated(XGM2s)) deallocate(XGM2s)
+      if(allocated(XGM2_1)) deallocate(XGM2_1)
+
 !--------------------SYMMETRIZE----------------------------------------(
 C Symmetrized integrals in GM2_1ICR (XCHF integrals)
 C Unsymmetrized integrals in GM2_2ICR (interaction integrals)
@@ -172,10 +225,10 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
       wtime = MPI_WTIME() 
 
       if (rank.eq.0) write(*,*) "Symmetrizing GM2_1"
-      call gam2_symm(nproc,rank,nebf,npbf,ng2,ng2loc,GM2_1)
+      call gam2_symm(nproc,rank,nebf,npbf,ng2_xchf,ng2loc_xchf,GM2_1)
 
       if (rank.eq.0) write(*,*) "Symmetrizing GM2s"
-      call gam2_symm(nproc,rank,nebf,npbf,ng2,ng2loc,GM2s)
+      call gam2_symm(nproc,rank,nebf,npbf,ng2_xchf,ng2loc_xchf,GM2s)
 
       wtime2 = MPI_WTIME() - wtime
 
@@ -625,12 +678,18 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
       end
 !=======================================================================
       subroutine RXCHF_GAM2_thread_MPI(istart,iend,ng2_seg,ng2,
-     x                          nebf,npebf,npbf,nat,ngtg1,
-     x                          pmass,cat,zan,bcoef1,gamma1,
-     x                          loop_map,arrstart,
-     x                          GM2_1,GM2_2,GM2s,
-     x                          KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                          ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+     x                                 nebf,npebf,nebfBE,npebfBE,npbf,
+     x                                 nat,ngtg1,pmass,cat,zan,
+     x                                 bcoef1,gamma1,
+     x                                 loop_map,arrstart,
+     x                                 GM2_1,GM2_2,GM2s,
+     x                                 KPESTR,KPEEND,
+     x                                 AMPEB2C,AGEBFCC,
+     x                                 ELCEX,ELCAM,ELCBFC,
+     x                                 KPESTR_be,KPEEND_be,
+     x                                 AMPEB2C_be,AGEBFCC_be,
+     x                                 ELCEX_be,ELCAM_be,ELCBFC_be,
+     x                                 AGNBFCC,NUCEX,NUCAM,NUCBFC)
 
 !=======================================================================
       implicit none
@@ -640,6 +699,8 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
       integer istart,iend,ng2_seg
       integer npebf  ! Number primitive electronic basis functions
       integer nebf   ! Number contracted electronic basis functions
+      integer npebfBE! Number primitive special electronic basis functions
+      integer nebfBE ! Number contracted special electronic basis functions
       integer npbf   ! Number nuclear basis functions
       integer nat    ! Number of atoms
       integer ngtg1  ! Number BGammas
@@ -658,6 +719,14 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
       double precision AGNBFCC(npbf)  ! Nuclear contract coef
       integer KPESTR(nebf)  ! Map contracted index to primitive start
       integer KPEEND(nebf)  ! Map contracted index to primitive end
+! Special electron basis
+      integer ELCAM_be(npebfBE,3)           ! 
+      double precision ELCEX_be(npebfBE)    ! 
+      double precision ELCBFC_be(npebfBE,3) ! 
+      integer AMPEB2C_be(npebfBE)           ! Analogs for special electron basis
+      double precision AGEBFCC_be(npebfBE)  ! 
+      integer KPESTR_be(nebfBE)             ! 
+      integer KPEEND_be(nebfBE)             ! 
 !-------Basis Set Info-------)
       double precision pmass    ! Mass of nonelectron quantum particle 
       double precision zan(nat) ! Classical nuclear charges
@@ -690,10 +759,15 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
 !$ompx shared(istart,iend)
 !$ompx shared(loop_map,arrstart)
 !$ompx shared(GM2_1,GM2_2,GM2s)
-!$ompx shared(ELCEX,ELCAM,ELCBFC,NUCEX,NUCAM,NUCBFC) 
-!$ompx shared(KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC)
+!$ompx shared(KPESTR,KPEEND)
+!$ompx shared(AMPEB2C,AGEBFCC)
+!$ompx shared(ELCEX,ELCAM,ELCBFC)
+!$ompx shared(KPESTR_be,KPEEND_be)
+!$ompx shared(AMPEB2C_be,AGEBFCC_be)
+!$ompx shared(ELCEX_be,ELCAM_be,ELCBFC_be)
+!$ompx shared(AGNBFCC,NUCEX,NUCAM,NUCBFC)
 !$ompx shared(nat,ngtg1,pmass,cat,zan,bcoef1,gamma1)
-!$ompx shared(nebf,npebf,npbf,ng2_seg)
+!$ompx shared(nebf,npebf,nebfBE,npebfBE,npbf,ng2_seg)
 !$ompx shared(ng2)
 !$ompx private(iLp) 
 !$ompx private(imap)
@@ -721,16 +795,23 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
          jp =loop_map(imap,5)
          ip =loop_map(imap,6)
 
-         call RXCHFmult_contract_omega2_conv(ip,jp,iec1,jec1,iec2,jec2,
-     x                            nebf,npebf,npbf,nat,ngtg1,
-     x                            pmass,cat,zan,bcoef1,gamma1,
-     x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                            OMG2_1,OMG2_2,OMG2s)
+         call RXCHFmult_contract_omega2(ip,jp,iec1,jec1,iec2,jec2,
+     x                                  nebf,npebf,nebfBE,npebfBE,npbf,
+     x                                  nat,ngtg1,pmass,cat,zan,
+     x                                  bcoef1,gamma1,
+     x                                  KPESTR,KPEEND,
+     x                                  AMPEB2C,AGEBFCC,
+     x                                  ELCEX,ELCAM,ELCBFC,
+     x                                  KPESTR_be,KPEEND_be,
+     x                                  AMPEB2C_be,AGEBFCC_be,
+     x                                  ELCEX_be,ELCAM_be,ELCBFC_be,
+     x                                  AGNBFCC,NUCEX,NUCAM,NUCBFC,
+     x                                  OMG2_1,OMG2_2,OMG2s)
 
-
-         call index_GAM_2PK(nebf,npbf,
-     x                      ip,jp,iec1,jec1,iec2,jec2,ia)
+         call RXCHFmult_GAM_2PK(nebf,nebfBE,npbf,
+     x                          ip,jp,
+     x                          iec1,jec1,
+     x                          iec2,jec2,ia)
 
          GM2_1(ia-arrstart+1)=OMG2_1
          GM2_2(ia-arrstart+1)=OMG2_2
@@ -861,6 +942,143 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
 !$omp end do
 !$omp end parallel      
 !--------------%%%--PARALLEL--LOOPS--%%%-------------------------------)
+
+      return
+      end
+!=======================================================================
+      subroutine RXCHF_GAM2_pass_MPI(nproc,rank,
+     x                               ng2_int,ng2_xchf,
+     x                               ng2loc_int,ng2loc_xchf,
+     x                               nebf,nebfBE,npbf,
+     x                               mpistart_int,mpiend_int,
+     x                               XGM2_1,XGM2s,
+     x                               GM2_1,GM2s)
+
+! Pass XCHF integrals calculated for ng2_int/ng2loc_int range (XGM2*)
+! to arrays for ng2_xchf/ng2loc_xchf range (GM2*)
+!=======================================================================
+      implicit none
+      include 'mpif.h'
+
+! Input Variables
+      integer nproc,rank
+      integer ng2_int,ng2_xchf
+      integer ng2loc_int,ng2loc_xchf
+      integer nebf,nebfBE,npbf
+      integer mpistart_int,mpiend_int   ! Indices wrt ng2_int/ng2loc_int
+      double precision XGM2_1(ng2loc_int),XGM2s(ng2loc_int)
+
+! Output Variables
+      double precision GM2_1(ng2loc_xchf),GM2s(ng2loc_xchf)
+
+! Local Variables
+      integer i,j
+      integer nints,indshift
+      integer currstart,currend
+      integer startrank,endrank
+      integer mpistart_xchf,mpiend_xchf ! Indices wrt ng2_xchf/ng2loc_xchf
+
+#if MPI32
+      integer*4 ierr
+#else
+      integer ierr
+#endif
+
+! Get target start/end indices
+      call get_mpi_range(ng2_xchf,nproc,rank,mpistart_xchf,mpiend_xchf)
+      if(rank.eq.(nproc-1)) mpiend_xchf=ng2_xchf
+
+! Iterate over each chunk of target integrals
+      do i=0,nproc-1
+
+! Broadcast start/end indices of this chunk
+        if(rank.eq.i) then
+         currstart=mpistart_xchf
+         currend=mpiend_xchf
+        end if
+        call MPI_BCAST(currstart,1,MPI_INTEGER8,i,MPI_COMM_WORLD,ierr)
+        call MPI_BCAST(currend,1,MPI_INTEGER8,i,MPI_COMM_WORLD,ierr)
+
+! Get start/end rank of processes with integrals for this chunk
+        call get_mpi_proc(ng2_int,nproc,currstart,startrank)
+        call get_mpi_proc(ng2_int,nproc,currend,endrank)
+
+! If some part of integrals are on this process, pass
+        if (.not.((mpistart_int.gt.mpiend_xchf).or.
+     x            (mpiend_int.lt.mpistart_xchf))) then
+
+         if (mpistart_int.le.mpistart_xchf) then
+          nints=min(mpiend_int,mpiend_xchf)-mpistart_xchf+1
+          indshift=0
+
+          if(rank.eq.i) then
+           do j=1,nints
+             GM2_1(indshift+j)=XGM2_1(mpistart_xchf-mpistart_int+j)
+             GM2s(indshift+j)=XGM2s(mpistart_xchf-mpistart_int+j)
+           end do
+          else
+           call MPI_SEND(nints,1,MPI_INTEGER8,i,rank,
+     x                   MPI_COMM_WORLD,ierr)
+           call MPI_SEND(indshift,1,MPI_INTEGER8,i,rank+nproc,
+     x                   MPI_COMM_WORLD,ierr)
+           call MPI_SEND(XGM2_1(mpistart_xchf-mpistart_int+1),nints,
+     x                   MPI_DOUBLE_PRECISION,
+     x                   i,rank+2*nproc,
+     x                   MPI_COMM_WORLD,ierr)
+           call MPI_SEND(XGM2s(mpistart_xchf-mpistart_int+1),nints,
+     x                   MPI_DOUBLE_PRECISION,
+     x                   i,rank+3*nproc,
+     x                   MPI_COMM_WORLD,ierr)
+          end if
+
+         else if (mpiend_int.ge.mpiend_xchf) then ! if we branch here, mpistart_int > mpistart_xchf
+          nints=mpiend_xchf-mpistart_int+1
+          indshift=mpistart_int-mpistart_xchf
+
+          if(rank.eq.i) then
+           do j=1,nints
+             GM2_1(indshift+j)=XGM2_1(j)
+             GM2s(indshift+j)=XGM2s(j)
+           end do
+          else
+           call MPI_SEND(nints,1,MPI_INTEGER8,i,rank,
+     x                   MPI_COMM_WORLD,ierr)
+           call MPI_SEND(indshift,1,MPI_INTEGER8,i,rank+nproc,
+     x                   MPI_COMM_WORLD,ierr)
+           call MPI_SEND(XGM2_1(1),nints,
+     x                   MPI_DOUBLE_PRECISION,
+     x                   i,rank+2*nproc,
+     x                   MPI_COMM_WORLD,ierr)
+           call MPI_SEND(XGM2s(1),nints,
+     x                   MPI_DOUBLE_PRECISION,
+     x                   i,rank+3*nproc,
+     x                   MPI_COMM_WORLD,ierr)
+          end if
+
+         end if
+
+         if(rank.eq.i) then
+          do j=startrank,endrank
+            if(j.ne.i) then
+             call MPI_RECV(nints,1,MPI_INTEGER8,j,j,
+     x                     MPI_COMM_WORLD,ierr)
+             call MPI_RECV(indshift,1,MPI_INTEGER8,j,j+nproc,
+     x                     MPI_COMM_WORLD,ierr)
+             call MPI_RECV(GM2_1(indshift+1),nints,
+     x                     MPI_DOUBLE_PRECISION,
+     x                     j,j+2*nproc,
+     x                     MPI_COMM_WORLD,ierr)
+             call MPI_RECV(GM2s(indshift+1),nints,
+     x                     MPI_DOUBLE_PRECISION,
+     x                     j,j+3*nproc,
+     x                     MPI_COMM_WORLD,ierr)
+            end if
+          end do
+         end if
+
+        end if
+
+      end do
 
       return
       end

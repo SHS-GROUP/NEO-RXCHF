@@ -27,6 +27,7 @@
       include 'mpif.h'
 
 !-------Basis Set Info-------(
+      integer,allocatable :: elindBE(:)  ! Indices of elbas incl in special elbasis
       integer,allocatable :: ELCAM(:,:)  ! Angular mom for electrons
       integer,allocatable :: NUCAM(:,:)   ! Angular mom for quantum nuclei
       double precision,allocatable :: ELCEX(:) ! Exponents: elec basis
@@ -98,20 +99,18 @@
       parameter(bohr2a=0.529177249d+00)
       parameter(a2bohr=1.0d+00/0.529177249d+00)
 
-      integer npebf,nebf,npbf
+      integer npebf,nebf,npbf,nebfBE
 
       integer ngee
-      integer ng1,ng2,ng3,ng4
-      integer ng1prm,ng2prm,ng3prm,ng4prm
 
       integer junk
 
 #if MPI32
       integer*4 nproc4,rank4,namelen,ierr
-      integer*4 ngtg_,nat_,npebf_,npbf_,nebf_
+      integer*4 ngtg_,nat_,npebf_,npbf_,nebf_,nebfBE_
 #else
       integer namelen,ierr
-      integer ngtg_,nat_,npebf_,npbf_,nebf_
+      integer ngtg_,nat_,npebf_,npbf_,nebf_,nebfBE_
 #endif
       integer nproc,rank
       character(len=25) :: procname
@@ -138,8 +137,9 @@
       namelist /scfctrl/ ldbg,lsoscf,ldiis,lsorxchf,ocbsetyp
       namelist /geminal/ bgem,ggem
       namelist /xcuhf  / nae,nbe
-      namelist /rxchf  / nae,nbe,exchlev
+      namelist /rxchf  / nae,nbe,exchlev,nebfbe
       namelist /rxcuhf / nae_alp,nae_beta
+      namelist /altbas / elindbe
 
 #if MPI32
       call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc4,ierr)
@@ -400,6 +400,20 @@ C       end if
         inperr=.true.
        end if
 
+       if((LRXCHF.or.LRXCUHF).and.(nebfBE.gt.nebf)) then
+        write(*,*) "Size of special electronic basis set cannot"
+        write(*,*) "exceed size of all atom basis set."
+        write(*,*) "Exiting..."
+        return
+       end if
+
+       if((LRXCHF.or.LRXCUHF).and.(nebfBE.ne.nebf)) then
+        write(*,*) "Cannot have restricted special electronic"
+        write(*,*) "basis set for RXCHF-ae."
+        write(*,*) "Exiting..."
+        return
+       end if
+
 !!!!!!!!!!!!!!! Read in RXCUHF info !!!!!!!!!!!!!!!
        if(LRXCUHF) then
         rewind(9)
@@ -501,6 +515,14 @@ C       end if
           end do
        end do
 
+!!!!!!!!!!!!!!! Read in special electron basis set !!!!!!!!!!!!!!!
+       if ((LRXCHF.or.LRXCUHF).and.(NBE.ge.2)) then
+        if(allocated(elindBE)) deallocate(elindBE)
+        allocate(elindBE(nebfBE))
+        rewind(9)
+        read(9,nml=altbas)
+       end if
+
        close(9)
 
        if(allocated(KPESTR)) deallocate(KPESTR)
@@ -521,6 +543,7 @@ C       end if
       call MPI_BCAST(nebf,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(npebf,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(npbf,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(nebfBE,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(nat,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
 
 ! INTEGER8 and LOGICAL must be declared specificially since MPI_INTEGER
@@ -574,6 +597,8 @@ C       end if
        allocate( zan(nat),stat=istat )
        if(allocated(cat)) deallocate(cat)
        allocate( cat(3,nat),stat=istat )
+       if(allocated(elindBE)) deallocate(elindBE)
+       allocate(elindBE(nebfBE))
        if(allocated(AMPEB2C)) deallocate(AMPEB2C)
        allocate( AMPEB2C(npebf),stat=istat )
        if(allocated(ELCEX)) deallocate(ELCEX)
@@ -607,12 +632,14 @@ C       end if
       npebf_=int(npebf,kind=4)
       npbf_=int(npbf,kind=4)
       nebf_=int(nebf,kind=4)
+      nebfBE_=int(nebfBE,kind=4)
 #else
       ngtg_=ngtg
       nat_=nat
       npebf_=npebf
       npbf_=npbf
       nebf_=nebf
+      nebfBE_=nebfBE
 #endif
       call MPI_BCAST(bgem,ngtg_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
@@ -621,6 +648,8 @@ C       end if
       call MPI_BCAST(zan,nat_,MPI_DOUBLE_PRECISION,
      x               0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(cat,3*nat_,MPI_DOUBLE_PRECISION,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(elindBE,nebfBE_,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(AMPEB2C,npebf_,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
@@ -661,15 +690,6 @@ C       end if
       end if
 
       ngee=nebf*nebf*nebf*nebf
-
-      ng1=nebf*nebf*npbf*npbf
-      ng2=nebf*nebf*nebf*nebf*npbf*npbf
-      ng3=nebf*nebf*nebf*nebf*nebf*nebf*npbf*npbf
-      ng4=nebf*nebf*nebf*nebf*nebf*nebf*nebf*nebf*npbf*npbf
-
-      ng1prm=npebf*npebf*npbf*npbf
-      ng2prm=npebf*npebf*npebf*npebf*npbf*npbf
-      ng3prm=npebf*npebf*npebf*npebf*npebf*npebf*npbf*npbf
 
       if (rank.eq.0) then
 
@@ -743,6 +763,21 @@ C       end if
      x  ELCEX(i),AGEBFCC(i),ELCBFC(i,1),ELCBFC(i,2),ELCBFC(i,3)
        END DO
 
+       if ((LRXCHF.or.LRXCUHF).and.(NBE.ge.2)) then
+        write(*,*)
+        write(*,*) "nebfBE =",nebfBE
+        write(*,*) "contracted indices to use for special elec basis:"
+        do i=1,nebfBE/10
+          write(*,'(10(1X,I3))') (elindBE((i-1)*10+j),j=1,10)
+        end do
+        if(mod(nebfBE,10).ne.0) then
+          write(istring,'(I1)') mod(nebfBE,10)
+          write(*,'('//istring//'(1X,I3))')
+     x         (elindBE((nebfBE/10)*10+j),j=1,mod(nebfBE,10))
+        end if
+        write(*,*)
+       end if
+
        WRITE(*,*)
        WRITE(*,*)'NUCLEAR BASIS FUNCTIONS:'
        WRITE(*,*)
@@ -770,60 +805,55 @@ C       end if
        END DO
       end if
 
-      ng1prm=(npebf**2)*npbf**2
-      ng2prm=(npebf**4)*npbf**2
-      ng3prm=(npebf**6)*npbf**2
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-! Calculate inexpensive integrals and store on disk using only master process
-!   - requires use of global scratch directories
-      if (rank.eq.0) then
-
-       call class_nuc_rep(nat,zan,cat)
-
-       call elec_ovlap(npebf,nebf,nebf*nebf,
-     x                 AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
-
-       call check_elec_ovlap(nebf)
-
-       call nuc_ovlap(npbf,npbf*npbf,AGNBFCC,NUCEX,NUCAM,NUCBFC)
-
-       call check_nuc_ovlap(npbf)
-
-       write(*,*)
-       write(*,*)'**************************************'
-       write(*,*)'    Computing GAM_epcore Integrals    '
-
-       call calc_GAM_epcore(nebf,npebf,npbf,nebf*nebf,npbf*npbf,
-     x                      nat,pmass,zan,cat,
-     x                      AMPEB2C,AGEBFCC,AGNBFCC,
-     x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
-
-       write(*,*)'    Computing GAM_ep     Integrals    '
-
-       call calc_GAM_ep(nebf,npebf,npbf,ng1,
-     x                  AMPEB2C,AGEBFCC,AGNBFCC,
-     x                  ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
-
-       write(*,*)'    Computing GAM_ee     Integrals    '
-
-       call calc_GAM_ee(nebf,npebf,ngee,
-     x                  AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
-
-       write(*,*)'**************************************'
-       write(*,*)
-
-      end if
+C ARS( do this in RXCHF driver after basis set reordering
+C! Calculate inexpensive integrals and store on disk using only master process
+C!   - requires use of global scratch directories
+C      if (rank.eq.0) then
+C
+C       call class_nuc_rep(nat,zan,cat)
+C
+C       call elec_ovlap(npebf,nebf,nebf*nebf,
+C     x                 AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
+C
+C       call check_elec_ovlap(nebf)
+C
+C       call nuc_ovlap(npbf,npbf*npbf,AGNBFCC,NUCEX,NUCAM,NUCBFC)
+C
+C       call check_nuc_ovlap(npbf)
+C
+C       write(*,*)
+C       write(*,*)'**************************************'
+C       write(*,*)'    Computing GAM_epcore Integrals    '
+C
+C       call calc_GAM_epcore(nebf,npebf,npbf,nebf*nebf,npbf*npbf,
+C     x                      nat,pmass,zan,cat,
+C     x                      AMPEB2C,AGEBFCC,AGNBFCC,
+C     x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+C
+C       write(*,*)'    Computing GAM_ep     Integrals    '
+C
+C       call calc_GAM_ep(nebf,npebf,npbf,ng1,
+C     x                  AMPEB2C,AGEBFCC,AGNBFCC,
+C     x                  ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+C
+C       write(*,*)'    Computing GAM_ee     Integrals    '
+C
+C       call calc_GAM_ee(nebf,npebf,ngee,
+C     x                  AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
+C
+C       write(*,*)'**************************************'
+C       write(*,*)
+C
+C      end if
+C )
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
       call RXCHF_driver_MPI(nproc,rank,
      x                      nblocks,blockrank,
      x                      nelec,nae,nbe,nae_alp,nae_beta,nucst,
-     x                      nebf,npebf,npbf,nat,ngtg,
-     x                      ng1,ng2,ng3,ng4,ngee,
-     x                      ng1prm,ng2prm,ng3prm,
+     x                      nebf,npebf,npbf,nat,ngtg,ngee,
+     x                      nebfBE,elindBE,
      x                      pmass,cat,zan,bgem,ggem,
      x                      KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,

@@ -2,9 +2,8 @@ C=======================================================================
       subroutine RXCHF_driver_MPI(nproc,rank,
      x                            nblocks,blockrank,
      x                            nelec,nae,nbe,nae_alp,nae_beta,nucst,
-     x                            nebf,npebf,npbf,nat,ngtg1,
-     x                            ng1,ng2,ng3,ng4,ngee,
-     x                            ng1prm,ng2prm,ng3prm,
+     x                            nebf,npebf,npbf,nat,ngtg1,ngee,
+     x                            nebfBE,elindBE,
      x                            pmass,cat,zan,bcoef1,gamma1,
      x                            KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                            ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
@@ -46,9 +45,13 @@ C Input variables
       integer nebf                     ! Number of contracted electronic basis functions
       integer npebf                    ! Number of primitive electronic basis functions
       integer npbf                     ! Number of proton basis functions
+      integer nebfBE                   ! Size of elec basis set to use for NBE elecs
+      integer npebfBE                  ! Analog for NBE basis set
       integer nat                      ! Number of classical nuclei
       integer ngtg1                    ! Number of geminal functions
       integer ng1,ng2,ng3,ng4,ngee     ! Numbers of integrals (contracted)
+      integer ng2_int,ng2_xchf
+      integer ng3_int,ng3_xchf
       integer ng1prm,ng2prm,ng3prm     ! Numbers of integrals (primitive)
       integer ng2chk,ng3chk,ng4chk     ! Number of chunks to split integral calculations
       integer ELCAM(npebf,3)           ! Angular mom for electrons
@@ -56,6 +59,9 @@ C Input variables
       integer AMPEB2C(npebf)           ! Map primitive index to contracted
       integer KPESTR(nebf)             ! Map contracted index to primitive start
       integer KPEEND(nebf)             ! Map contracted index to primitive end
+      integer KPESTR_be(nebfBE)        ! Analog for NBE basis set
+      integer KPEEND_be(nebfBE)        ! Analog for NBE basis set
+      integer elindBE(nebfBE)          ! Contracted indices of NBE basis set
       logical LG2IC                    ! In-core storage of 3-particle integrals
       logical LG3IC                    ! In-core storage of 4-particle integrals
       logical LG4IC                    ! In-core storage of 5-particle integrals
@@ -87,14 +93,10 @@ C Input variables
       double precision AGNBFCC(npbf)   ! Nuclear contraction coeff
 
 C Local variables
-#if MPI32
-      integer*4    ierr
-#else
-      integer      ierr
-#endif
       character*4  istring              ! File I/O variables
-      integer      nebf2,npbf2          ! Convenient quantities
-      integer      nebflt,npbflt        !
+      integer      nebf2,npbf2          !
+      integer      nebflt,npbflt        ! Convenient quantities
+      integer      nebfBE2,nebfBElt     !
       integer      npra,nprb            ! Number of distinct electron pairs
       integer      dimXCHF2             !
       integer      dimXCHF3             ! Dimensions of XCHF integral arrays
@@ -106,6 +108,19 @@ C Local variables
       integer      dimINT3ex            !
       logical      LXCHFSYMM            ! Flag to symmetrize XCHF3 integrals (nbe > 2)
       integer      unitno
+      integer      i,j,istat
+      integer      contrind,primind
+      integer      numprims,primstart,primend
+      integer      currcontrind,currprimind
+      logical      LALTBAS                       ! Flag to denote distinct special electron basis
+      logical      laddbasis                     ! Working variable
+      integer      XELCAM(npebf,3)               !
+      integer      XAMPEB2C(npebf)               ! Dummy basis set variables
+      integer      XKPESTR(nebf)                 !
+      integer      XKPEEND(nebf)                 !
+      double precision              :: XELCEX(npebf)        !
+      double precision              :: XELCBFC(npebf,3)     ! Dummy basis set variables
+      double precision              :: XAGEBFCC(npebf)      !
       double precision              :: wtime,wtime1,wtime2  ! Timing variables
       double precision, allocatable :: XCHF_GAM2(:)         ! 3-particle XCHF integrals
       double precision, allocatable :: XCHF_GAM2s(:)        ! 3-particle XCHF overlap integrals
@@ -117,10 +132,258 @@ C Local variables
       double precision, allocatable :: INT_GAM2ex(:)        ! 3-particle exchange integrals
       double precision, allocatable :: INT_GAM3ex1(:)       ! 4-particle exchange integrals
       double precision, allocatable :: INT_GAM3ex2(:)       ! 4-particle exchange integrals
+      integer,          allocatable :: ELCAM_be(:,:)        !
+      integer,          allocatable :: AMPEB2C_be(:)        ! 
+      double precision, allocatable :: ELCEX_be(:)          ! Analogs for NBE basis set 
+      double precision, allocatable :: ELCBFC_be(:,:)       ! 
+      double precision, allocatable :: AGEBFCC_be(:)        ! 
       integer(kind=4),  allocatable :: int_pinds(:)         ! Packed prot indices of nontrival INT_GAM4
       integer(kind=8),  allocatable :: int_einds(:)         ! Packed elec indices of nontrival INT_GAM4
       integer(kind=4),  allocatable :: xchf_pinds(:)        ! Packed prot indices of nontrival XCHF_GAM4
       integer(kind=8),  allocatable :: xchf_einds(:)        ! Packed elec indices of nontrival XCHF_GAM4
+#if MPI32
+      integer*4    ierr
+      integer*4    npebf_,nebf_
+      integer*4    npebfBE_,nebfBE_
+#else
+      integer      ierr
+      integer      npebf_,nebf_
+      integer      npebfBE_,nebfBE_
+#endif
+
+C Reorder electronic basis set such that special electron subset is first
+C Do on master process then pass necessary variables to slave processes
+      if(rank.eq.0) then
+       currcontrind=1
+       currprimind=1
+       npebfBE=0
+
+C First add bfs that are also in special electronic set
+       do i=1,nebfBE
+         contrind=elindBE(i)
+         primstart=KPESTR(contrind)
+         primend=KPEEND(contrind)
+         numprims=(primend-primstart)+1
+         XKPESTR(currcontrind)=currprimind
+         XKPEEND(currcontrind)=currprimind+numprims-1
+         KPESTR_be(currcontrind)=currprimind
+         KPEEND_be(currcontrind)=currprimind+numprims-1
+         do primind=primstart,primend
+           XELCAM(currprimind,1)=ELCAM(primind,1)
+           XELCAM(currprimind,2)=ELCAM(primind,2)
+           XELCAM(currprimind,3)=ELCAM(primind,3)
+           XAMPEB2C(currprimind)=currcontrind
+           XELCEX(currprimind)=ELCEX(primind)
+           XELCBFC(currprimind,1)=ELCBFC(primind,1)
+           XELCBFC(currprimind,2)=ELCBFC(primind,2)
+           XELCBFC(currprimind,3)=ELCBFC(primind,3)
+           XAGEBFCC(currprimind)=AGEBFCC(primind)
+           currprimind=currprimind+1
+           npebfBE=npebfBE+1
+         end do
+         currcontrind=currcontrind+1
+       end do
+
+C Add remaining bfs
+       do i=1,nebf
+         laddbasis=.true.
+         do j=1,nebfBE
+           contrind=elindBE(j)
+           if (i.eq.contrind) laddbasis=.false.
+         end do
+         if (laddbasis) then
+          primstart=KPESTR(i)
+          primend=KPEEND(i)
+          numprims=(primend-primstart)+1
+          XKPESTR(currcontrind)=currprimind
+          XKPEEND(currcontrind)=currprimind+numprims-1
+          do primind=primstart,primend
+            XELCAM(currprimind,1)=ELCAM(primind,1)
+            XELCAM(currprimind,2)=ELCAM(primind,2)
+            XELCAM(currprimind,3)=ELCAM(primind,3)
+            XAMPEB2C(currprimind)=currcontrind
+            XELCEX(currprimind)=ELCEX(primind)
+            XELCBFC(currprimind,1)=ELCBFC(primind,1)
+            XELCBFC(currprimind,2)=ELCBFC(primind,2)
+            XELCBFC(currprimind,3)=ELCBFC(primind,3)
+            XAGEBFCC(currprimind)=AGEBFCC(primind)
+            currprimind=currprimind+1
+          end do
+          currcontrind=currcontrind+1
+         end if
+       end do
+
+       if(allocated(AMPEB2C_be)) deallocate(AMPEB2C_be)
+       allocate( AMPEB2C_be(npebfBE),stat=istat )
+       if(allocated(ELCEX_be)) deallocate(ELCEX_be)
+       allocate( ELCEX_be(npebfBE),stat=istat )
+       if(allocated(AGEBFCC_be)) deallocate(AGEBFCC_be)
+       allocate( AGEBFCC_be(npebfBE),stat=istat )
+       if(allocated(ELCAM_be)) deallocate(ELCAM_be)
+       allocate( ELCAM_be(npebfBE,3),stat=istat )
+       if(allocated(ELCBFC_be)) deallocate(ELCBFC_be)
+       allocate( ELCBFC_be(npebfBE,3),stat=istat )
+
+C Transfer basis set variables
+       do i=1,nebf
+         KPESTR(i)=XKPESTR(i)
+         KPEEND(i)=XKPEEND(i)
+       end do
+       do i=1,npebf
+         ELCAM(i,1)=XELCAM(i,1)
+         ELCAM(i,2)=XELCAM(i,2)
+         ELCAM(i,3)=XELCAM(i,3)
+         AMPEB2C(i)=XAMPEB2C(i)
+         ELCEX(i)=XELCEX(i)
+         ELCBFC(i,1)=XELCBFC(i,1)
+         ELCBFC(i,2)=XELCBFC(i,2)
+         ELCBFC(i,3)=XELCBFC(i,3)
+         AGEBFCC(i)=XAGEBFCC(i)
+         if (i.le.npebfBE) then
+          ELCAM_be(i,1)=XELCAM(i,1)
+          ELCAM_be(i,2)=XELCAM(i,2)
+          ELCAM_be(i,3)=XELCAM(i,3)
+          AMPEB2C_be(i)=XAMPEB2C(i)
+          ELCEX_be(i)=XELCEX(i)
+          ELCBFC_be(i,1)=XELCBFC(i,1)
+          ELCBFC_be(i,2)=XELCBFC(i,2)
+          ELCBFC_be(i,3)=XELCBFC(i,3)
+          AGEBFCC_be(i)=XAGEBFCC(i)
+         end if
+       end do
+
+C Output reordered basis
+       write(*,*)
+       write(*,*) "Reordered basis:"
+       write(*,*)
+       write(*,*)'PRIM  CONT    ANG      EXPONENT CONTRACT  -X- -Y- -Z-'
+       write(*,*)'INDEX INDEX   MOM                  COEF'
+       do i=1,npebf
+         write(*,1000) i,AMPEB2C(i),ELCAM(i,1),ELCAM(i,2),
+     x                 ELCAM(i,3),ELCEX(i),AGEBFCC(i),
+     x                 ELCBFC(i,1),ELCBFC(i,2),ELCBFC(i,3)
+       end do
+       write(*,*)
+       write(*,*)' CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS '
+       write(*,*)'CONT INDEX    KPESTR     KPEEND'
+       do i=1,nebf
+          write(*,2000) i,KPESTR(i),KPEEND(i)
+       end do
+
+C Output special electron basis
+       write(*,*)
+       write(*,*) "Special electron basis:"
+       write(*,*)
+       write(*,*)'PRIM  CONT    ANG      EXPONENT CONTRACT  -X- -Y- -Z-'
+       write(*,*)'INDEX INDEX   MOM                  COEF'
+       do i=1,npebfBE
+         write(*,1000) i,AMPEB2C_be(i),ELCAM_be(i,1),ELCAM_be(i,2),
+     x                 ELCAM_be(i,3),ELCEX_be(i),AGEBFCC_be(i),
+     x                 ELCBFC_be(i,1),ELCBFC_be(i,2),ELCBFC_be(i,3)
+       end do
+       write(*,*)
+       write(*,*)' CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS '
+       write(*,*)'CONT INDEX    KPESTR     KPEEND'
+       do i=1,nebfBE
+          write(*,2000) i,KPESTR_be(i),KPEEND_be(i)
+       end do
+
+C Calculate inexpensive integrals usually calculated in main driver
+C since the all-electron basis set was reordered
+       call class_nuc_rep(nat,zan,cat)
+
+       call elec_ovlap(npebf,nebf,nebf*nebf,
+     x                 AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
+
+       call check_elec_ovlap(nebf)
+
+       call nuc_ovlap(npbf,npbf*npbf,
+     x                AGNBFCC,NUCEX,NUCAM,NUCBFC)
+
+       call check_nuc_ovlap(npbf)
+
+       call calc_GAM_epcore(nebf,npebf,npbf,nebf*nebf,npbf*npbf,
+     x                      nat,pmass,zan,cat,
+     x                      AMPEB2C,AGEBFCC,AGNBFCC,
+     x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+
+       call calc_GAM_ee(nebf,npebf,ngee,
+     x                  AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
+
+      end if
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+      if (nebf.ne.nebfBE) then
+       LALTBAS=.true.
+      else
+       LALTBAS=.false.
+      end if
+
+CC If RXCHF-ae cannot have distinct regular/special electronic basis sets
+C      if ((LALTBAS).and.(EXCHLEV.gt.0)) then
+C       write(*,*) "Cannot have restricted special electronic basis set"
+C       write(*,*) "for RXCHF-ae. Exiting..."
+C       return
+C      end if
+
+! Broadcast static variables including array dimensions to slave processes
+      call MPI_BCAST(npebfBE,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+
+! Allocate arrays on slave processes
+      if (rank.gt.0) then
+       if(allocated(AMPEB2C_be)) deallocate(AMPEB2C_be)
+       allocate( AMPEB2C_be(npebfBE),stat=istat )
+       if(allocated(ELCEX_be)) deallocate(ELCEX_be)
+       allocate( ELCEX_be(npebfBE),stat=istat )
+       if(allocated(AGEBFCC_be)) deallocate(AGEBFCC_be)
+       allocate( AGEBFCC_be(npebfBE),stat=istat )
+       if(allocated(ELCAM_be)) deallocate(ELCAM_be)
+       allocate( ELCAM_be(npebfBE,3),stat=istat )
+       if(allocated(ELCBFC_be)) deallocate(ELCBFC_be)
+       allocate( ELCBFC_be(npebfBE,3),stat=istat )
+      end if
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+C Broadcast array data
+#if MPI32
+      nebf_=int(nebf,kind=4)
+      nebfBE_=int(nebfBE,kind=4)
+      npebf_=int(npebf,kind=4)
+      npebfBE_=int(npebfBE,kind=4)
+#else
+      nebf_=nebf
+      nebfBE_=nebfBE
+      npebf_=npebf
+      npebfBE_=npebfBE
+#endif
+      call MPI_BCAST(AMPEB2C_be,npebfBE_,MPI_DOUBLE_PRECISION,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(ELCEX_be,npebfBE_,MPI_DOUBLE_PRECISION,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(AGEBFCC_be,npebfBE_,MPI_DOUBLE_PRECISION,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(ELCAM_be,3*npebfBE_,MPI_DOUBLE_PRECISION,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(ELCBFC_be,3*npebfBE_,MPI_DOUBLE_PRECISION,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(AMPEB2C,npebf_,MPI_INTEGER8,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(ELCEX,npebf_,MPI_DOUBLE_PRECISION,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(AGEBFCC,npebf_,MPI_DOUBLE_PRECISION,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(ELCAM,3*npebf_,MPI_INTEGER8,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(ELCBFC,3*npebf_,MPI_DOUBLE_PRECISION,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(KPESTR,nebf_,MPI_INTEGER8,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(KPEEND,nebf_,MPI_INTEGER8,
+     x               0,MPI_COMM_WORLD,ierr)
+
+      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 C Calculate integrals
       wtime = MPI_WTIME()
@@ -162,24 +425,30 @@ C     => XCHF_GAM2 only needed if nbe >= 2
        write(*,*) "---------------------------"
        write(*,*)
 
-       call RXCHFmult_GAM1_OMP_MD(nebf,npebf,npbf,ng1,ng1prm,nat,
-     x                            ngtg1,pmass,cat,zan,bcoef1,gamma1,
-     x                            AMPEB2C,AGEBFCC,AGNBFCC,ELCEX,
-     x                            NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+       ng1=nebfBE*nebfBE*npbf*npbf
+       ng1prm=npebfBE*npebfBE*npbf*npbf
+       call RXCHFmult_GAM1_MD(nebfBE,npebfBE,npbf,ng1,ng1prm,nat,
+     x                        ngtg1,pmass,cat,zan,bcoef1,gamma1,
+     x                        AMPEB2C_be,AGEBFCC_be,AGNBFCC,ELCEX_be,
+     x                        NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
       end if
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
+! Calculate total number of three-particle integrals
+      ng2_int=nebf*nebf*nebfBE*nebfBE*npbf*npbf
+      ng2_xchf=nebfBE*nebfBE*nebfBE*nebfBE*npbf*npbf
+
 ! Have each process calculate and store its ng2/proc integrals
 ! Assign residual integrals to last process
       if (rank.eq.(nproc-1)) then
-       dimINT2=ng2/nproc+mod(ng2,nproc)
-       dimXCHF2=ng2/nproc+mod(ng2,nproc)
-       if (LADDEXCH) dimINT2ex=ng2/nproc+mod(ng2,nproc)
+       dimINT2=ng2_int/nproc+mod(ng2_int,nproc)
+       dimXCHF2=ng2_xchf/nproc+mod(ng2_xchf,nproc)
+       if (LADDEXCH) dimINT2ex=ng2_int/nproc+mod(ng2_int,nproc)
       else
-       dimINT2=ng2/nproc
-       dimXCHF2=ng2/nproc
-       if (LADDEXCH) dimINT2ex=ng2/nproc
+       dimINT2=ng2_int/nproc
+       dimXCHF2=ng2_xchf/nproc
+       if (LADDEXCH) dimINT2ex=ng2_int/nproc
       end if
 
 ! These arrays now local to each process and correspond to only its chunk of integrals
@@ -247,18 +516,23 @@ C     => XCHF_GAM2 only needed if nbe >= 2
        if (LADDEXCH) then
         call RXCHF_GAM2ex_MPI(nproc,rank,
      x                        ng2chk,nebf,npebf,npbf,
-     x                        ng2,dimINT2,ng2prm,nat,ngtg1,
+     x                        ng2_int,dimINT2,ng2prm,nat,ngtg1,
      x                        pmass,cat,zan,bcoef1,gamma1,
      x                        KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
      x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
      x                        XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s)
        else
         call RXCHF_GAM2_MPI(nproc,rank,
-     x                      ng2chk,nebf,npebf,npbf,
-     x                      ng2,dimINT2,ng2prm,nat,ngtg1,
-     x                      pmass,cat,zan,bcoef1,gamma1,
-     x                      KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                      ng2chk,nebf,npebf,nebfBE,npebfBE,npbf,
+     x                      ng2_int,ng2_xchf,dimINT2,dimXCHF2,
+     x                      nat,ngtg1,pmass,cat,zan,bcoef1,gamma1,
+     x                      KPESTR,KPEEND,
+     x                      AMPEB2C,AGEBFCC,
+     x                      ELCEX,ELCAM,ELCBFC,
+     x                      KPESTR_be,KPEEND_be,
+     x                      AMPEB2C_be,AGEBFCC_be,
+     x                      ELCEX_be,ELCAM_be,ELCBFC_be,
+     x                      AGNBFCC,NUCEX,NUCAM,NUCBFC,
      x                      XCHF_GAM2,INT_GAM2,XCHF_GAM2s)
        end if
 
@@ -334,31 +608,29 @@ C     => INT_GAM3
 C     => INT_GAM3ex only needed if RXCHF-ae
 C     => XCHF_GAM3 only needed if nbe >= 3
 
+! Calculate total number of four-particle integrals
+        ng3_int=nebf*nebf*nebfBE*nebfBE*nebfBE*nebfBE*npbf*npbf
+        ng3_xchf=nebfBE*nebfBE*nebfBE*nebfBE*nebfBE*nebfBE*npbf*npbf
+
 ! Have each process calculate and store its ng3/proc integrals
 ! Assign residual integrals to last process
         if (rank.eq.(nproc-1)) then
-         dimINT3=ng3/nproc+mod(ng3,nproc)
-         dimXCHF3=ng3/nproc+mod(ng3,nproc)
-         if (LADDEXCH) dimINT3ex=ng3/nproc+mod(ng3,nproc)
+         dimINT3=ng3_int/nproc+mod(ng3_int,nproc)
+         dimXCHF3=ng3_xchf/nproc+mod(ng3_xchf,nproc)
+         if (LADDEXCH) dimINT3ex=ng3_int/nproc+mod(ng3_int,nproc)
         else
-         dimINT3=ng3/nproc
-         dimXCHF3=ng3/nproc
-         if (LADDEXCH) dimINT3ex=ng3/nproc
+         dimINT3=ng3_int/nproc
+         dimXCHF3=ng3_xchf/nproc
+         if (LADDEXCH) dimINT3ex=ng3_int/nproc
         end if
-
-! These arrays now local to each process and correspond to only its chunk of integrals
-        if(allocated(INT_GAM3)) deallocate(INT_GAM3)
-        allocate(INT_GAM3(dimINT3))
-        if(allocated(INT_GAM3ex1)) deallocate(INT_GAM3ex1)
-        allocate(INT_GAM3ex1(dimINT3ex))
-        if(allocated(INT_GAM3ex2)) deallocate(INT_GAM3ex2)
-        allocate(INT_GAM3ex2(dimINT3ex))
-        if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
-        allocate(XCHF_GAM3(dimXCHF3))
 
         if (read_GAM3) then
 
 ! Read chunk with process (restart job requires same number of processes)
+
+         if(allocated(INT_GAM3)) deallocate(INT_GAM3)
+         allocate(INT_GAM3(dimINT3))
+
          if (rank.eq.0) then
           write(*,*)
           write(*,*) "---------------------------"
@@ -369,6 +641,12 @@ C     => XCHF_GAM3 only needed if nbe >= 3
      x                          INT_GAM3)
 
          if (LADDEXCH) then
+
+          if(allocated(INT_GAM3ex1)) deallocate(INT_GAM3ex1)
+          allocate(INT_GAM3ex1(dimINT3ex))
+          if(allocated(INT_GAM3ex2)) deallocate(INT_GAM3ex2)
+          allocate(INT_GAM3ex2(dimINT3ex))
+
           if (rank.eq.0) then
            write(*,*) "               INT_GAM3ex1 "
            write(*,*) "               INT_GAM3ex2 "
@@ -382,6 +660,10 @@ C     => XCHF_GAM3 only needed if nbe >= 3
          end if
 
          if (nbe.gt.2) then
+
+          if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
+          allocate(XCHF_GAM3(dimXCHF3))
+
           if(rank.eq.0) write(*,*) "                 XCHF_GAM3 "
           call RXCHF_readint_mpi(nproc,rank,dimXCHF3,18,
      x                           "XCHF_GAM3-"//istring//".ufm",
@@ -393,7 +675,7 @@ C     => XCHF_GAM3 only needed if nbe >= 3
           write(*,*)
          end if
 
-        else
+        else ! not read_gam3, so calculate
 
          if (rank.eq.0) then
           write(*,*)
@@ -403,34 +685,51 @@ C     => XCHF_GAM3 only needed if nbe >= 3
            write(*,*) "               INT_GAM3ex1 "
            write(*,*) "               INT_GAM3ex2 "
           end if
-          write(*,*) "                 XCHF_GAM3 "
+          if(nbe.gt.2) then
+           write(*,*) "                 XCHF_GAM3 "
+          end if
           write(*,*) "---------------------------"
           write(*,*)
          end if
 
-        call get_mpi_range(ng3,nblocks,blockrank,blockstart,blockend)
-        if (blockrank.eq.(nblocks-1)) then
-         ng3block=ng3/nblocks+mod(ng3,nblocks)
-         blockend=ng3
-        else
-         ng3block=ng3/nblocks
-        end if
-        if(rank.eq.0) then
-         write(*,*) "Computing block ",blockrank," of ",nblocks,
-     x              " total blocks"
-         write(*,*) "ng3,blockstart,blockend:",ng3,blockstart,blockend
-        end if
-        if (rank.eq.(nproc-1)) then
-         dimINT3=ng3block/nproc+mod(ng3block,nproc)
-         dimXCHF3=ng3block/nproc+mod(ng3block,nproc)
-         if (LADDEXCH) dimINT3ex=ng3block/nproc+mod(ng3block,nproc)
-        else
-         dimINT3=ng3block/nproc
-         dimXCHF3=ng3block/nproc
-         if (LADDEXCH) dimINT3ex=ng3block/nproc
-        end if
+         call get_mpi_range(ng3_int,nblocks,
+     x                      blockrank,blockstart,blockend)
+         if (blockrank.eq.(nblocks-1)) then
+          ng3block=ng3_int/nblocks+mod(ng3_int,nblocks)
+          blockend=ng3_int
+         else
+          ng3block=ng3_int/nblocks
+         end if
+         if(rank.eq.0) then
+          write(*,*) "Computing block ",blockrank," of ",nblocks,
+     x               " total blocks"
+          write(*,*) "ng3,blockstart,blockend:",
+     x                ng3_int,blockstart,blockend
+         end if
+         if (rank.eq.(nproc-1)) then
+          dimINT3=ng3block/nproc+mod(ng3block,nproc)
 
-! Only symmetrize XCHF_GAM3 if nbe > 2 (saves significant MPI comm)
+          dimXCHF3=ng3block/nproc+mod(ng3block,nproc) ! use ng3_int range for XCHF if -ae, override below if -ne
+          if (LADDEXCH) dimINT3ex=ng3block/nproc+mod(ng3block,nproc)
+         else
+          dimINT3=ng3block/nproc
+          dimXCHF3=ng3block/nproc
+          if (LADDEXCH) dimINT3ex=ng3block/nproc
+         end if
+
+         if(allocated(INT_GAM3)) deallocate(INT_GAM3)
+         allocate(INT_GAM3(dimINT3))
+
+         if(LADDEXCH) then
+          if(allocated(INT_GAM3ex1)) deallocate(INT_GAM3ex1)
+          allocate(INT_GAM3ex1(dimINT3ex))
+          if(allocated(INT_GAM3ex2)) deallocate(INT_GAM3ex2)
+          allocate(INT_GAM3ex2(dimINT3ex))
+          if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
+          allocate(XCHF_GAM3(dimXCHF3))
+         end if
+
+! Only symmetrize XCHF_GAM3 if nbe > 2 (saves significant MPI comm, only applicable to -ae)
          if (nbe.le.2) then
           LXCHFSYMM=.false.
          else
@@ -449,15 +748,21 @@ C     => XCHF_GAM3 only needed if nbe >= 3
      x                          LXCHFSYMM,XCHF_GAM3,INT_GAM3,
      x                          INT_GAM3ex1,INT_GAM3ex2)
          else
-          call RXCHF_GAM3_MPI(nproc,rank,
-     x                        nblocks,blockrank,
-     x                        blockstart,blockend,
-     x                        ng3chk,nebf,npebf,npbf,
-     x                        ng3block,dimINT3,ng3prm,nat,ngtg1,
-     x                        pmass,cat,zan,bcoef1,gamma1,
-     x                        KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                        ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                        LXCHFSYMM,XCHF_GAM3,INT_GAM3)
+          call RXCHF_GAM3_INT_MPI(nproc,rank,
+     x                            nblocks,blockrank,
+     x                            blockstart,blockend,
+     x                            ng3chk,
+     x                            nebf,npebf,nebfBE,npebfBE,npbf,
+     x                            ng3block,dimINT3,ng3prm,nat,ngtg1,
+     x                            pmass,cat,zan,bcoef1,gamma1,
+     x                            KPESTR,KPEEND,
+     x                            AMPEB2C,AGEBFCC,
+     x                            ELCEX,ELCAM,ELCBFC,
+     x                            KPESTR_be,KPEEND_be,
+     x                            AMPEB2C_be,AGEBFCC_be,
+     x                            ELCEX_be,ELCAM_be,ELCBFC_be,
+     x                            AGNBFCC,NUCEX,NUCAM,NUCBFC,
+     x                            INT_GAM3)
          end if
 
 ! Write integrals to disk (chunk calculated by each process)
@@ -482,11 +787,13 @@ C     => XCHF_GAM3 only needed if nbe >= 3
 
         if (nbe.le.2) then
 
-          if (rank.eq.0) then
-           write(*,*)
-           write(*,*) "NBE = ",NBE," <= 2"
-           write(*,*) "so deallocating XCHF_GAM3"
-           write(*,*)
+          if(LADDEXCH) then
+           if (rank.eq.0) then
+            write(*,*)
+            write(*,*) "NBE = ",NBE," <= 2"
+            write(*,*) "so deallocating XCHF_GAM3"
+            write(*,*)
+           end if
           end if
 
           dimXCHF3=1
@@ -508,7 +815,59 @@ C     => XCHF_GAM3 only needed if nbe >= 3
 
         else
 
+          if(.not.(read_GAM3.or.LADDEXCH)) then
+           if (rank.eq.0) then
+            write(*,*)
+            write(*,*) "---------------------------"
+            write(*,*) " Calculating:    XCHF_GAM3 "
+            write(*,*) "---------------------------"
+            write(*,*)
+           end if
+          end if
+
+! If -ne, calculate XCHF_GAM3 separately using XCHF-specific block info
+          if(.not.(LADDEXCH)) then
+
+           call get_mpi_range(ng3_xchf,nblocks,
+     x                        blockrank,blockstart,blockend)
+           if (blockrank.eq.(nblocks-1)) then
+            ng3block=ng3_xchf/nblocks+mod(ng3_xchf,nblocks)
+            blockend=ng3_xchf
+           else
+            ng3block=ng3_xchf/nblocks
+           end if
+           if(rank.eq.0) then
+            write(*,*) "Computing block ",blockrank," of ",nblocks,
+     x                 " total blocks"
+            write(*,*) "ng3,blockstart,blockend:",
+     x                  ng3_xchf,blockstart,blockend
+           end if
+           if (rank.eq.(nproc-1)) then
+            dimXCHF3=ng3block/nproc+mod(ng3block,nproc)
+           else
+            dimXCHF3=ng3block/nproc
+           end if
+
+           if(allocated(XCHF_GAM3)) deallocate(XCHF_GAM3)
+           allocate(XCHF_GAM3(dimXCHF3))
+
+           call RXCHF_GAM3_XCHF_MPI(nproc,rank,
+     x                              nblocks,blockrank,
+     x                              blockstart,blockend,
+     x                              ng3chk,nebfBE,npebfBE,npbf,
+     x                              ng3block,dimXCHF3,ng3prm,nat,ngtg1,
+     x                              pmass,cat,zan,bcoef1,gamma1,
+     x                              KPESTR_be,KPEEND_be,
+     x                              AMPEB2C_be,AGEBFCC_be,
+     x                              ELCEX_be,ELCAM_be,ELCBFC_be,
+     x                              AGNBFCC,NUCEX,NUCAM,NUCBFC,
+     x                              XCHF_GAM3)
+
+          end if
+
 ! Write integrals to disk (chunk calculated by each process)
+! Writes XCHF_GAM3 whether it was calculated previously (-ae) or just before (-ne)
+! with appropriate dimXCHF
           if (.not.(read_GAM3)) then
            call RXCHF_writeint_mpi(nproc,rank,dimXCHF3,18,
      x                             "XCHF_GAM3-"//istring//".ufm",
@@ -545,7 +904,7 @@ C  - assume there is enough memory for each process to store GAM2s
  
 ! Calculate INT_GAM4 (routine writes nontrivial INT_GAM4 to disk)
                call RXCHF_GAM4_MPI(nproc,rank,
-     x                             ng4chk,nebf,npbf,ngee,ng2,ng4,
+     x                             ng4chk,nebf,npbf,ngee,ng2_xchf,ng4,
      x                             dimXCHF2,dimINT4,
      x                             XCHF_GAM2s)
 
@@ -575,7 +934,7 @@ C  - assume there is enough memory for each process to store GAM2s
 
 ! Calculate INT_GAM4 and XCHF_GAM4 (routine writes nontrivial GAM4s to disk)
                call XCHF_GAM4_MPI(nproc,rank,
-     x                            ng4chk,nebf,npbf,ngee,ng2,ng4,
+     x                            ng4chk,nebf,npbf,ngee,ng2_xchf,ng4,
      x                            dimXCHF2,dimXCHF4,
      x                            XCHF_GAM2s)
 
@@ -744,6 +1103,12 @@ C Cleanup
       if(allocated(INT_GAM2ex))  deallocate(INT_GAM2ex)
       if(allocated(INT_GAM2))    deallocate(INT_GAM2)
 
+      if(allocated(ELCBFC_be))   deallocate(ELCBFC_be)
+      if(allocated(ELCAM_be))    deallocate(ELCAM_be)
+      if(allocated(AGEBFCC_be))  deallocate(AGEBFCC_be)
+      if(allocated(ELCEX_be))    deallocate(ELCEX_be)
+      if(allocated(AMPEB2C_be))  deallocate(AMPEB2C_be)
+
 C Print timing summary
       if (rank.eq.0) then
        write(*,*)
@@ -754,6 +1119,8 @@ C Print timing summary
       end if
 
 
+ 1000 format(1X,I3,I6,I5,I3,I3,F12.6,F10.6,F10.6,F10.6,F10.6)
+ 2000 format(1X,I3,I6,I5)
  3000 FORMAT(/8X,'  +--------------------------------------+',/,
      X        8X,'  |    TIMING SUMMARY FOR CALCULATION    |',/,
      x        8X,'  +--------------------------------------+',/,
