@@ -1,8 +1,9 @@
 !======================================================================
-      subroutine RXCHF_GAM4_MPI(nproc,rank,
-     x                          Nchunks,ne,np,ngee,ng2,ng4,
-     x                          ng2loc,ng4loc,
-     x                          GM2s)
+      subroutine RXCHF_GAM4_INT_MPI(nproc,rank,
+     x                              Nchunks,nebf,nebfBE,npbf,
+     x                              ngee,ng2,ng4,
+     x                              ng2loc,ng4loc,
+     x                              GM2s)
 
 ! Calculates INT_GAM4 integrals (split onto MPI procs)
 !  - requires each proc to store all XCHF_GAM2s integrals in memory
@@ -13,7 +14,7 @@
 
 ! Input Variables
       integer Nchunks
-      integer ngee,ne,np
+      integer ngee,nebf,nebfBE,npbf
       integer ng4,ng2       ! Total number of integrals
       integer ng2loc,ng4loc ! Number of integrals on this proc
       double precision GM2s(ng2loc) ! GAM2s integrals on this MPI proc
@@ -65,7 +66,7 @@
        write(*,1500) nproc,omp_get_max_threads()
       end if
 
-      if (rank.eq.0) call read_GAM_ee(ne,ngee,GAM_ee) 
+      if (rank.eq.0) call read_GAM_ee(nebf,ngee,GAM_ee) 
       call MPI_BCAST(GAM_ee,ngee,MPI_DOUBLE_PRECISION,
      x                0,MPI_COMM_WORLD,ierr)
 
@@ -125,8 +126,9 @@
         GM4_chk=0.0d+00
 
 ! Calculate starting indices to not waste loop iterating
-        call index_GAM4_unpk(ne,np,istart,ips,jps,ie1s,je1s,
-     x                       ie2s,je2s,ie3s,je3s,ie4s,je4s)
+        call RXCHF_index_GAM4_unpk(nebf,nebfBE,npbf,istart,ips,jps,
+     x                             ie1s,je1s,ie2s,je2s,
+     x                             ie3s,je3s,ie4s,je4s)
 
 ! Initialize for loop
         ip=ips
@@ -154,9 +156,9 @@
 
           end if
 
-          call update_GAM4_inds(ne,np,
-     x                          ip,jp,ie1,je1,ie2,je2,ie3,je3,ie4,je4,
-     x                          istat)
+          call RXCHF_update_GAM4_inds(nebf,nebfBE,npbf,
+     x                                ip,jp,ie1,je1,ie2,je2,
+     x                                ie3,je3,ie4,je4,istat)
           if((istat.ne.0).and.(imas.ne.iend)) then
            write(*,*) "ERROR with updating GAM4 indices"
            return
@@ -166,7 +168,7 @@
 
         end do
 
-        call RXCHF_GAM4_thread_MPI(ne,np,ngee,ng2,ng4_seg,
+        call RXCHF_GAM4_thread_MPI(nebf,nebfBE,npbf,ngee,ng2,ng4_seg,
      x                             prot_map,elec_map,
      x                             GAM_ee,TGM2s,
      x                             GM4_chk,nzcount)
@@ -193,7 +195,8 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
       if(rank.eq.0) write(*,2010)
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      write(*,2011) rank,wtime2
+      write(*,2011) rank,wtime2,ng4loc,
+     x              int_count,dble(int_count)/dble(ng4loc)*1.0d+02
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -283,22 +286,23 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
 
  2001 FORMAT( 8X,' PROCESS ',1X,I4,1X,' BLOCK ',1X,I4,1X,F10.2)
 
- 2010 FORMAT(/8X,'  INTEGRAL CALC+SYMM TIMINGS:',/,
-     x        8X,'  ---------------------------')
+ 2010 FORMAT(/8X,'   SUMMARY (TIMING, # CALC, # NONZERO, % SURV)',/,
+     x        8X,' -----------------------------------------------')
 
- 2011 FORMAT( 8X,'   PROCESS ',1X,I4,1X,F10.2)
+ 2011 FORMAT( 5X,' PROCESS ',1X,I4,1X,F10.2,2(1X,I10),1X,F6.2)
 
  9001 FORMAT(1X,1(F20.10))
 
       return
       end
 !======================================================================
-      subroutine XCHF_GAM4_MPI(nproc,rank,
-     x                         Nchunks,ne,np,ngee,ng2,ng4,
-     x                         ng2loc,ng4loc,
-     x                         GM2s)
+      subroutine RXCHF_GAM4_XCHF_MPI(nproc,rank,
+     x                               Nchunks,nebf,nebfBE,npbf,ngee,
+     x                               ng2,ng4,
+     x                               ng2loc,ng4loc,
+     x                               GM2s)
 
-! Calculates INT_GAM4 and XCHF_GAM4 integrals (split onto MPI procs)
+! Calculates XCHF_GAM4 integrals (split onto MPI procs)
 !  - requires each proc to store all XCHF_GAM2s integrals in memory
 !======================================================================
       implicit none
@@ -307,12 +311,13 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
 
 ! Input Variables
       integer Nchunks
-      integer ngee,ne,np
+      integer ngee,nebf,nebfBE,npbf
       integer ng4,ng2       ! Total number of integrals
       integer ng2loc,ng4loc ! Number of integrals on this proc
       double precision GM2s(ng2loc) ! GAM2s integrals on this MPI proc
       
 ! Local Variables
+      integer ngeeBE
       integer istat,ichunk,istart,iend,ng4_seg
       integer Loopi,imas
       integer ip,jp,ie1,je1,ie2,je2,ie3,je3,ie4,je4,i
@@ -324,16 +329,15 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
       integer(kind=4),allocatable :: prot_map(:)
       integer(kind=8),allocatable :: elec_map(:)
 
-      double precision, allocatable :: GM4_1_chk(:) ! INT  OMG4 integrals (symm)
-      double precision, allocatable :: GM4_2_chk(:) ! XCHF OMG4 integrals (symm)
+      double precision, allocatable :: GM4_chk(:) ! INT  OMG4 integrals (symm)
 
       double precision GAM_ee(ngee)
+      double precision, allocatable :: GAM_eeBE(:)
 
       integer nproc,rank
       integer mpistart,mpiend,arrstart
 
-      integer int_count,xchf_count
-      integer nzcount1,nzcount2
+      integer int_count,nzcount
 
       double precision, allocatable :: TGM2s(:),TGM4(:)
 #if MPI32
@@ -351,6 +355,11 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
 
       double precision wtime,wtime1,wtime2
 
+      ngeeBE=nebfBE*nebfBE*nebfBE*nebfBE
+      if(allocated(GAM_eeBE)) deallocate(GAM_eeBE)
+      allocate(GAM_eeBE(ngeeBE))
+      GAM_eeBE=zero
+
 ! Have each process calculate ng4/nproc integrals according to rank
 ! Have last process calculate ng4%nproc remaining integrals
       call get_mpi_range(ng4,nproc,rank,mpistart,mpiend)
@@ -361,8 +370,16 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
        write(*,1500) nproc,omp_get_max_threads()
       end if
 
-      if (rank.eq.0) call read_GAM_ee(ne,ngee,GAM_ee) 
-      call MPI_BCAST(GAM_ee,ngee,MPI_DOUBLE_PRECISION,
+      if (rank.eq.0) then
+!       write(*,*) "nebf,nebfBE,ngee,ngeeBE:",
+!     x             nebf,nebfBE,ngee,ngeeBE
+!       write(*,*) "reading gam_ee..."
+       call read_GAM_ee(nebf,ngee,GAM_ee) 
+!       write(*,*) "packing gam_ee..."
+       call RXCHF_pack_gamee(nebf,nebfBE,ngee,ngeeBE,GAM_ee,GAM_eeBE)
+!       write(*,*) "done"
+      end if
+      call MPI_BCAST(GAM_eeBE,ngeeBE,MPI_DOUBLE_PRECISION,
      x                0,MPI_COMM_WORLD,ierr)
 
 ! Form global GAM2s on each process
@@ -403,7 +420,6 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
       wtime = MPI_WTIME()
 
       int_count=0
-      xchf_count=0
 
       do ichunk=1,Nchunks
 
@@ -417,15 +433,12 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
         allocate(prot_map(ng4_seg))
         if(allocated(elec_map)) deallocate(elec_map)
         allocate(elec_map(ng4_seg))
-        if(allocated(GM4_1_chk)) deallocate(GM4_1_chk)
-        allocate(GM4_1_chk(ng4_seg))
-        if(allocated(GM4_2_chk)) deallocate(GM4_2_chk)
-        allocate(GM4_2_chk(ng4_seg))
-        GM4_1_chk=0.0d+00
-        GM4_2_chk=0.0d+00
+        if(allocated(GM4_chk)) deallocate(GM4_chk)
+        allocate(GM4_chk(ng4_seg))
+        GM4_chk=0.0d+00
 
 ! Calculate starting indices to not waste loop iterating
-        call index_GAM4_unpk(ne,np,istart,ips,jps,ie1s,je1s,
+        call index_GAM4_unpk(nebfBE,npbf,istart,ips,jps,ie1s,je1s,
      x                       ie2s,je2s,ie3s,je3s,ie4s,je4s)
 
 ! Initialize for loop
@@ -454,7 +467,7 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
 
           end if
 
-          call update_GAM4_inds(ne,np,
+          call update_GAM4_inds(nebfBE,npbf,
      x                          ip,jp,ie1,je1,ie2,je2,ie3,je3,ie4,je4,
      x                          istat)
           if((istat.ne.0).and.(imas.ne.iend)) then
@@ -466,37 +479,35 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
 
         end do
 
-        call XCHF_GAM4_thread_MPI(ne,np,ngee,ng2,ng4_seg,
+        call XCHF_GAM4_thread_MPI(nebfBE,npbf,ngeeBE,ng2,ng4_seg,
      x                            prot_map,elec_map,
-     x                            GAM_ee,TGM2s,
-     x                            GM4_1_chk,GM4_2_chk,
-     x                            nzcount1,nzcount2)
-        int_count=int_count+nzcount1
-        xchf_count=xchf_count+nzcount2
+     x                            GAM_eeBE,TGM2s,
+     x                            GM4_chk,nzcount)
+        int_count=int_count+nzcount
 
-        call XCHF_GAM4_nz_MPI(nproc,rank,
-     x                        ichunk,ng4_seg,nzcount1,nzcount2,
-     x                        prot_map,elec_map,GM4_1_chk,GM4_2_chk)
+        call RXCHF_GAM4_nz_MPI(nproc,rank,
+     x                         ichunk,ng4_seg,nzcount,prot_map,elec_map,
+     x                         GM4_chk)
 
         wtime2 = MPI_WTIME() - wtime1
         write(*,2001) rank,ichunk,wtime2
 
       end do !end loop over chunks
 
-      if(allocated(GM4_2_chk)) deallocate(GM4_2_chk)
-      if(allocated(GM4_1_chk)) deallocate(GM4_1_chk)
+      if(allocated(GM4_chk)) deallocate(GM4_chk)
       if(allocated(elec_map)) deallocate(elec_map)
       if(allocated(prot_map)) deallocate(prot_map)
 
 C Concatenate all nonzero integrals and associated indices from various chunk files and write out
       call XCHF_GAM4_concat_MPI(nproc,rank,
-     x                          Nchunks,int_count,xchf_count)
+     x                          Nchunks,int_count)
 
       wtime2 = MPI_WTIME() - wtime
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
       if(rank.eq.0) write(*,2010)
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-      write(*,2011) rank,wtime2
+      write(*,2011) rank,wtime2,ng4loc,
+     x              int_count,dble(int_count)/dble(ng4loc)*1.0d+02
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -506,6 +517,7 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
 !      end do
 
       if(allocated(TGM2s)) deallocate(TGM2s)
+      if(allocated(GAM_eeBE)) deallocate(GAM_eeBE)
 
 ! Construct global array on master process for testing
 !      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -577,17 +589,17 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
 
  2001 FORMAT( 8X,' PROCESS ',1X,I4,1X,' BLOCK ',1X,I4,1X,F10.2)
 
- 2010 FORMAT(/8X,'  INTEGRAL CALC+SYMM TIMINGS:',/,
-     x        8X,'  ---------------------------')
+ 2010 FORMAT(/8X,'   SUMMARY (TIMING, # CALC, # NONZERO, % SURV)',/,
+     x        8X,' -----------------------------------------------')
 
- 2011 FORMAT( 8X,'   PROCESS ',1X,I4,1X,F10.2)
+ 2011 FORMAT( 5X,' PROCESS ',1X,I4,1X,F10.2,2(1X,I10),1X,F6.2)
 
  9001 FORMAT(1X,1(F20.10))
 
       return
       end
 !======================================================================
-      subroutine RXCHF_GAM4_thread_MPI(ne,np,ngee,ng2,ng4,
+      subroutine RXCHF_GAM4_thread_MPI(ne,neBE,np,ngee,ng2,ng4,
      x                                 prot_map,elec_map,
      x                                 GAM_ee,GAM_2s,
      x                                 GM4_chk,nzcount)
@@ -597,6 +609,7 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
       include 'omp_lib.h'
 
       integer ne   ! Number of contracted electronic basis functions
+      integer neBE ! Number of contracted special electronic basis functions
       integer np   ! Number of nuclear basis functions
       integer ngee ! Number of contracted 2-electron integrals
       integer ng2  ! Number of contracted 3-particle integrals
@@ -633,7 +646,7 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
 !$omp parallel 
 !$ompx shared(prot_map,elec_map)
 !$ompx shared(GM4_chk)
-!$ompx shared(ne,np)
+!$ompx shared(ne,neBE,np)
 !$ompx shared(ngee)
 !$ompx shared(ng2)
 !$ompx shared(ng4)
@@ -655,7 +668,7 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
          call bitunpack(prot_map(i),elec_map(i),ip,jp,
      x                  ie1,je1,ie2,je2,ie3,je3,ie4,je4)
 
-         call RXCHFmult_symm_gam4(ne,np,ng2,ngee,GAM_2s,GAM_ee,
+         call RXCHFmult_symm_gam4(ne,neBE,np,ng2,ngee,GAM_2s,GAM_ee,
      x                  ip,jp,ie1,je1,ie2,je2,ie3,je3,ie4,je4,ans)
 
          if(abs(ans).gt.tol) then
@@ -673,8 +686,7 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
       subroutine XCHF_GAM4_thread_MPI(ne,np,ngee,ng2,ng4,
      x                                prot_map,elec_map,
      x                                GAM_ee,GAM_2s,
-     x                                GM4_1_chk,GM4_2_chk,
-     x                                nzcount1,nzcount2)
+     x                                GM4_chk,nzcount)
 !
 !======================================================================
       implicit none
@@ -691,10 +703,8 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
       double precision GAM_ee(ngee)   ! Array storage of 2e-integrals
       double precision GAM_2s(ng2)    ! Array storage of 3-part overlaps
 
-      double precision GM4_1_chk(ng4) ! INT_GAM4 integrals
-      double precision GM4_2_chk(ng4) ! XCHF_GAM4 integrals
-      integer          nzcount1       ! # of nontrivial INT_GAM4 integrals
-      integer          nzcount2       ! # of nontrivial XCHF_GAM4 integrals
+      double precision GM4_chk(ng4)   ! XCHF_GAM4 integrals
+      integer          nzcount        ! # of nontrivial XCHF_GAM4 integrals
 
 ! Local variables
       integer i
@@ -716,12 +726,11 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
       tol=1.0d-15
       four=4.0d+00
 
-      nzcount1=0
-      nzcount2=0
+      nzcount=0
 
 !$omp parallel 
 !$ompx shared(prot_map,elec_map)
-!$ompx shared(GM4_1_chk,GM4_2_chk)
+!$ompx shared(GM4_chk)
 !$ompx shared(ne,np)
 !$ompx shared(ngee)
 !$ompx shared(ng2)
@@ -737,8 +746,7 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
 !$ompx private(ie3,je3) 
 !$ompx private(ie4,je4) 
 !$ompx private(ans)
-!$ompx reduction(+:nzcount1)
-!$ompx reduction(+:nzcount2)
+!$ompx reduction(+:nzcount)
 
 !$omp do SCHEDULE(RUNTIME)
       do i=1,ng4
@@ -746,21 +754,13 @@ C Concatenate all nonzero integrals and associated indices from various chunk fi
          call bitunpack(prot_map(i),elec_map(i),ip,jp,
      x                  ie1,je1,ie2,je2,ie3,je3,ie4,je4)
 
-         call RXCHFmult_symm_gam4(ne,np,ng2,ngee,GAM_2s,GAM_ee,
-     x                  ip,jp,ie1,je1,ie2,je2,ie3,je3,ie4,je4,ans)
-
-         if(abs(ans).gt.tol) then
-          nzcount1=nzcount1+1
-          GM4_1_chk(i)=ans
-         end if
-
          call symm_gam4(ne,np,ng2,ngee,GAM_2s,GAM_ee,
      x                  ip,jp,ie1,je1,ie2,je2,ie3,je3,ie4,je4,ans)
 
          ans=ans/(four*four)
          if(abs(ans).gt.tol) then
-          nzcount2=nzcount2+1
-          GM4_2_chk(i)=ans
+          nzcount=nzcount+1
+          GM4_chk(i)=ans
          end if
 
       end do
@@ -842,100 +842,6 @@ C Write to file
       return
       end 
 !======================================================================
-      subroutine XCHF_GAM4_nz_MPI(nproc,rank,
-     x                            ichunk,ng4,ng4_nz1,ng4_nz2,
-     x                            protinds,elecinds,int_all,xchf_all)
-!
-! Packs all nonzero integrals from int_all,xchf_all into local arrays
-! int_nz,xchf_nz eliminating the zero entries and determines
-! prot/elec indices in pinds,einds
-! The three local arrays are written to disk
-!
-! Input:
-!   ints_all(ng4)   : Array of whole chunk size of integrals
-!
-! Output:
-!   [INT,XCHF]_GAM4_[rank]_[chunk].ufm : unformatted file with writes
-!               1) # nonzero integrals for this chunk
-!               2) pinds array as one write
-!               3) einds array as one write
-!               4) ints_nz array as one write
-!======================================================================
-      implicit none
-
-! Input variables
-      integer nproc,rank
-      integer ichunk                  ! Index of chunk being processed
-      integer ng4                     ! Dimension of chunk of contracted 5-particle integrals
-      integer ng4_nz1                 ! Number of nonzero INT integrals calc by MPI process
-      integer ng4_nz2                 ! Number of nonzero XCHF integrals calc by MPI process
-      integer(kind=4)  protinds(ng4)  ! All proton indices (packed)
-      integer(kind=8)  elecinds(ng4)  ! All electron indices (packed)
-      double precision int_all(ng4)   ! All INT integrals
-      double precision xchf_all(ng4)  ! All XCHF integrals
-
-! Local variables
-      integer i
-      integer currind1,currind2
-
-      integer(kind=4)  pinds1(ng4_nz1)   ! Nonzero proton indices for INT integrals (packed)
-      integer(kind=8)  einds1(ng4_nz1)   ! Nonzero electron indices for INT integrals (packed)
-      double precision int_nz(ng4_nz1)   ! Nonzero INT integrals
-
-      integer(kind=4)  pinds2(ng4_nz2)   ! Nonzero proton indices for XCHF integrals (packed)
-      integer(kind=8)  einds2(ng4_nz2)   ! Nonzero electron indices for XCHF integrals (packed)
-      double precision xchf_nz(ng4_nz2)  ! Nonzero XCHF integrals
-
-      character*4 istring,jstring      ! File I/O variables
-
-      double precision tol
-
-      tol=1.0d-15
-
-C Variables for file I/O
-      write(istring,'(I4.4)') rank
-      write(jstring,'(I4.4)') ichunk
-
-C Pack nonzero integrals and corresponding indices
-      currind1=0
-      currind2=0
-      do i=1,ng4
-        if(abs(int_all(i)).gt.tol) then
-         currind1=currind1+1
-         pinds1(currind1)=protinds(i)
-         einds1(currind1)=elecinds(i)
-         int_nz(currind1)=int_all(i)
-        end if
-        if(abs(xchf_all(i)).gt.tol) then
-         currind2=currind2+1
-         pinds2(currind2)=protinds(i)
-         einds2(currind2)=elecinds(i)
-         xchf_nz(currind2)=xchf_all(i)
-        end if
-      end do
-
-      if(currind1.ne.ng4_nz1) then
-       write(*,*) "ERROR in XCHF_GAM4_nz_MPI:",rank
-       write(*,*) "Found diff # of INT nz integrals on second pass:",
-     x            currind1,ng4_nz1
-      end if
-      if(currind2.ne.ng4_nz2) then
-       write(*,*) "ERROR in XCHF_GAM4_nz_MPI:",rank
-       write(*,*) "Found diff # of XCHF nz integrals on second pass:",
-     x            currind2,ng4_nz2
-      end if
-
-C Write to files
-      call writebitint(nproc,rank,ng4_nz1,20,
-     x                 "GAM4_1_"//istring//"_"//jstring//".ufm",
-     x                 pinds1,einds1,int_nz)
-      call writebitint(nproc,rank,ng4_nz2,20,
-     x                 "GAM4_2_"//istring//"_"//jstring//".ufm",
-     x                 pinds2,einds2,xchf_nz)
-
-      return
-      end 
-!======================================================================
       subroutine RXCHF_GAM4_concat_MPI(nproc,rank,
      x                                 nchunk,nz_tot)
 !
@@ -992,79 +898,117 @@ C Write to file
       end 
 !======================================================================
       subroutine XCHF_GAM4_concat_MPI(nproc,rank,
-     x                                nchunk,int_nz_tot,xchf_nz_tot)
+     x                                nchunk,nz_tot)
 !
 !======================================================================
       implicit none
 
 ! Input variables
       integer nproc,rank
-      integer nchunk      ! Number of chunks written
-      integer int_nz_tot  ! Number of total INT nonzero integrals
-      integer xchf_nz_tot ! Number of total XCHF nonzero integrals
-
-      integer     unitno               !
-      character*4 istring,jstring      ! File I/O variables
+      integer nchunk     ! Number of chunks written
+      integer nz_tot     ! Number of total nonzero integrals
 
 ! Local variables
       integer i
-      integer intind,xchfind
-      integer int_nz_chk      ! Number of nonzero INT integrals for given chunk
-      integer xchf_nz_chk     ! Number of nonzero XCHF integrals for given chunk
+      integer currind
+      integer nz_chk     ! Number of nonzero integrals for given chunk
 
-      integer(kind=4)  int_pinds(int_nz_tot)   ! All nonzero INT proton indices (packed)
-      integer(kind=8)  int_einds(int_nz_tot)   ! All nonzero INT electron indices (packed)
-      double precision int_nz(int_nz_tot)      ! All nonzero INT integrals
+      integer(kind=4)  pinds(nz_tot)   ! All nonzero proton indices (packed)
+      integer(kind=8)  einds(nz_tot)   ! All nonzero electron indices (packed)
+      double precision ints_nz(nz_tot) ! All nonzero integrals
 
-      integer(kind=4)  xchf_pinds(xchf_nz_tot)   ! All nonzero XCHF proton indices (packed)
-      integer(kind=8)  xchf_einds(xchf_nz_tot)   ! All nonzero XCHF electron indices (packed)
-      double precision xchf_nz(xchf_nz_tot)      ! All nonzero XCHF integrals
+      integer     unitno               !
+      character*4 istring,jstring      ! File I/O variables
 
 C Variables for file I/O
       write(istring,'(I4.4)') rank
       unitno=200+rank
 
-      intind=1
-      xchfind=1
+      currind=1
 
       do i=1,Nchunk
 
         write(jstring,'(I4.4)') i
 
-C Read INT integrals from this chunk
-        open(unit=unitno,file="GAM4_1_"//istring//"_"//jstring//".ufm",
+C Read integrals from this chunk
+        open(unit=unitno,file="GAM4_"//istring//"_"//jstring//".ufm",
      x       form="unformatted")
-        read(unitno) int_nz_chk
-        call RXCHF_readbit_mpi(nproc,rank,int_nz_chk,unitno,
-     x                         int_pinds(intind),int_einds(intind),
-     x                         int_nz(intind))
-        close(unitno,status="delete")
-
-C Read XCHF integrals from this chunk
-        open(unit=unitno,file="GAM4_2_"//istring//"_"//jstring//".ufm",
-     x       form="unformatted")
-        read(unitno) xchf_nz_chk
-        call RXCHF_readbit_mpi(nproc,rank,xchf_nz_chk,unitno,
-     x                         xchf_pinds(xchfind),xchf_einds(xchfind),
-     x                         xchf_nz(xchfind))
+        read(unitno) nz_chk
+        call RXCHF_readbit_mpi(nproc,rank,nz_chk,unitno,
+     x                         pinds(currind),einds(currind),
+     x                         ints_nz(currind))
         close(unitno,status="delete")
 
 C Update index for next read
-        intind=intind+int_nz_chk
-        xchfind=xchfind+xchf_nz_chk
+        currind=currind+nz_chk
 
       end do
 
-C Write to files
-      call writebitint(nproc,rank,int_nz_tot,17,
-     x                 "INT_GAM4-"//istring//".ufm",
-     x                 int_pinds,int_einds,int_nz)
-      call writebitint(nproc,rank,xchf_nz_tot,18,
+C Write to file
+      call writebitint(nproc,rank,nz_tot,18,
      x                 "XCHF_GAM4-"//istring//".ufm",
-     x                 xchf_pinds,xchf_einds,xchf_nz)
+     x                 pinds,einds,ints_nz)
 
       return
       end 
+!======================================================================
+      subroutine RXCHF_index_GAM4_unpk(ne,neBE,np,ipk,ip,jp,ie1,je1,
+     x                                 ie2,je2,ie3,je3,ie4,je4)
+!
+! Calculates all proton and electron indices corresponding to some
+! flattened index [ipk] (essentially inverse of RXCHF_index_GAM_4PK)
+!======================================================================
+      implicit none
+
+! Input variables
+      integer ne        ! Number of total electron basis functions
+      integer neBE      ! Number of special electron basis functions
+      integer np        ! Number of nuclear  basis functions
+      integer ipk       ! Starting flattened index
+
+! Output variables
+      integer ip,jp     ! Starting proton indices
+      integer ie1,je1   ! Starting electron indices
+      integer ie2,je2   !
+      integer ie3,je3   !
+      integer ie4,je4   !
+
+! Local variables
+      integer i
+
+      i=ipk-1
+
+      je4=1+mod(i,neBE)
+      i=i/neBE
+
+      ie4=1+mod(i,neBE)
+      i=i/neBE
+
+      je3=1+mod(i,neBE)
+      i=i/neBE
+
+      ie3=1+mod(i,neBE)
+      i=i/neBE
+
+      je2=1+mod(i,neBE)
+      i=i/neBE
+
+      ie2=1+mod(i,neBE)
+      i=i/neBE
+
+      je1=1+mod(i,ne)
+      i=i/ne
+
+      ie1=1+mod(i,ne)
+      i=i/ne
+
+      jp=1+mod(i,np)
+      i=i/np
+
+      ip=1+i
+
+      return
+      end
 !======================================================================
       subroutine index_GAM4_unpk(ne,np,ipk,ip,jp,ie1,je1,
      x                           ie2,je2,ie3,je3,ie4,je4)
@@ -1119,6 +1063,104 @@ C Write to files
       i=i/np
 
       ip=1+i
+
+      return
+      end
+!======================================================================
+      subroutine RXCHF_update_GAM4_inds(ne,neBE,np,
+     x                                  ip,jp,ie1,je1,ie2,je2,
+     x                                  ie3,je3,ie4,je4,ierr)
+!
+! Increments GAM4 indices for restricted basis set packing
+!======================================================================
+      implicit none
+
+! Input variables
+      integer ne        ! Number of electron basis functions
+      integer neBE      ! Number of special electron basis functions
+      integer np        ! Number of nuclear  basis functions
+
+! Input/Output variables
+      integer ip,jp     ! Starting proton indices
+      integer ie1,je1   ! Starting electron indices
+      integer ie2,je2   !
+      integer ie3,je3   !
+      integer ie4,je4   !
+
+! Output variables
+      integer ierr      ! =0 if clean exit; =1 if overflow
+
+      ierr=0
+
+      if (je4.lt.neBE) then
+       je4=je4+1
+      else
+       je4=1
+
+       if (ie4.lt.neBE) then
+        ie4=ie4+1
+       else
+        ie4=1
+
+        if (je3.lt.neBE) then
+         je3=je3+1
+        else
+         je3=1
+
+         if (ie3.lt.neBE) then
+          ie3=ie3+1
+         else
+          ie3=1
+
+          if (je2.lt.neBE) then
+           je2=je2+1
+          else
+           je2=1
+          
+           if (ie2.lt.neBE) then
+            ie2=ie2+1
+           else
+            ie2=1
+
+            if (je1.lt.ne) then
+             je1=je1+1
+            else
+             je1=1
+           
+             if (ie1.lt.ne) then
+              ie1=ie1+1
+             else
+              ie1=1
+
+              if (jp.lt.np) then
+               jp=jp+1
+              else
+               jp=1
+           
+               if (ip.lt.np) then
+                ip=ip+1
+               else
+                ip=1
+                ierr=1
+               end if
+
+              end if
+
+             end if
+
+            end if
+
+           end if
+
+          end if
+
+         end if
+
+        end if
+
+       end if
+
+      end if
 
       return
       end
@@ -1219,5 +1261,41 @@ C Write to files
 
       return
       end
-      
+!======================================================================
+      subroutine RXCHF_pack_gamee(nebf,nebfBE,ngee,ngeeBE,GAM,GAMBE)
+!
+! Packs two electron integrals (nebf^4) into those for special electrons
+! (nebfBE^4) from GAM -> GAMBE
+!======================================================================
+      implicit none
+
+! Input variables
+      integer nebf                   ! Number of all electron basis functions
+      integer nebfBE                 ! Number of restricted electron basis functions
+      integer ngee                   ! Number of 2-e integrals for all electron basis
+      integer ngeeBE                 ! Number of 2-e integrals for restricted electron basis
+      double precision GAM(ngee)     ! 2-e integrals for all electron basis
+
+! Output variables
+      double precision GAMBE(ngeeBE) ! 2-e integrals for restricted electron basis
+
+! Local variables
+      integer ie1,je1
+      integer ie2,je2
+      integer iold,inew
+
+      do ie1=1,nebfBE
+      do je1=1,nebfBE
+        do ie2=1,nebfBE
+        do je2=1,nebfBE
+          call pack_4D(nebf,nebf,nebf,je2,ie2,je1,ie1,iold)
+          call pack_4D(nebfBE,nebfBE,nebfBE,je2,ie2,je1,ie1,inew)
+          GAMBE(inew)=GAM(iold)
+        end do
+        end do
+      end do
+      end do
+
+      return
+      end
 

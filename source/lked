@@ -8,7 +8,6 @@ fi
 
 EXEDIR=../bin
 EXE=$1
-LIBDIR=/opt/intel/Compiler/11.1/075/mkl/lib/em64t
 
 if [ -e $EXEDIR/$EXE.exe ] ; then
   echo "Executable $EXE.exe exists in ../bin. Exiting..."
@@ -34,11 +33,13 @@ OPT='-O2 -s default64 -Ktrap=fp'                                         # Cray
 #F77=mpif77
 #OPT='-lgomp -fopenmp -O2 -L/usr/local/lib -llapack -lblas  -I/usr/local/include -I/usr/local/lib/gcc/x86_64-apple-darwin12.2.0/4.8.0/finclude'
 
+# UIUC cluster Intel/MKL
+#LIBDIR=/opt/intel/Compiler/11.1/075/mkl/lib/em64t
+#LIB="-L$LIBDIR -Wl,--start-group $LIBDIR/libmkl_intel_lp64.a $LIBDIR/libmkl_intel_thread.a $LIBDIR/libmkl_core.a -Wl,--end-group -liomp5 -lpthread -lm"
+
 # Libraries
 #LIB='-L/opt/acml/5.3.0/open64_64_int64/lib -lm -lacml' # UIUC cluster Open64/ACML
 LIB='-L$CRAY_LIBSCI_PREFIX_DIR/lib -lsci_cray'         # Blue Waters serial Cray libsci
-
-LIB="-L$LIBDIR -Wl,--start-group $LIBDIR/libmkl_intel_lp64.a $LIBDIR/libmkl_intel_thread.a $LIBDIR/libmkl_core.a -Wl,--end-group -liomp5 -lpthread -lm"
 
 FILS='../object/*.o'
 

@@ -186,7 +186,7 @@
       end do !end loop over chunks
 !-----CHOP-UP-THE-CALCULATION-OF-GAM_2--------------------------------)
 
-      if(allocated(loop_map)) deallocate(loop_map)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      if(allocated(loop_map)) deallocate(loop_map)
 
       wtime2 = MPI_WTIME() - wtime
 
@@ -225,10 +225,10 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
       wtime = MPI_WTIME() 
 
       if (rank.eq.0) write(*,*) "Symmetrizing GM2_1"
-      call gam2_symm(nproc,rank,nebf,npbf,ng2_xchf,ng2loc_xchf,GM2_1)
+      call gam2_symm(nproc,rank,nebfBE,npbf,ng2_xchf,ng2loc_xchf,GM2_1)
 
       if (rank.eq.0) write(*,*) "Symmetrizing GM2s"
-      call gam2_symm(nproc,rank,nebf,npbf,ng2_xchf,ng2loc_xchf,GM2s)
+      call gam2_symm(nproc,rank,nebfBE,npbf,ng2_xchf,ng2loc_xchf,GM2s)
 
       wtime2 = MPI_WTIME() - wtime
 
@@ -753,7 +753,6 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
       double precision wtime
 !---OPENMP-RELATED-VARIABLES-----)
 
-
 !--------------%%%--PARALLEL--LOOPS--%%%-------------------------------(
 !$omp parallel 
 !$ompx shared(istart,iend)
@@ -973,111 +972,127 @@ C Symmetrized integrals in GM2sICR (XCHF integrals)
 
 ! Local Variables
       integer i,j
-      integer nints,indshift
-      integer currstart,currend
-      integer startrank,endrank
+      integer ifull,irestr,ia
+      integer ip,jp,ie1,je1,ie2,je2
       integer mpistart_xchf,mpiend_xchf ! Indices wrt ng2_xchf/ng2loc_xchf
 
 #if MPI32
-      integer*4 ierr
+      integer*4 tag1,tag2,reqscount,ierr
+      integer*4 sendrank,recvrank,rank_
+      integer*4 reqs(4*ng2_xchf)
 #else
-      integer ierr
+      integer tag1,tag2,reqscount,ierr
+      integer sendrank,recvrank,rank_
+      integer reqs(4*ng2_xchf)
 #endif
+
+#if MPI32
+      rank_=int(rank,kind=4)
+#else
+      rank_=rank
+#endif
+
+      GM2_1=0.0d+00
+      GM2s=0.0d+00
 
 ! Get target start/end indices
       call get_mpi_range(ng2_xchf,nproc,rank,mpistart_xchf,mpiend_xchf)
       if(rank.eq.(nproc-1)) mpiend_xchf=ng2_xchf
 
-! Iterate over each chunk of target integrals
-      do i=0,nproc-1
+      do ip=1,npbf
+      do jp=1,npbf
 
-! Broadcast start/end indices of this chunk
-        if(rank.eq.i) then
-         currstart=mpistart_xchf
-         currend=mpiend_xchf
-        end if
-        call MPI_BCAST(currstart,1,MPI_INTEGER8,i,MPI_COMM_WORLD,ierr)
-        call MPI_BCAST(currend,1,MPI_INTEGER8,i,MPI_COMM_WORLD,ierr)
+        do ie2=1,nebfBE
+        do je2=1,nebfBE
 
-! Get start/end rank of processes with integrals for this chunk
-        call get_mpi_proc(ng2_int,nproc,currstart,startrank)
-        call get_mpi_proc(ng2_int,nproc,currend,endrank)
+          reqscount=0
 
-! If some part of integrals are on this process, pass
-        if (.not.((mpistart_int.gt.mpiend_xchf).or.
-     x            (mpiend_int.lt.mpistart_xchf))) then
+          do ie1=1,nebfBE
+          do je1=1,nebfBE
 
-         if (mpistart_int.le.mpistart_xchf) then
-          nints=min(mpiend_int,mpiend_xchf)-mpistart_xchf+1
-          indshift=0
+! Packed index on full set
+            call RXCHFmult_GAM_2PK(nebf,nebfBE,npbf,
+     x                             ip,jp,ie1,je1,ie2,je2,ifull)
 
-          if(rank.eq.i) then
-           do j=1,nints
-             GM2_1(indshift+j)=XGM2_1(mpistart_xchf-mpistart_int+j)
-             GM2s(indshift+j)=XGM2s(mpistart_xchf-mpistart_int+j)
-           end do
-          else
-           call MPI_SEND(nints,1,MPI_INTEGER8,i,rank,
-     x                   MPI_COMM_WORLD,ierr)
-           call MPI_SEND(indshift,1,MPI_INTEGER8,i,rank+nproc,
-     x                   MPI_COMM_WORLD,ierr)
-           call MPI_SEND(XGM2_1(mpistart_xchf-mpistart_int+1),nints,
-     x                   MPI_DOUBLE_PRECISION,
-     x                   i,rank+2*nproc,
-     x                   MPI_COMM_WORLD,ierr)
-           call MPI_SEND(XGM2s(mpistart_xchf-mpistart_int+1),nints,
-     x                   MPI_DOUBLE_PRECISION,
-     x                   i,rank+3*nproc,
-     x                   MPI_COMM_WORLD,ierr)
-          end if
+! Packed index on restricted set
+            call index_GAM_2PK(nebfBE,npbf,
+     x                         ip,jp,ie1,je1,ie2,je2,irestr)
 
-         else if (mpiend_int.ge.mpiend_xchf) then ! if we branch here, mpistart_int > mpistart_xchf
-          nints=mpiend_xchf-mpistart_int+1
-          indshift=mpistart_int-mpistart_xchf
+! Restricted index on this proc => must receive
+            if((irestr.ge.mpistart_xchf).and.
+     x         (irestr.le.mpiend_xchf)) then
 
-          if(rank.eq.i) then
-           do j=1,nints
-             GM2_1(indshift+j)=XGM2_1(j)
-             GM2s(indshift+j)=XGM2s(j)
-           end do
-          else
-           call MPI_SEND(nints,1,MPI_INTEGER8,i,rank,
-     x                   MPI_COMM_WORLD,ierr)
-           call MPI_SEND(indshift,1,MPI_INTEGER8,i,rank+nproc,
-     x                   MPI_COMM_WORLD,ierr)
-           call MPI_SEND(XGM2_1(1),nints,
-     x                   MPI_DOUBLE_PRECISION,
-     x                   i,rank+2*nproc,
-     x                   MPI_COMM_WORLD,ierr)
-           call MPI_SEND(XGM2s(1),nints,
-     x                   MPI_DOUBLE_PRECISION,
-     x                   i,rank+3*nproc,
-     x                   MPI_COMM_WORLD,ierr)
-          end if
+             call get_mpi_proc(ng2_int,nproc,ifull,recvrank)
 
-         end if
+             if (recvrank.eq.rank_) then
+              GM2_1(irestr-mpistart_xchf+1)=XGM2_1(ifull-mpistart_int+1)
+              GM2s(irestr-mpistart_xchf+1)=XGM2s(ifull-mpistart_int+1)
+             else
+              call pack_2D(nebf,je1,ie1,ia)
+#if MPI32
+              tag1=int(ia,kind=4)
+              tag2=int(ia+nebfBE*nebfBE,kind=4)
+#else
+              tag1=ia
+              tag2=ia+nebfBE*nebfBE
+#endif
+              reqscount=reqscount+1
+              call MPI_IRECV(GM2_1(irestr-mpistart_xchf+1),1,
+     x                       MPI_DOUBLE_PRECISION,recvrank,tag1,
+     x                       MPI_COMM_WORLD,reqs(reqscount),ierr)
+              reqscount=reqscount+1
+              call MPI_IRECV(GM2s(irestr-mpistart_xchf+1),1,
+     x                       MPI_DOUBLE_PRECISION,recvrank,tag2,
+     x                       MPI_COMM_WORLD,reqs(reqscount),ierr)
+             end if
 
-         if(rank.eq.i) then
-          do j=startrank,endrank
-            if(j.ne.i) then
-             call MPI_RECV(nints,1,MPI_INTEGER8,j,j,
-     x                     MPI_COMM_WORLD,ierr)
-             call MPI_RECV(indshift,1,MPI_INTEGER8,j,j+nproc,
-     x                     MPI_COMM_WORLD,ierr)
-             call MPI_RECV(GM2_1(indshift+1),nints,
-     x                     MPI_DOUBLE_PRECISION,
-     x                     j,j+2*nproc,
-     x                     MPI_COMM_WORLD,ierr)
-             call MPI_RECV(GM2s(indshift+1),nints,
-     x                     MPI_DOUBLE_PRECISION,
-     x                     j,j+3*nproc,
-     x                     MPI_COMM_WORLD,ierr)
             end if
+
+! Full index on this proc => must send
+            if ((ifull.ge.mpistart_int).and.
+     x          (ifull.le.mpiend_int)) then
+
+             call get_mpi_proc(ng2_xchf,nproc,irestr,sendrank)
+
+             if (sendrank.ne.rank_) then
+              call pack_2D(nebf,je1,ie1,ia)
+#if MPI32
+              tag1=int(ia,kind=4)
+              tag2=int(ia+nebfBE*nebfBE,kind=4)
+#else
+              tag1=ia
+              tag2=ia+nebfBE*nebfBE
+#endif
+              reqscount=reqscount+1
+              call MPI_ISEND(XGM2_1(ifull-mpistart_int+1),1,
+     x                       MPI_DOUBLE_PRECISION,sendrank,tag1,
+     x                       MPI_COMM_WORLD,reqs(reqscount),ierr)
+              reqscount=reqscount+1
+              call MPI_ISEND(XGM2s(ifull-mpistart_int+1),1,
+     x                       MPI_DOUBLE_PRECISION,sendrank,tag2,
+     x                       MPI_COMM_WORLD,reqs(reqscount),ierr)
+             end if
+
+            end if
+
           end do
-         end if
+          end do
 
-        end if
+          if(reqscount.eq.0) then
+           reqscount=1
+           reqs(1)=MPI_REQUEST_NULL
+          end if
+          call MPI_WAITALL(reqscount,reqs(1:reqscount),
+     x                     MPI_STATUSES_IGNORE,ierr)
+          if (ierr.ne.0) write(*,*) "Trouble with gam2_pass waitall"
+C          if(reqscount.ne.1) then
+C           write(*,*) "Success with waitall:",rank,ip,jp,reqscount
+C          end if
 
+        end do
+        end do
+
+      end do
       end do
 
       return

@@ -52,6 +52,7 @@ C Input variables
       integer ng1,ng2,ng3,ng4,ngee     ! Numbers of integrals (contracted)
       integer ng2_int,ng2_xchf
       integer ng3_int,ng3_xchf
+      integer ng4_int,ng4_xchf
       integer ng1prm,ng2prm,ng3prm     ! Numbers of integrals (primitive)
       integer ng2chk,ng3chk,ng4chk     ! Number of chunks to split integral calculations
       integer ELCAM(npebf,3)           ! Angular mom for electrons
@@ -381,6 +382,10 @@ C Broadcast array data
       call MPI_BCAST(KPESTR,nebf_,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(KPEEND,nebf_,MPI_INTEGER8,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(KPESTR_be,nebfBE_,MPI_INTEGER8,
+     x               0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(KPEEND_be,nebfBE_,MPI_INTEGER8,
      x               0,MPI_COMM_WORLD,ierr)
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -883,60 +888,73 @@ C  - calculate interaction five-particle integrals and store in memory
 C     => INT_GAM4
 C  - assume there is enough memory for each process to store GAM2s
 
+! Calculate total number of four-particle integrals
+            ng4_int=nebf*nebf*nebfBE*nebfBE*
+     x              nebfBE*nebfBE*nebfBE*nebfBE*npbf*npbf
+            ng4_xchf=nebfBE*nebfBE*nebfBE*nebfBE*
+     x               nebfBE*nebfBE*nebfBE*nebfBE*npbf*npbf
+
             if (.not.(read_GAM4)) then
 
-              if(nbe.le.3) then     ! Otherwise calc INT_GAM4 and XCHF_GAM4 together
-
-               if (rank.eq.0) then
-                write(*,*)
-                write(*,*) "---------------------------"
-                write(*,*) " Calculating:     INT_GAM4 "
-                write(*,*) "---------------------------"
-                write(*,*)
-               end if
+              if (rank.eq.0) then
+               write(*,*)
+               write(*,*) "---------------------------"
+               write(*,*) " Calculating:     INT_GAM4 "
+               write(*,*) "---------------------------"
+               write(*,*)
+              end if
 
 ! Dimension of all INT_GAM4 integrals
-               if (rank.eq.(nproc-1)) then
-                dimINT4=ng4/nproc+mod(ng4,nproc)
-               else
-                dimINT4=ng4/nproc
-               end if
+              if (rank.eq.(nproc-1)) then
+               dimINT4=ng4_int/nproc+mod(ng4_int,nproc)
+              else
+               dimINT4=ng4_int/nproc
+              end if
  
 ! Calculate INT_GAM4 (routine writes nontrivial INT_GAM4 to disk)
-               call RXCHF_GAM4_MPI(nproc,rank,
-     x                             ng4chk,nebf,npbf,ngee,ng2_xchf,ng4,
-     x                             dimXCHF2,dimINT4,
-     x                             XCHF_GAM2s)
+              call RXCHF_GAM4_INT_MPI(nproc,rank,
+     x                                ng4chk,nebf,nebfBE,npbf,ngee,
+     x                                ng2_xchf,ng4_int,
+     x                                dimXCHF2,dimINT4,
+     x                                XCHF_GAM2s)
+
+              if(nbe.le.3) then
+
+                if(allocated(xchf_pinds)) deallocate(xchf_pinds)
+                if(allocated(xchf_einds)) deallocate(xchf_einds)
+                if(allocated(XCHF_GAM4)) deallocate(XCHF_GAM4)
+                allocate(xchf_pinds(dimXCHF4))
+                allocate(xchf_einds(dimXCHF4))
+                allocate(XCHF_GAM4(dimXCHF4))
 
               else
 
 C nbe >= 4
-C  - calculate INT and XCHF five-particle integrals and store in memory
-C     => INT_GAM4
+C  - calculate XCHF five-particle integrals and store in memory
 C     => XCHF_GAM4
 C  - assume there is enough memory for each process to store GAM2s
 
                if (rank.eq.0) then
                 write(*,*)
                 write(*,*) "---------------------------"
-                write(*,*) " Calculating:     INT_GAM4 "
-                write(*,*) "                 XCHF_GAM4 "
+                write(*,*) " Calculating:    XCHF_GAM4 "
                 write(*,*) "---------------------------"
                 write(*,*)
                end if
 
-! Dimension of all INT_GAM4 and XCHF_GAM4 integrals
+! Dimension of all XCHF_GAM4 integrals
                if (rank.eq.(nproc-1)) then
-                dimXCHF4=ng4/nproc+mod(ng4,nproc)
+                dimXCHF4=ng4_xchf/nproc+mod(ng4_xchf,nproc)
                else
-                dimXCHF4=ng4/nproc
+                dimXCHF4=ng4_xchf/nproc
                end if
 
-! Calculate INT_GAM4 and XCHF_GAM4 (routine writes nontrivial GAM4s to disk)
-               call XCHF_GAM4_MPI(nproc,rank,
-     x                            ng4chk,nebf,npbf,ngee,ng2_xchf,ng4,
-     x                            dimXCHF2,dimXCHF4,
-     x                            XCHF_GAM2s)
+! Calculate XCHF_GAM4 (routine writes nontrivial GAM4s to disk)
+               call RXCHF_GAM4_XCHF_MPI(nproc,rank,
+     x                                  ng4chk,nebf,nebfBE,npbf,ngee,
+     x                                  ng2_xchf,ng4_xchf,
+     x                                  dimXCHF2,dimXCHF4,
+     x                                  XCHF_GAM2s)
 
               end if ! nbe >= 3
 
@@ -1035,56 +1053,56 @@ C Kick-off SCF
       nebflt=nebf*(nebf+1)/2
       npbflt=npbf*(npbf+1)/2
 
-      if ((read_GAM3).or.(nblocks.eq.1)) then
-       if(LRXCUHF) then
-        call RXCHF_uscf_MPI(nproc,rank,
-     x                      nelec,nae,nae_alp,nae_beta,
-     x                      nbe,nebflt,npbflt,nucst,
-     x                      npebf,nebf,nebf2,npbf,npbf2,ngee,
-     x                      ngtg1,ng1,ng2,ng3,ng4,
-     x                      NG2CHK,NG3CHK,NG4CHK,
-     x                      read_CE,read_CP,
-     x                      LG4DSCF,LG3DSCF,LG2DSCF,
-     x                      LSOSCF,LDIIS,LSORXCHF,
-     x                      OCBSETYP,LDBG,LADDEXCH,
-     x                      ng2prm,ng3prm,nat,pmass,cat,zan,
-     x                      bcoef1,gamma1,
-     x                      KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                      LG2IC,dimXCHF2,dimINT2,dimINT2ex,
-     x                      XCHF_GAM2,INT_GAM2,
-     x                      INT_GAM2ex,XCHF_GAM2s,
-     x                      LG3IC,dimXCHF3,dimINT3,dimINT3ex,
-     x                      XCHF_GAM3,INT_GAM3,
-     x                      INT_GAM3ex1,INT_GAM3ex2,
-     x                      LG4IC,dimXCHF4,dimINT4,
-     x                      int_pinds,int_einds,INT_GAM4,
-     x                      xchf_pinds,xchf_einds,XCHF_GAM4)
-       else
-        call RXCHF_scf_MPI(nproc,rank,
-     x                     nelec,nae,nbe,nebflt,npbflt,nucst,
-     x                     npebf,nebf,nebf2,npbf,npbf2,ngee,
-     x                     ngtg1,ng1,ng2,ng3,ng4,
-     x                     NG2CHK,NG3CHK,NG4CHK,
-     x                     read_CE,read_CP,
-     x                     LG4DSCF,LG3DSCF,LG2DSCF,
-     x                     LSOSCF,LDIIS,LSORXCHF,
-     x                     OCBSETYP,LDBG,LADDEXCH,
-     x                     ng2prm,ng3prm,nat,pmass,cat,zan,
-     x                     bcoef1,gamma1,
-     x                     KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                     ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                     LG2IC,dimXCHF2,dimINT2,dimINT2ex,
-     x                     XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
-     x                     LG3IC,dimXCHF3,dimINT3,dimINT3ex,
-     x                     XCHF_GAM3,INT_GAM3,
-     x                     INT_GAM3ex1,INT_GAM3ex2,
-     x                     LG4IC,dimXCHF4,dimINT4,
-     x                     int_pinds,int_einds,INT_GAM4,
-     x                     xchf_pinds,xchf_einds,XCHF_GAM4)
-       end if
-      end if
-
+C      if ((read_GAM3).or.(nblocks.eq.1)) then
+C       if(LRXCUHF) then
+C        call RXCHF_uscf_MPI(nproc,rank,
+C     x                      nelec,nae,nae_alp,nae_beta,
+C     x                      nbe,nebflt,npbflt,nucst,
+C     x                      npebf,nebf,nebf2,npbf,npbf2,ngee,
+C     x                      ngtg1,ng1,ng2,ng3,ng4,
+C     x                      NG2CHK,NG3CHK,NG4CHK,
+C     x                      read_CE,read_CP,
+C     x                      LG4DSCF,LG3DSCF,LG2DSCF,
+C     x                      LSOSCF,LDIIS,LSORXCHF,
+C     x                      OCBSETYP,LDBG,LADDEXCH,
+C     x                      ng2prm,ng3prm,nat,pmass,cat,zan,
+C     x                      bcoef1,gamma1,
+C     x                      KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+C     x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+C     x                      LG2IC,dimXCHF2,dimINT2,dimINT2ex,
+C     x                      XCHF_GAM2,INT_GAM2,
+C     x                      INT_GAM2ex,XCHF_GAM2s,
+C     x                      LG3IC,dimXCHF3,dimINT3,dimINT3ex,
+C     x                      XCHF_GAM3,INT_GAM3,
+C     x                      INT_GAM3ex1,INT_GAM3ex2,
+C     x                      LG4IC,dimXCHF4,dimINT4,
+C     x                      int_pinds,int_einds,INT_GAM4,
+C     x                      xchf_pinds,xchf_einds,XCHF_GAM4)
+C       else
+C        call RXCHF_scf_MPI(nproc,rank,
+C     x                     nelec,nae,nbe,nebflt,npbflt,nucst,
+C     x                     npebf,nebf,nebf2,npbf,npbf2,ngee,
+C     x                     ngtg1,ng1,ng2,ng3,ng4,
+C     x                     NG2CHK,NG3CHK,NG4CHK,
+C     x                     read_CE,read_CP,
+C     x                     LG4DSCF,LG3DSCF,LG2DSCF,
+C     x                     LSOSCF,LDIIS,LSORXCHF,
+C     x                     OCBSETYP,LDBG,LADDEXCH,
+C     x                     ng2prm,ng3prm,nat,pmass,cat,zan,
+C     x                     bcoef1,gamma1,
+C     x                     KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+C     x                     ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+C     x                     LG2IC,dimXCHF2,dimINT2,dimINT2ex,
+C     x                     XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
+C     x                     LG3IC,dimXCHF3,dimINT3,dimINT3ex,
+C     x                     XCHF_GAM3,INT_GAM3,
+C     x                     INT_GAM3ex1,INT_GAM3ex2,
+C     x                     LG4IC,dimXCHF4,dimINT4,
+C     x                     int_pinds,int_einds,INT_GAM4,
+C     x                     xchf_pinds,xchf_einds,XCHF_GAM4)
+C       end if
+C      end if
+C
       wtime2 = MPI_WTIME() - wtime
 
 C Cleanup
