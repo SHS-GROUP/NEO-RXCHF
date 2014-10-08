@@ -454,6 +454,8 @@ C     IFIL=860 :: FinalCAE.dat
 C     IFIL=861 :: FinalCBE.dat
 C     IFIL=870 :: FinalCAalpE.dat
 C     IFIL=871 :: FinalCAbetE.dat
+C     IFIL=880 :: guessCAE-alt.inp
+C     IFIL=881 :: guessCBE-alt.inp
 C=======================================================================
       implicit none
 C Input Variables
@@ -497,6 +499,10 @@ c     IF (.NOT.MASWRK) RETURN
          open(LUFILE,file='FinalCAalpE.dat',status='unknown')
       else if(LUFILE.eq.871) then
          open(LUFILE,file='FinalCAbetE.dat',status='unknown')
+      else if(LUFILE.eq.880) then
+         open(LUFILE,file='guessCAE-alt.inp',status='unknown')
+      else if(LUFILE.eq.881) then
+         open(LUFILE,file='guessCBE-alt.inp',status='unknown')
       end if
 C
       DO J = 1,M

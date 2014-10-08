@@ -1,6 +1,6 @@
 C=======================================================================
       subroutine RXCHF_OMG4_MPI(nproc,rank,
-     x                          Nchunks,nebf,npbf,
+     x                          Nchunks,nebf,nebfBE,npbf,
      x                          ng4,
      x                          DAE,DBE,DP,
      x                          pinds,einds,GM4,
@@ -16,17 +16,17 @@ C Input variables
       integer           nproc,rank
       integer           Nchunks
       integer           ng4        ! Number of nontrivial integrals on MPI proc
-      integer           nebf,npbf
+      integer           nebf,nebfBE,npbf
       integer(kind=4)   pinds(ng4)
       integer(kind=8)   einds(ng4)
       double precision  GM4(ng4)  ! GAM4 integrals
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
 
 C Output variables
       double precision  FAE(nebf,nebf)
-      double precision  FBE(nebf,nebf)
+      double precision  FBE(nebfBE,nebfBE)
       double precision  FP(npbf,npbf)
       double precision  E_OMG4
 
@@ -35,18 +35,18 @@ C Local variables
       integer           ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,iec4,jec4
       double precision  val
       double precision  XFAE(nebf,nebf)
-      double precision  XFBE(nebf,nebf)
+      double precision  XFBE(nebfBE,nebfBE)
       double precision  XFP(npbf,npbf)
       double precision  TFAE(nebf,nebf)
-      double precision  TFBE(nebf,nebf)
+      double precision  TFBE(nebfBE,nebfBE)
       double precision  TFP(npbf,npbf)
       double precision  TE_OMG4
       double precision  three
 
 #if MPI32
-      integer*4 ierr,nebf2,npbf2
+      integer*4 ierr,nebf2,nebfBE2,npbf2
 #else
-      integer ierr,nebf2,npbf2
+      integer ierr,nebf2,nebfBE2,npbf2
 #endif
 
       three=3.0d+00
@@ -63,9 +63,11 @@ C Initialize
 
 #if MPI32
       nebf2=int(nebf*nebf,kind=4)
+      nebfBE2=int(nebfBE*nebfBE,kind=4)
       npbf2=int(npbf*npbf,kind=4)
 #else
       nebf2=nebf*nebf
+      nebfBE2=nebfBE*nebfBE
       npbf2=npbf*npbf
 #endif
 
@@ -74,7 +76,7 @@ C Form intermediate Fock matrices
 !$omp parallel 
 !$ompx shared(three)
 !$ompx shared(ng4)
-!$ompx shared(nebf,npbf)
+!$ompx shared(nebf,nebfBE,npbf)
 !$ompx shared(DAE,DBE,DP)
 !$ompx shared(pinds)
 !$ompx shared(einds)
@@ -119,7 +121,7 @@ C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
       call MPI_ALLREDUCE(TFAE(1,1),XFAE(1,1),nebf2,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
-      call MPI_ALLREDUCE(TFBE(1,1),XFBE(1,1),nebf2,
+      call MPI_ALLREDUCE(TFBE(1,1),XFBE(1,1),nebfBE2,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
       call MPI_ALLREDUCE(TFP(1,1),XFP(1,1),npbf2,
@@ -130,7 +132,7 @@ C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
      x                   MPI_COMM_WORLD,ierr)
 
       call add2fock(nebf,XFAE,FAE)
-      call add2fock(nebf,XFBE,FBE)
+      call add2fock(nebfBE,XFBE,FBE)
       call add2fock(npbf,XFP,FP)
 
       return

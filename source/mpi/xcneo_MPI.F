@@ -94,6 +94,8 @@
       integer OCBSETYP
       logical LRXCHF
       logical LRXCUHF
+      logical LALTBAS
+      logical LREORDGS
 
       double precision a2bohr,bohr2a
       parameter(bohr2a=0.529177249d+00)
@@ -137,9 +139,9 @@
       namelist /scfctrl/ ldbg,lsoscf,ldiis,lsorxchf,ocbsetyp
       namelist /geminal/ bgem,ggem
       namelist /xcuhf  / nae,nbe
-      namelist /rxchf  / nae,nbe,exchlev,nebfbe
+      namelist /rxchf  / nae,nbe,exchlev,laltbas,nebfbe
       namelist /rxcuhf / nae_alp,nae_beta
-      namelist /altbas / elindbe
+      namelist /altbas / lreordgs,elindbe
 
 #if MPI32
       call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc4,ierr)
@@ -201,6 +203,8 @@
       LDIIS=.false.
       LSORXCHF=.false.
       OCBSETYP=2
+      LALTBAS=.false.
+      LREORDGS=.true.
       CATOMS='&ATOMS'
       CEBASIS='&EBASIS'
       CPBASIS='&PBASIS'
@@ -345,6 +349,34 @@ C       end if
          nae_alp=nae/2
          nae_beta=nae/2
         end if
+        if(.not.(LALTBAS).and.(nebfBE.ne.nebf)) then
+         write(*,*) "Restricted basis set flag is set to true"
+         write(*,*) "while nebfBE=",nebfBE," != nebf=",nebf
+         write(*,*) "Resetting nebfBE=nebf and proceeding"
+         write(*,*) "with normal run..."
+        end if
+        if(LALTBAS) then
+         if(nebfBE.gt.nebf) then
+          write(*,*) "Size of special electronic basis set cannot"
+          write(*,*) "exceed size of all atom basis set."
+          write(*,*) "Exiting..."
+          inperr=.true.
+         end if
+         if(.not.(read_ce)) then
+          write(*,*) "Must provide electronic guess when"
+          write(*,*) "using restricted basis set."
+          write(*,*) "Exiting..."
+          inperr=.true.
+         end if
+         if(EXCHLEV.gt.0) then
+          write(*,*) "Cannot have restricted special electronic"
+          write(*,*) "basis set for RXCHF-ae."
+          write(*,*) "Exiting..."
+          inperr=.true.
+         end if
+        else
+         nebfBE=nebf
+        end if
        end if
 
        if (((LRXCHF).or.(LRXCUHF)).and.(nelec.ge.4).and.(exchlev.eq.2))
@@ -398,21 +430,6 @@ C       end if
         write(*,*) " = 3 : OCBSE3"
         write(*,*) "Exiting..."
         inperr=.true.
-       end if
-
-       if((LRXCHF.or.LRXCUHF).and.(nebfBE.gt.nebf)) then
-        write(*,*) "Size of special electronic basis set cannot"
-        write(*,*) "exceed size of all atom basis set."
-        write(*,*) "Exiting..."
-        return
-       end if
-
-       if((LRXCHF.or.LRXCUHF).and.(nebfBE.ne.nebf).and.(EXCHLEV.gt.0))
-     x   then
-        write(*,*) "Cannot have restricted special electronic"
-        write(*,*) "basis set for RXCHF-ae."
-        write(*,*) "Exiting..."
-        return
        end if
 
 !!!!!!!!!!!!!!! Read in RXCUHF info !!!!!!!!!!!!!!!
@@ -517,11 +534,17 @@ C       end if
        end do
 
 !!!!!!!!!!!!!!! Read in special electron basis set !!!!!!!!!!!!!!!
-       if ((LRXCHF.or.LRXCUHF).and.(NBE.ge.2)) then
+       if ((LRXCHF.or.LRXCUHF).and.(LALTBAS)) then
         if(allocated(elindBE)) deallocate(elindBE)
         allocate(elindBE(nebfBE))
         rewind(9)
         read(9,nml=altbas)
+       else
+        if(allocated(elindBE)) deallocate(elindBE)
+        allocate(elindBE(nebf))
+        do i=1,nebf
+          elindBE(i)=i
+        end do
        end if
 
        close(9)
@@ -582,6 +605,8 @@ C       end if
       call MPI_BCAST(LDIIS,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(LSORXCHF,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(OCBSETYP,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LALTBAS,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(LREORDGS,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(EXCHLEV,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(nblocks,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
       call MPI_BCAST(blockrank,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
@@ -764,7 +789,7 @@ C       end if
      x  ELCEX(i),AGEBFCC(i),ELCBFC(i,1),ELCBFC(i,2),ELCBFC(i,3)
        END DO
 
-       if ((LRXCHF.or.LRXCUHF).and.(NBE.ge.2)) then
+       if ((LRXCHF.or.LRXCUHF).and.(LALTBAS)) then
         write(*,*)
         write(*,*) "nebfBE =",nebfBE
         write(*,*) "contracted indices to use for special elec basis:"
@@ -865,6 +890,7 @@ C )
      x                      LG2DSCF,LG3DSCF,LG4DSCF,
      x                      LRXCUHF,
      x                      LSOSCF,LDIIS,LSORXCHF,OCBSETYP,
+     x                      LALTBAS,LREORDGS,
      x                      LDBG,EXCHLEV)
 
       write(*,*) "Process is finished:",rank

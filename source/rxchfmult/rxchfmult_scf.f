@@ -2347,7 +2347,7 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       parameter(zero=0.0d+00)
 
       logical debug
-      debug=.false.
+      debug=.true.
 
 ! Initialize
       WB=zero
@@ -2426,7 +2426,7 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       parameter(zero=0.0d+00)
 
       logical debug
-      debug=.false.
+      debug=.true.
 
 ! Initialize
       wBEenw=zero
@@ -2474,7 +2474,7 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       parameter(zero=0.0d+00)
 
       logical debug
-      debug=.false.
+      debug=.true.
 
 ! Initialize
       blockvecBE=zero
@@ -2531,7 +2531,7 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       double precision ovlap
 
       logical debug
-      debug=.false.
+      debug=.true.
 
 ! Initialize
       WBtrans=zero
@@ -2630,35 +2630,6 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       end
 
 !======================================================================
-      subroutine RXCHFmult_contr_mat(nebf,nebfBE,mat,matBE)
-!
-! Store restricted basis subset of matrix 
-!            mat(nebf,nebf) : matrix over all bfs
-!      matBE(nebfBE,nebfBE) : matrix over restricted bfs
-! where each dim of mat is ordered as
-!      1,...,nebfBE,nebfBE+1,...,nebf
-!======================================================================
-      implicit none
-! Input Variables
-      integer nebf
-      integer nebfBE
-      double precision mat(nebf,nebf)
-! Variables Returned
-      double precision matBE(nebfBE,nebfBE)
-! Local variables
-      integer i,j
-
-      matBE=0.0d+00
-      do i=1,nebfBE
-      do j=1,nebfBE
-        matBE(j,i)=mat(j,i)
-      end do
-      end do
-
-      return
-      end
-
-!======================================================================
       subroutine RXCHF_sochgbas(npr,nocc,nwbf,nebf,W0,W,Sao,G,H,D)
 
 ! Overwrites gradient (G), Hessian (H) and displacement vector (D)
@@ -2725,7 +2696,7 @@ C )
       double precision, parameter :: zero=0.0d+00
       double precision, parameter :: one=1.0d+00
 
-      debug=.false.
+      debug=.true.
 
       A=zero
       Wt=zero
@@ -3035,7 +3006,7 @@ C )
       double precision, parameter :: bigrot=0.1d+00
       double precision, parameter :: small=1.0d-08
 
-      debug=.false.
+      debug=.true.
 
       H=zero
       D=zero
@@ -3150,241 +3121,6 @@ C       end if
       return
       end
 
-!======================================================================
-      subroutine RXCHFmult_intersection(dimtot,nvec,vecA,ncanon,Sao,
-     x                                  dimint,basint)
-!
-! Calculates an orthonormal basis for the intersection A \cap B where
-!     A is spanned by the nvec columns of vecA
-! and
-!     B is spanned by the first ncanon canonical vectors of dim dimtot
-!
-! The intersection is calculated by forming a matrix [ vecA | {e_i} ]
-! and calculating the null space using singular value decomposition
-! (right singular vectors corresponding to zero singular values
-! form an o-normal basis of the null space / intersection space)
-!
-! dimtot : dimension of basis in which vecA / canonical vectors are given
-!   nvec : number of columns in vecA
-! vecA   : (dimtot x nvec) matrix with columns corresponding to vectors
-! ncanon : number of canonical vectors of dimension dimtot
-!    Sao : overlap matrix in special electron AO basis
-! dimint : dimension of intersection
-! basint : orthonormal basis of intersection flattened to dim ncanon
-!           - dimtot vectors are output
-!           - the first dimint vectors are relevant
-! 
-!======================================================================
-      implicit none
-! Input Variables
-      integer          dimtot
-      integer          nvec
-      integer          ncanon
-      double precision vecA(dimtot,nvec)
-      double precision Sao(ncanon,ncanon)
-! Variables Returned
-      integer          dimint
-      double precision basint(ncanon,dimtot) ! adjust on exit to dimint
-! Local variables
-      logical debug
-      integer i,j,k
-      integer m,n
-      integer currind
-      integer istat
-      integer work2(8*min(dimtot,nvec+ncanon))
-      double precision ovlap
-      double precision svals(max(dimtot,nvec+ncanon)),workq(1)
-      double precision mat(dimtot,nvec+ncanon)
-      double precision aux(dimtot,nvec+ncanon)
-      double precision u(dimtot,dimtot)
-      double precision s(dimtot,nvec+ncanon)
-      double precision vt(nvec+ncanon,nvec+ncanon)
-      double precision nullbas(nvec+ncanon,nvec+ncanon)
-      double precision testvec(dimtot)
-      double precision testmat(dimtot,nvec+ncanon)
-      double precision, allocatable :: work(:)
-      double precision, parameter   :: zero=0.0d+00, one=1.0d+00
-      double precision, parameter   :: tol=1.0d-12
-
-
-! Initialize
-      debug=.false.
-      svals=zero
-      u=zero
-      s=zero
-      vt=zero
-      workq=zero
-
-! Fill first nvec columns of mat with vecA
-      do i=1,nvec
-        do j=1,dimtot
-          mat(j,i)=vecA(j,i)
-        end do
-      end do
-
-! Fill next ncanon columns of mat with canonical vectors
-      do i=1,ncanon
-        do j=1,dimtot
-          if (j.eq.i) then
-           mat(j,i+nvec)=one
-          else
-           mat(j,i+nvec)=zero
-          end if
-        end do
-      end do
-
-C      do i=1,nvec+ncanon
-C        do j=1,dimtot
-C          write(*,*) mat(j,i)
-C        end do
-C      end do
-
-! Query work array size for SVD and allocate work array
-      aux=zero
-      m=dimtot
-      n=nvec+ncanon
-
-! GESVD
-      istat=0
-      call dgesvd("A","A",m,n,mat,m,svals,u,m,vt,n,workq,-1,istat)
-      if (istat.ne.0) then
-       write(*,*) "Error in dgesvd query"
-      end if
-      if(allocated(work)) deallocate(work)
-      allocate(work(int(workq(1))))
-
-! Compute SVD
-      aux(:,:)=mat(:,:)
-      istat=0
-      call dgesvd("A","A",m,n,aux,m,svals,u,m,vt,n,
-     x            work,int(workq(1)),istat)
-      if (istat.ne.0) then
-       write(*,*) "Error in dgesvd"
-      end if
-
-CC! GESDD
-CC      istat=0
-CC      call dgesdd("A",m,n,aux,m,svals,u,m,vt,n,workq,-1,work2,istat)
-CC      write(*,*) "query istat:",istat
-CC      write(*,*) "lwork:",workq(1)
-CC      if (istat.ne.0) then
-CC       write(*,*) "Error in dgesdd query"
-CC      end if
-CC      workq(1)=max(3*(min(m,n)+max(m,n)),5*min(m,n))
-C      workq(1)=1000
-C      if(allocated(work)) deallocate(work)
-C      allocate(work(int(workq(1))))
-C
-C! Compute SVD
-C      aux(:,:)=mat(:,:)
-C      write(*,*) "dgesdd args:",m,n,int(workq(1))
-C      istat=0
-C      call dgesdd("A",m,n,aux,m,svals,u,m,vt,n,
-C     x            work,1000,work2,istat)
-C      write(*,*) "istat:",istat
-C      if (istat.ne.0) then
-C       write(*,*) "Error in dgesdd"
-C      end if
-
-      do i=1,min(m,n)
-        s(i,i)=svals(i)
-      end do
-
-      if (debug) then
-       write(*,*)
-       write(*,*) "Input matrix:"
-       write(*,*)
-       call printmat(mat,m,n)
-
-       write(*,*)
-       write(*,*) "U matrix:"
-       write(*,*)
-       call printmat(u,m,m)
-
-       write(*,*)
-       write(*,*) "Sigma matrix:"
-       write(*,*)
-       call printmat(s,m,n)
-
-       write(*,*)
-       write(*,*) "V^t matrix:"
-       write(*,*)
-       call printmat(vt,n,n)
-      end if
-
-! Find zero singular values and store corresponding rows of vt 
-! in temporary array containing nullspace basis
-      dimint=0
-      nullbas=zero
-      do i=1,max(dimtot,nvec+ncanon)
-        if(abs(svals(i)).lt.tol) then
-         dimint=dimint+1
-         do j=1,nvec+ncanon
-           nullbas(j,dimint)=vt(i,j)
-         end do
-        end if
-      end do
-
-      if (debug) then
-       write(*,*)
-       write(*,*) "Product matrix:"
-       call RXCHF_matmult(m,n,n,n,s,vt,testmat)
-       call RXCHF_matmult(m,m,m,n,u,testmat,aux)
-       call printmat(aux,m,n)
-       write(*,*)
-      end if
-
-      if (debug) then
-       write(*,*)
-       write(*,*) "----------------------------------"
-       write(*,*) " Dimension of intersection space:"
-       write(*,'(2X,A,1X,I3)') "Max possible (nebfBE)      =",ncanon
-       write(*,'(2X,A,1X,I3)') "Actual (after computation) =",dimint
-       write(*,*) "----------------------------------"
-       write(*,*)
-      end if
-
-      do i=1,dimint
-        call RXCHF_matmult(m,n,n,1,mat,nullbas(:,i),testvec)
-        do j=1,m
-          if (abs(testvec(j)).gt.tol) then
-           write(*,*)
-           write(*,*) " ***** WARNING ***** "
-           write(*,*) "Computed null space vector is not correct!"
-           write(*,*) "i:",i
-           write(*,*) "x_i:",nullbas(:,i)
-           write(*,*) "Ax_i",testvec
-           write(*,*)
-          end if
-        end do
-      end do
-
-! GS-orthogonalize basis
-      basint(:,1)=nullbas(nvec+1:n,1)
-      call moovlap(ncanon,basint(:,1),basint(:,1),Sao,ovlap)
-      do k=1,ncanon
-        basint(k,1)=basint(k,1)/dsqrt(ovlap)
-      end do
-
-      do i=2,dimint
-        basint(:,i)=nullbas(nvec+1:n,i)
-        do j=i-1,1,-1
-          call moovlap(ncanon,basint(:,i),basint(:,j),Sao,ovlap)
-          do k=1,ncanon
-            basint(k,i)=basint(k,i)-ovlap*basint(k,j)
-          end do
-        end do
-        call moovlap(ncanon,basint(:,i),basint(:,i),Sao,ovlap)
-        do k=1,ncanon
-          basint(k,i)=basint(k,i)/dsqrt(ovlap)
-        end do
-      end do
-
-      if(allocated(work)) deallocate(work)
-
-      return
-      end
-
 
       subroutine moovlap(nbf,coeffs1,coeffs2,Sao,ovlap)
       implicit none
@@ -3409,112 +3145,6 @@ C      end if
       return
       end
 
-!======================================================================
-      subroutine RXCHF_loworth(m,n,mat)
-
-! Performs Lowdin orthogonalization for mat (replaced by symmetric mat)
-! Computes SVD A = U * S * V^t and replaces A with U * V^t (uses GESVD)
-! Assumes A(m x n) where the m columns of A are vecs to be orth
-!
-!      m : rows of mat
-!      n : cols of mat
-!    mat : matrix whose columns will be orthogonalized
-!======================================================================
-      implicit none
-
-! Input variables
-      integer          :: m,n
-
-! Input/Output variables
-      double precision :: mat(m,n)
-
-! Local variables
-      integer          :: i,j
-      integer          :: istat
-      integer          :: matrank
-      double precision :: svals(max(m,n)),workq(1)
-      double precision :: u(m,m)
-      double precision :: vt(n,n)
-      double precision :: aux(m,n)
-
-      double precision, allocatable :: work(:),red(:,:)
-      double precision, parameter   :: zero=0.0d+00
-      double precision, parameter   :: tol=1.0d-10
-
-      svals=zero
-      u=zero
-      vt=zero
-      aux=zero
-      workq=zero
-
-! Query work array size for SVD and allocate work array
-      istat=0
-      call dgesvd("A","A",m,n,mat,m,svals,u,m,vt,n,workq,-1,istat)
-      if (istat.ne.0) then
-       write(*,*) "Error in dgesvd query"
-      end if
-      if(allocated(work)) deallocate(work)
-      allocate(work(int(workq(1))))
-
-! Compute SVD
-      aux(:,:)=mat(:,:)
-      istat=0
-      call dgesvd("A","A",m,n,aux,m,svals,u,m,vt,n,
-     x            work,int(workq(1)),istat)
-      if (istat.ne.0) then
-       write(*,*) "Error in dgesvd"
-      end if
-
-! Check that rank is n (since input columns should have been li)
-      matrank=0
-      do i=1,max(m,n)
-        if(abs(svals(i)).ge.tol) then
-         matrank=matrank+1
-        end if
-      end do
-      if(matrank.ne.n) then
-       write(*,*) "ERROR in RXCHF_loworth:"
-       write(*,*) "   Calculated rank from SVD = ",matrank
-       write(*,*) "       Number of input cols = ",n
-       write(*,*) "Columns are possibly linearly dependent!"
-       write(*,*) "svals:",svals
-       write(*,*) "Exiting..."
-       call abrt
-      end if
-
-! Form reduced form of either U or V^t and form orthogonalized mat
-      mat=zero
-
-      if (m.gt.n) then ! reduced form of U
-       if(allocated(red)) deallocate(red)
-       allocate(red(m,n))
-       red=zero
-       do i=1,n
-       do j=1,m
-         red(j,i)=u(j,i)
-       end do
-       end do
-       call RXCHF_matmult(m,n,n,n,red,vt,mat)
-       if(allocated(red)) deallocate(red)
-
-      else if(n.gt.m) then ! reduced form of V^t
-       if(allocated(red)) deallocate(red)
-       allocate(red(m,n))
-       red=zero
-       do i=1,n
-       do j=1,m
-         red(j,i)=vt(j,i)
-       end do
-       end do
-       call RXCHF_matmult(m,m,m,n,u,red,mat)
-       if(allocated(red)) deallocate(red)
-
-      else
-       call RXCHF_matmult(m,m,n,n,u,vt,mat)
-      end if
-
-      return
-      end
 
       subroutine printmat(mat,dim1,dim2)
       implicit none

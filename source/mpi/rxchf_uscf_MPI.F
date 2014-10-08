@@ -1044,7 +1044,7 @@ C Call XCHF Fock build for NBE special electrons and one QM particle
 C Call interaction Fock build for all particles
          call RXCHF_fock_int_MPI(nproc,rank,
      x                           LCMF,LADDEXCH,nelec,NAE,NBE,
-     x                           nebf,nebf2,npbf,npbf2,
+     x                           nebf,nebf,npbf,
      x                           ng1,ng2,ng3,ng4,
      x                           dimINT2,dimINT3,dimINT4,
      x                           dimINT2ex,dimINT3ex,
@@ -1203,7 +1203,7 @@ C Call XCHF Fock build for NBE special electrons and one QM particle
 C Call interaction Fock build for all particles
          call RXCHF_fock_int_MPI(nproc,rank,
      x                           LCMF,LADDEXCH,nelec,NAE,NBE,
-     x                           nebf,nebf2,npbf,npbf2,
+     x                           nebf,nebf,npbf,
      x                           ng1,ng2,ng3,ng4,
      x                           dimINT2,dimINT3,dimINT4,
      x                           dimINT2ex,dimINT3ex,
@@ -1684,7 +1684,7 @@ C Call XCHF Fock build for NBE special electrons and one QM particle
 C Call interaction Fock build for all particles
          call RXCHF_fock_int_MPI(nproc,rank,
      x                           LCMF,LADDEXCH,nelec,NAE,NBE,
-     x                           nebf,nebf2,npbf,npbf2,
+     x                           nebf,nebf,npbf,
      x                           ng1,ng2,ng3,ng4,
      x                           dimINT2,dimINT3,dimINT4,
      x                           dimINT2ex,dimINT3ex,
@@ -1942,7 +1942,7 @@ C Call XCHF Fock build for NBE special electrons and one QM particle
 C Call interaction Fock build for all particles
          call RXCHF_fock_int_MPI(nproc,rank,
      x                           LCMF,LADDEXCH,nelec,NAE,NBE,
-     x                           nebf,nebf2,npbf,npbf2,
+     x                           nebf,nebf,npbf,
      x                           ng1,ng2,ng3,ng4,
      x                           dimINT2,dimINT3,dimINT4,
      x                           dimINT2ex,dimINT3ex,

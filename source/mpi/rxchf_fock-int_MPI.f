@@ -1,7 +1,7 @@
 C======================================================================
       subroutine RXCHF_fock_int_MPI(nproc,rank,
      x                              LCMF,LADDEXCH,nelec,NAE,NBE,
-     x                              nebf,nebf2,npbf,npbf2,
+     x                              nebf,nebfBE,npbf,
      x                              ng1,ng2,ng3,ng4,
      x                              SZG2ICR,SZG3ICR,SZG4ICR,
      x                              SZG2exICR,SZG3exICR,
@@ -24,14 +24,14 @@ C Input variables
       integer           nproc,rank
       logical           LCMF
       logical           LADDEXCH
-      integer           nebf,npbf,npbf2,nebf2
+      integer           nebf,nebfBE,npbf
       integer           ng1,ng2,ng3,ng4
       integer           SZG2ICR,SZG3ICR,SZG4ICR
       integer           SZG2exICR,SZG3exICR
       integer           nelec,NAE,NBE
       integer           NG2CHK,NG3CHK,NG4CHK
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
       double precision  GM2ICR(SZG2ICR)
       double precision  GM3ICR(SZG3ICR)
@@ -41,15 +41,15 @@ C Input variables
       double precision  GM2exICR(SZG2exICR)
       double precision  GM3ex1ICR(SZG3exICR)
       double precision  GM3ex2ICR(SZG3exICR)
-      double precision  S_total           !  Read in overlap contributions
-      double precision  S_OMG2            !  to Fock matrices obtained       
-      double precision  XSBE(nebf,nebf)   !  from previous XCHF calculation
-      double precision  XSP(npbf,npbf)    !
+      double precision  S_total             !  Read in overlap contributions
+      double precision  S_OMG2              !  to Fock matrices obtained       
+      double precision  XSBE(nebfBE,nebfBE) !  from previous XCHF calculation
+      double precision  XSP(npbf,npbf)      !
 
 C Output variables
       double precision  FP(npbf,npbf)
       double precision  FAE(nebf,nebf)
-      double precision  FBE(nebf,nebf)
+      double precision  FBE(nebfBE,nebfBE)
       double precision  E_total
       double precision  E_OMG1
       double precision  E_OMG2
@@ -58,9 +58,10 @@ C Output variables
 
 C Local variables
       logical           rxchfdbg
-      integer           nebflt,npbflt,i,j
+      integer           i,j
+      integer           nebflt,nebfBElt,npbflt
       double precision  XFAE(nebf,nebf)
-      double precision  XFBE(nebf,nebf)
+      double precision  XFBE(nebfBE,nebfBE)
       double precision  XFP(npbf,npbf)
 
       double precision  Psi_HOMG_Psi
@@ -94,7 +95,7 @@ C Include GAM2 contributions
      x                       XFAE,XFBE,XFP,E_OMG2)
       else
        call RXCHF_OMG2_MPI(nproc,rank,
-     x                     NG2CHK,nebf,npbf,
+     x                     NG2CHK,nebf,nebfBE,npbf,
      x                     ng2,SZG2ICR,
      x                     DAE,DBE,DP,
      x                     GM2ICR,
@@ -113,7 +114,7 @@ C Include GAM3 contributions
      x                        XFAE,XFBE,XFP,E_OMG3)
        else
         call RXCHF_OMG3_MPI(nproc,rank,
-     x                      NG3CHK,nebf,npbf,
+     x                      NG3CHK,nebf,nebfBE,npbf,
      x                      ng3,SZG3ICR,
      x                      DAE,DBE,DP,
      x                      GM3ICR,
@@ -124,7 +125,7 @@ C Include GAM4 contributions
        if (NBE.gt.2) then
 
         call RXCHF_OMG4_MPI(nproc,rank,
-     x                      NG4CHK,nebf,npbf,
+     x                      NG4CHK,nebf,nebfBE,npbf,
      x                      SZG4ICR,
      x                      DAE,DBE,DP,
      x                      pinds,einds,GM4ICR,
@@ -163,25 +164,29 @@ C Correct QM Particle Fock Matrix
      x                            XFP,XSP,FP)
 
 C Correct Special Electron Fock Matrix
-      call RXCHF_Fock_correction2(nebf,Psi_HOMG_Psi,S_total,
+      call RXCHF_Fock_correction2(nebfBE,Psi_HOMG_Psi,S_total,
      x                            XFBE,XSBE,FBE)
 
 C Fock testing
       if ((LCMF).and.(rank.eq.0)) then
-        call RXCHFmult_Fock_testing(nebf,npbf,FAE,FBE,FP,DAE,DBE,DP,
+        call RXCHFmult_Fock_testing(nebf,nebfBE,npbf,
+     x                              FAE,FBE,FP,DAE,DBE,DP,
      x                              E_total,S_total,
      x                              E_OMG3,E_OMG4,S_OMG2)
-        call UFM_sym_check(nebf,npbf,FAE,FBE,FP)
+        call UFM_sym_check2(nebf,FAE)
+        call UFM_sym_check2(nebfBE,FBE)
+        call UFM_sym_check2(npbf,FP)
       end if
 
       if ((rxchfdbg).and.(rank.eq.0)) then
         nebflt=nebf*(nebf+1)/2
+        nebfBElt=nebfBE*(nebfBE+1)/2
         npbflt=npbf*(npbf+1)/2
         write(*,*) "FAE int:"
         call prt_lower_triangle(nebf,nebflt,FAE)
         write(*,*)
         write(*,*) "FBE int:"
-        call prt_lower_triangle(nebf,nebflt,FBE)
+        call prt_lower_triangle(nebfBE,nebfBElt,FBE)
         write(*,*)
         write(*,*) "FP int:"
         call prt_lower_triangle(npbf,npbflt,FP)

@@ -1,6 +1,6 @@
 C=======================================================================
       subroutine RXCHF_OMG3_MPI(nproc,rank,
-     x                          Nchunks,nebf,npbf,
+     x                          Nchunks,nebf,nebfBE,npbf,
      x                          ng3,ng3loc,
      x                          DAE,DBE,DP,
      x                          GM3_1,
@@ -16,15 +16,15 @@ C Input variables
       integer           Nchunks
       integer           ng3        ! Total number of integrals
       integer           ng3loc     ! Number of integrals on MPI proc
-      integer           nebf,npbf
+      integer           nebf,nebfBE,npbf
       double precision  GM3_1(ng3loc)  ! GAM3    integrals
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
 
 C Output variables
       double precision  FAE(nebf,nebf)
-      double precision  FBE(nebf,nebf)
+      double precision  FBE(nebfBE,nebfBE)
       double precision  FP(npbf,npbf)
       double precision  E_OMG3
 
@@ -33,10 +33,10 @@ C Local variables
       integer           Loopi,imas
       integer           ip,jp,iec1,jec1,iec2,jec2,iec3,jec3
       double precision  XFAE(nebf,nebf)
-      double precision  XFBE(nebf,nebf)
+      double precision  XFBE(nebfBE,nebfBE)
       double precision  XFP(npbf,npbf)
       double precision  TFAE(nebf,nebf)
-      double precision  TFBE(nebf,nebf)
+      double precision  TFBE(nebfBE,nebfBE)
       double precision  TFP(npbf,npbf)
       double precision  TE_OMG3
 
@@ -44,9 +44,9 @@ C Local variables
 
       integer   mpistart,mpiend,arrstart
 #if MPI32
-      integer*4 ierr,nebf2,npbf2
+      integer*4 ierr,nebf2,nebfBE2,npbf2
 #else
-      integer ierr,nebf2,npbf2
+      integer ierr,nebf2,nebfBE2,npbf2
 #endif
 
 C Initialize
@@ -61,9 +61,11 @@ C Initialize
 
 #if MPI32
       nebf2=int(nebf*nebf,kind=4)
+      nebfBE2=int(nebfBE*nebfBE,kind=4)
       npbf2=int(npbf*npbf,kind=4)
 #else
       nebf2=nebf*nebf
+      nebfBE2=nebfBE*nebfBE
       npbf2=npbf*npbf
 #endif
 
@@ -89,10 +91,10 @@ C Nested loop compression for this chunk:
          do jp=1,npbf
             do iec1=1,nebf
             do jec1=1,nebf
-               do iec2=1,nebf
-               do jec2=1,nebf
-                  do iec3=1,nebf
-                  do jec3=1,nebf
+               do iec2=1,nebfBE
+               do jec2=1,nebfBE
+                  do iec3=1,nebfBE
+                  do jec3=1,nebfBE
 
                          imas=imas+1 ! imas is master_index
                          if(imas.ge.istart.and.imas.le.iend) then
@@ -108,8 +110,11 @@ C Nested loop compression for this chunk:
 
 ! Save coordinates of first value for array index shifts
                             if ((ichunk.eq.1).and.(Loopi.eq.1)) then
-                               call index_GAM_3PK(nebf,npbf,
-     x                     ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,arrstart)
+                             call RXCHFmult_GAM_3PK(nebf,nebfBE,npbf,
+     x                                              ip,jp,
+     x                                              iec1,jec1,
+     x                                              iec2,jec2,
+     x                                              iec3,jec3,arrstart)
                             end if
 
                          end if
@@ -124,7 +129,7 @@ C Nested loop compression for this chunk:
          end do
 
          call RXCHF_OMG3_thread_MPI(istart,iend,ng3_seg,ng3loc,
-     x                              nebf,npbf,
+     x                              nebf,nebfBE,npbf,
      x                              loop_map,arrstart,
      x                              DAE,DBE,DP,
      x                              GM3_1,
@@ -139,7 +144,7 @@ C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
       call MPI_ALLREDUCE(TFAE(1,1),XFAE(1,1),nebf2,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
-      call MPI_ALLREDUCE(TFBE(1,1),XFBE(1,1),nebf2,
+      call MPI_ALLREDUCE(TFBE(1,1),XFBE(1,1),nebfBE2,
      x                   MPI_DOUBLE_PRECISION,MPI_SUM,
      x                   MPI_COMM_WORLD,ierr)
       call MPI_ALLREDUCE(TFP(1,1),XFP(1,1),npbf2,
@@ -150,7 +155,7 @@ C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
      x                   MPI_COMM_WORLD,ierr)
 
       call add2fock(nebf,XFAE,FAE)
-      call add2fock(nebf,XFBE,FBE)
+      call add2fock(nebfBE,XFBE,FBE)
       call add2fock(npbf,XFP,FP)
 
       return
@@ -463,7 +468,7 @@ C Use additional auxiliary array since MPI_IN_PLACE fails with MPICH2
       end
 C=======================================================================
       subroutine RXCHF_OMG3_thread_MPI(istart,iend,ng3_seg,ng3,
-     x                                 nebf,npbf,
+     x                                 nebf,nebfBE,npbf,
      x                                 loop_map,arrstart,
      x                                 DAE,DBE,DP,
      x                                 GM3_1,
@@ -474,19 +479,20 @@ C=======================================================================
 
 C Input variables
       integer           istart,iend,ng3_seg
-      integer           nebf   ! Number contracted electronic basis functions
+      integer           nebf   ! Number contracted total electronic basis functions
+      integer           nebfBE ! Number contracted restricted electronic basis functions
       integer           npbf   ! Number nuclear basis functions
       integer           ng3
       integer           arrstart
       integer           loop_map(ng3_seg,8)
       double precision  DAE(nebf,nebf)
-      double precision  DBE(nebf,nebf)
+      double precision  DBE(nebfBE,nebfBE)
       double precision  DP(npbf,npbf)
       double precision  GM3_1(ng3)  ! GAM3    integrals
 
 C Output variables
       double precision  XFAE(nebf,nebf)
-      double precision  XFBE(nebf,nebf)
+      double precision  XFBE(nebfBE,nebfBE)
       double precision  XFP(npbf,npbf)
       double precision  E_OMG3
 
@@ -515,7 +521,7 @@ C    iec3,jec3 : special electron 2 indicies
 !$ompx shared(half,two)
 !$ompx shared(loop_map,arrstart)
 !$ompx shared(istart,iend)
-!$ompx shared(nebf,npbf,ng3_seg)
+!$ompx shared(nebf,nebfBE,npbf,ng3_seg)
 !$ompx shared(ng3)
 !$ompx shared(DAE,DBE,DP)
 !$ompx shared(GM3_1)
@@ -545,8 +551,11 @@ C    iec3,jec3 : special electron 2 indicies
         jp =loop_map(imap,7)
         ip =loop_map(imap,8)
 
-        call index_GAM_3PK(nebf,npbf,
-     x                  ip,jp,iec1,jec1,iec2,jec2,iec3,jec3,ia)
+        call RXCHFmult_GAM_3PK(nebf,nebfBE,npbf,
+     x                         ip,jp,
+     x                         iec1,jec1,
+     x                         iec2,jec2,
+     x                         iec3,jec3,ia)
 
 ! GM3_1(ip,jp,ie1,je1,ie2,je2,ie3,je3) contributes
 ! twice to F^e(ie1,je1),F^p(ip,jp) and once to F^q(ie2,je2),F^q(ie2,je3)

@@ -14,6 +14,7 @@ C=======================================================================
      x                            LG2DSCF,LG3DSCF,LG4DSCF,
      x                            LRXCUHF,
      x                            LSOSCF,LDIIS,LSORXCHF,OCBSETYP,
+     x                            LALTBAS,LREORDGS,
      x                            LDBG,EXCHLEV)
 
 C Driver to calculate RXCHF integrals for nbe > 1
@@ -73,6 +74,8 @@ C Input variables
       logical LSOSCF                   ! SOSCF where applicable
       logical LDIIS                    ! DIIS where applicable
       logical LSORXCHF                 ! SORXCHF where applicable
+      logical LALTBAS                  ! Flag to denote distinct special electron basis
+      logical LREORDGS                 ! Flag to reorder electronic guess if LALTBAS
       logical LDBG                     ! Debugging flag
       logical read_CE,read_CP          ! Read in orbitals
       logical read_GAM2                ! 
@@ -113,7 +116,6 @@ C Local variables
       integer      contrind,primind
       integer      numprims,primstart,primend
       integer      currcontrind,currprimind
-      logical      LALTBAS                       ! Flag to denote distinct special electron basis
       logical      laddbasis                     ! Working variable
       integer      XELCAM(npebf,3)               !
       integer      XAMPEB2C(npebf)               ! Dummy basis set variables
@@ -152,52 +154,27 @@ C Local variables
       integer      npebfBE_,nebfBE_
 #endif
 
+C Reordering of basis set and guess if restricted basis set calculation
+      if (LALTBAS) then
+
 C Reorder electronic basis set such that special electron subset is first
 C Do on master process then pass necessary variables to slave processes
-      if(rank.eq.0) then
-       currcontrind=1
-       currprimind=1
-       npebfBE=0
+       if(rank.eq.0) then
+
+        currcontrind=1
+        currprimind=1
+        npebfBE=0
 
 C First add bfs that are also in special electronic set
-       do i=1,nebfBE
-         contrind=elindBE(i)
-         primstart=KPESTR(contrind)
-         primend=KPEEND(contrind)
-         numprims=(primend-primstart)+1
-         XKPESTR(currcontrind)=currprimind
-         XKPEEND(currcontrind)=currprimind+numprims-1
-         KPESTR_be(currcontrind)=currprimind
-         KPEEND_be(currcontrind)=currprimind+numprims-1
-         do primind=primstart,primend
-           XELCAM(currprimind,1)=ELCAM(primind,1)
-           XELCAM(currprimind,2)=ELCAM(primind,2)
-           XELCAM(currprimind,3)=ELCAM(primind,3)
-           XAMPEB2C(currprimind)=currcontrind
-           XELCEX(currprimind)=ELCEX(primind)
-           XELCBFC(currprimind,1)=ELCBFC(primind,1)
-           XELCBFC(currprimind,2)=ELCBFC(primind,2)
-           XELCBFC(currprimind,3)=ELCBFC(primind,3)
-           XAGEBFCC(currprimind)=AGEBFCC(primind)
-           currprimind=currprimind+1
-           npebfBE=npebfBE+1
-         end do
-         currcontrind=currcontrind+1
-       end do
-
-C Add remaining bfs
-       do i=1,nebf
-         laddbasis=.true.
-         do j=1,nebfBE
-           contrind=elindBE(j)
-           if (i.eq.contrind) laddbasis=.false.
-         end do
-         if (laddbasis) then
-          primstart=KPESTR(i)
-          primend=KPEEND(i)
+        do i=1,nebfBE
+          contrind=elindBE(i)
+          primstart=KPESTR(contrind)
+          primend=KPEEND(contrind)
           numprims=(primend-primstart)+1
           XKPESTR(currcontrind)=currprimind
           XKPEEND(currcontrind)=currprimind+numprims-1
+          KPESTR_be(currcontrind)=currprimind
+          KPEEND_be(currcontrind)=currprimind+numprims-1
           do primind=primstart,primend
             XELCAM(currprimind,1)=ELCAM(primind,1)
             XELCAM(currprimind,2)=ELCAM(primind,2)
@@ -209,11 +186,184 @@ C Add remaining bfs
             XELCBFC(currprimind,3)=ELCBFC(primind,3)
             XAGEBFCC(currprimind)=AGEBFCC(primind)
             currprimind=currprimind+1
+            npebfBE=npebfBE+1
           end do
           currcontrind=currcontrind+1
-         end if
-       end do
+        end do
 
+C Add remaining bfs
+        do i=1,nebf
+          laddbasis=.true.
+          do j=1,nebfBE
+            contrind=elindBE(j)
+            if (i.eq.contrind) laddbasis=.false.
+          end do
+          if (laddbasis) then
+           primstart=KPESTR(i)
+           primend=KPEEND(i)
+           numprims=(primend-primstart)+1
+           XKPESTR(currcontrind)=currprimind
+           XKPEEND(currcontrind)=currprimind+numprims-1
+           do primind=primstart,primend
+             XELCAM(currprimind,1)=ELCAM(primind,1)
+             XELCAM(currprimind,2)=ELCAM(primind,2)
+             XELCAM(currprimind,3)=ELCAM(primind,3)
+             XAMPEB2C(currprimind)=currcontrind
+             XELCEX(currprimind)=ELCEX(primind)
+             XELCBFC(currprimind,1)=ELCBFC(primind,1)
+             XELCBFC(currprimind,2)=ELCBFC(primind,2)
+             XELCBFC(currprimind,3)=ELCBFC(primind,3)
+             XAGEBFCC(currprimind)=AGEBFCC(primind)
+             currprimind=currprimind+1
+           end do
+           currcontrind=currcontrind+1
+          end if
+        end do
+
+        if(allocated(AMPEB2C_be)) deallocate(AMPEB2C_be)
+        allocate( AMPEB2C_be(npebfBE),stat=istat )
+        if(allocated(ELCEX_be)) deallocate(ELCEX_be)
+        allocate( ELCEX_be(npebfBE),stat=istat )
+        if(allocated(AGEBFCC_be)) deallocate(AGEBFCC_be)
+        allocate( AGEBFCC_be(npebfBE),stat=istat )
+        if(allocated(ELCAM_be)) deallocate(ELCAM_be)
+        allocate( ELCAM_be(npebfBE,3),stat=istat )
+        if(allocated(ELCBFC_be)) deallocate(ELCBFC_be)
+        allocate( ELCBFC_be(npebfBE,3),stat=istat )
+
+C Transfer basis set variables
+        do i=1,nebf
+          KPESTR(i)=XKPESTR(i)
+          KPEEND(i)=XKPEEND(i)
+        end do
+        do i=1,npebf
+          ELCAM(i,1)=XELCAM(i,1)
+          ELCAM(i,2)=XELCAM(i,2)
+          ELCAM(i,3)=XELCAM(i,3)
+          AMPEB2C(i)=XAMPEB2C(i)
+          ELCEX(i)=XELCEX(i)
+          ELCBFC(i,1)=XELCBFC(i,1)
+          ELCBFC(i,2)=XELCBFC(i,2)
+          ELCBFC(i,3)=XELCBFC(i,3)
+          AGEBFCC(i)=XAGEBFCC(i)
+          if (i.le.npebfBE) then
+           ELCAM_be(i,1)=XELCAM(i,1)
+           ELCAM_be(i,2)=XELCAM(i,2)
+           ELCAM_be(i,3)=XELCAM(i,3)
+           AMPEB2C_be(i)=XAMPEB2C(i)
+           ELCEX_be(i)=XELCEX(i)
+           ELCBFC_be(i,1)=XELCBFC(i,1)
+           ELCBFC_be(i,2)=XELCBFC(i,2)
+           ELCBFC_be(i,3)=XELCBFC(i,3)
+           AGEBFCC_be(i)=XAGEBFCC(i)
+          end if
+        end do
+
+C Output reordered basis
+        write(*,*)
+        write(*,*) "Reordered basis:"
+        write(*,*)
+        write(*,*)'PRIM  CONT    ANG     EXPONENT CONTRACT  -X- -Y- -Z-'
+        write(*,*)'INDEX INDEX   MOM                 COEF'
+        do i=1,npebf
+          write(*,1000) i,AMPEB2C(i),ELCAM(i,1),ELCAM(i,2),
+     x                  ELCAM(i,3),ELCEX(i),AGEBFCC(i),
+     x                  ELCBFC(i,1),ELCBFC(i,2),ELCBFC(i,3)
+        end do
+        write(*,*)
+        write(*,*)' CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS '
+        write(*,*)'CONT INDEX    KPESTR     KPEEND'
+        do i=1,nebf
+           write(*,2000) i,KPESTR(i),KPEEND(i)
+        end do
+
+C Output special electron basis
+        write(*,*)
+        write(*,*) "Special electron basis:"
+        write(*,*)
+        write(*,*)'PRIM  CONT    ANG     EXPONENT CONTRACT  -X- -Y- -Z-'
+        write(*,*)'INDEX INDEX   MOM                 COEF'
+        do i=1,npebfBE
+          write(*,1000) i,AMPEB2C_be(i),ELCAM_be(i,1),ELCAM_be(i,2),
+     x                  ELCAM_be(i,3),ELCEX_be(i),AGEBFCC_be(i),
+     x                  ELCBFC_be(i,1),ELCBFC_be(i,2),ELCBFC_be(i,3)
+        end do
+        write(*,*)
+        write(*,*)' CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS '
+        write(*,*)'CONT INDEX    KPESTR     KPEEND'
+        do i=1,nebfBE
+           write(*,2000) i,KPESTR_be(i),KPEEND_be(i)
+        end do
+
+       end if ! rank 0
+
+       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+! Broadcast static variables including array dimensions to slave processes
+       call MPI_BCAST(npebfBE,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
+
+! Allocate arrays on slave processes
+       if (rank.gt.0) then
+        if(allocated(AMPEB2C_be)) deallocate(AMPEB2C_be)
+        allocate( AMPEB2C_be(npebfBE),stat=istat )
+        if(allocated(ELCEX_be)) deallocate(ELCEX_be)
+        allocate( ELCEX_be(npebfBE),stat=istat )
+        if(allocated(AGEBFCC_be)) deallocate(AGEBFCC_be)
+        allocate( AGEBFCC_be(npebfBE),stat=istat )
+        if(allocated(ELCAM_be)) deallocate(ELCAM_be)
+        allocate( ELCAM_be(npebfBE,3),stat=istat )
+        if(allocated(ELCBFC_be)) deallocate(ELCBFC_be)
+        allocate( ELCBFC_be(npebfBE,3),stat=istat )
+       end if
+
+       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+C Broadcast array data
+#if MPI32
+       nebf_=int(nebf,kind=4)
+       nebfBE_=int(nebfBE,kind=4)
+       npebf_=int(npebf,kind=4)
+       npebfBE_=int(npebfBE,kind=4)
+#else
+       nebf_=nebf
+       nebfBE_=nebfBE
+       npebf_=npebf
+       npebfBE_=npebfBE
+#endif
+       call MPI_BCAST(AMPEB2C_be,npebfBE_,MPI_DOUBLE_PRECISION,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(ELCEX_be,npebfBE_,MPI_DOUBLE_PRECISION,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(AGEBFCC_be,npebfBE_,MPI_DOUBLE_PRECISION,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(ELCAM_be,3*npebfBE_,MPI_DOUBLE_PRECISION,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(ELCBFC_be,3*npebfBE_,MPI_DOUBLE_PRECISION,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(AMPEB2C,npebf_,MPI_INTEGER8,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(ELCEX,npebf_,MPI_DOUBLE_PRECISION,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(AGEBFCC,npebf_,MPI_DOUBLE_PRECISION,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(ELCAM,3*npebf_,MPI_INTEGER8,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(ELCBFC,3*npebf_,MPI_DOUBLE_PRECISION,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(KPESTR,nebf_,MPI_INTEGER8,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(KPEEND,nebf_,MPI_INTEGER8,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(KPESTR_be,nebfBE_,MPI_INTEGER8,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(KPEEND_be,nebfBE_,MPI_INTEGER8,
+     x                0,MPI_COMM_WORLD,ierr)
+
+      else ! not restricted basis set - duplicate orig basis set info
+
+       npebfBE=npebf
+       KPESTR_be=KPESTR
+       KPEEND_be=KPEEND
        if(allocated(AMPEB2C_be)) deallocate(AMPEB2C_be)
        allocate( AMPEB2C_be(npebfBE),stat=istat )
        if(allocated(ELCEX_be)) deallocate(ELCEX_be)
@@ -223,74 +373,19 @@ C Add remaining bfs
        if(allocated(ELCAM_be)) deallocate(ELCAM_be)
        allocate( ELCAM_be(npebfBE,3),stat=istat )
        if(allocated(ELCBFC_be)) deallocate(ELCBFC_be)
-       allocate( ELCBFC_be(npebfBE,3),stat=istat )
+       ELCBFC_be=ELCBFC
+       AMPEB2C_be=AMPEB2C
+       ELCEX_be=ELCEX
+       AGEBFCC_be=AGEBFCC
+       ELCAM_be=ELCAM
+       ELCBFC_be=ELCBFC
 
-C Transfer basis set variables
-       do i=1,nebf
-         KPESTR(i)=XKPESTR(i)
-         KPEEND(i)=XKPEEND(i)
-       end do
-       do i=1,npebf
-         ELCAM(i,1)=XELCAM(i,1)
-         ELCAM(i,2)=XELCAM(i,2)
-         ELCAM(i,3)=XELCAM(i,3)
-         AMPEB2C(i)=XAMPEB2C(i)
-         ELCEX(i)=XELCEX(i)
-         ELCBFC(i,1)=XELCBFC(i,1)
-         ELCBFC(i,2)=XELCBFC(i,2)
-         ELCBFC(i,3)=XELCBFC(i,3)
-         AGEBFCC(i)=XAGEBFCC(i)
-         if (i.le.npebfBE) then
-          ELCAM_be(i,1)=XELCAM(i,1)
-          ELCAM_be(i,2)=XELCAM(i,2)
-          ELCAM_be(i,3)=XELCAM(i,3)
-          AMPEB2C_be(i)=XAMPEB2C(i)
-          ELCEX_be(i)=XELCEX(i)
-          ELCBFC_be(i,1)=XELCBFC(i,1)
-          ELCBFC_be(i,2)=XELCBFC(i,2)
-          ELCBFC_be(i,3)=XELCBFC(i,3)
-          AGEBFCC_be(i)=XAGEBFCC(i)
-         end if
-       end do
+      end if
 
-C Output reordered basis
-       write(*,*)
-       write(*,*) "Reordered basis:"
-       write(*,*)
-       write(*,*)'PRIM  CONT    ANG      EXPONENT CONTRACT  -X- -Y- -Z-'
-       write(*,*)'INDEX INDEX   MOM                  COEF'
-       do i=1,npebf
-         write(*,1000) i,AMPEB2C(i),ELCAM(i,1),ELCAM(i,2),
-     x                 ELCAM(i,3),ELCEX(i),AGEBFCC(i),
-     x                 ELCBFC(i,1),ELCBFC(i,2),ELCBFC(i,3)
-       end do
-       write(*,*)
-       write(*,*)' CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS '
-       write(*,*)'CONT INDEX    KPESTR     KPEEND'
-       do i=1,nebf
-          write(*,2000) i,KPESTR(i),KPEEND(i)
-       end do
-
-C Output special electron basis
-       write(*,*)
-       write(*,*) "Special electron basis:"
-       write(*,*)
-       write(*,*)'PRIM  CONT    ANG      EXPONENT CONTRACT  -X- -Y- -Z-'
-       write(*,*)'INDEX INDEX   MOM                  COEF'
-       do i=1,npebfBE
-         write(*,1000) i,AMPEB2C_be(i),ELCAM_be(i,1),ELCAM_be(i,2),
-     x                 ELCAM_be(i,3),ELCEX_be(i),AGEBFCC_be(i),
-     x                 ELCBFC_be(i,1),ELCBFC_be(i,2),ELCBFC_be(i,3)
-       end do
-       write(*,*)
-       write(*,*)' CHECK CONTRACTED ELECTRONIC BASIS FUNCTIONS '
-       write(*,*)'CONT INDEX    KPESTR     KPEEND'
-       do i=1,nebfBE
-          write(*,2000) i,KPESTR_be(i),KPEEND_be(i)
-       end do
+      if(rank.eq.0) then
 
 C Calculate inexpensive integrals usually calculated in main driver
-C since the all-electron basis set was reordered
+C since the all-electron basis set may have been reordered
        call class_nuc_rep(nat,zan,cat)
 
        call elec_ovlap(npebf,nebf,nebf*nebf,
@@ -299,7 +394,7 @@ C since the all-electron basis set was reordered
        call check_elec_ovlap(nebf)
 
        call nuc_ovlap(npbf,npbf*npbf,
-     x                AGNBFCC,NUCEX,NUCAM,NUCBFC)
+     x                 AGNBFCC,NUCEX,NUCAM,NUCBFC)
 
        call check_nuc_ovlap(npbf)
 
@@ -311,82 +406,21 @@ C since the all-electron basis set was reordered
        call calc_GAM_ee(nebf,npebf,ngee,
      x                  AMPEB2C,AGEBFCC,ELCEX,ELCAM,ELCBFC)
 
+! Process electronic guess (must be given) if LREORDGS (defaults to True)
+       if ((LALTBAS).and.(LREORDGS)) then
+
+        call process_elec_guess(nebf,nebfBE,elindBE,nbe/2) ! assumes closed shell of sp elecs
+
+! Otherwise one must ensure that the guess is already consistent with the
+! reordered basis set of this run (i.e. generated from a previous calc)
+       else
+
+        write(*,*) "NOT REORDERING ELECTRONIC GUESS"
+        write(*,*) " => assumes MO coeffs are wrt reordered basis set"
+
+       end if
+
       end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-      if (nebf.ne.nebfBE) then
-       LALTBAS=.true.
-      else
-       LALTBAS=.false.
-      end if
-
-CC If RXCHF-ae cannot have distinct regular/special electronic basis sets
-C      if ((LALTBAS).and.(EXCHLEV.gt.0)) then
-C       write(*,*) "Cannot have restricted special electronic basis set"
-C       write(*,*) "for RXCHF-ae. Exiting..."
-C       return
-C      end if
-
-! Broadcast static variables including array dimensions to slave processes
-      call MPI_BCAST(npebfBE,1,MPI_INTEGER8,0,MPI_COMM_WORLD,ierr)
-
-! Allocate arrays on slave processes
-      if (rank.gt.0) then
-       if(allocated(AMPEB2C_be)) deallocate(AMPEB2C_be)
-       allocate( AMPEB2C_be(npebfBE),stat=istat )
-       if(allocated(ELCEX_be)) deallocate(ELCEX_be)
-       allocate( ELCEX_be(npebfBE),stat=istat )
-       if(allocated(AGEBFCC_be)) deallocate(AGEBFCC_be)
-       allocate( AGEBFCC_be(npebfBE),stat=istat )
-       if(allocated(ELCAM_be)) deallocate(ELCAM_be)
-       allocate( ELCAM_be(npebfBE,3),stat=istat )
-       if(allocated(ELCBFC_be)) deallocate(ELCBFC_be)
-       allocate( ELCBFC_be(npebfBE,3),stat=istat )
-      end if
-
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
-C Broadcast array data
-#if MPI32
-      nebf_=int(nebf,kind=4)
-      nebfBE_=int(nebfBE,kind=4)
-      npebf_=int(npebf,kind=4)
-      npebfBE_=int(npebfBE,kind=4)
-#else
-      nebf_=nebf
-      nebfBE_=nebfBE
-      npebf_=npebf
-      npebfBE_=npebfBE
-#endif
-      call MPI_BCAST(AMPEB2C_be,npebfBE_,MPI_DOUBLE_PRECISION,
-     x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(ELCEX_be,npebfBE_,MPI_DOUBLE_PRECISION,
-     x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(AGEBFCC_be,npebfBE_,MPI_DOUBLE_PRECISION,
-     x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(ELCAM_be,3*npebfBE_,MPI_DOUBLE_PRECISION,
-     x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(ELCBFC_be,3*npebfBE_,MPI_DOUBLE_PRECISION,
-     x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(AMPEB2C,npebf_,MPI_INTEGER8,
-     x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(ELCEX,npebf_,MPI_DOUBLE_PRECISION,
-     x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(AGEBFCC,npebf_,MPI_DOUBLE_PRECISION,
-     x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(ELCAM,3*npebf_,MPI_INTEGER8,
-     x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(ELCBFC,3*npebf_,MPI_DOUBLE_PRECISION,
-     x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(KPESTR,nebf_,MPI_INTEGER8,
-     x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(KPEEND,nebf_,MPI_INTEGER8,
-     x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(KPESTR_be,nebfBE_,MPI_INTEGER8,
-     x               0,MPI_COMM_WORLD,ierr)
-      call MPI_BCAST(KPEEND_be,nebfBE_,MPI_INTEGER8,
-     x               0,MPI_COMM_WORLD,ierr)
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
@@ -423,6 +457,9 @@ C     => INT_GAM2ex only needed if RXCHF-ae
 C     => XCHF_GAM2 only needed if nbe >= 2
 
 ! Calculate two-particle integrals and write to disk with master process
+      ng1=nebfBE*nebfBE*npbf*npbf
+      ng1prm=npebfBE*npebfBE*npbf*npbf
+
       if (rank.eq.0) then
        write(*,*)
        write(*,*) "---------------------------"
@@ -430,12 +467,10 @@ C     => XCHF_GAM2 only needed if nbe >= 2
        write(*,*) "---------------------------"
        write(*,*)
 
-       ng1=nebfBE*nebfBE*npbf*npbf
-       ng1prm=npebfBE*npebfBE*npbf*npbf
        call RXCHFmult_GAM1_MD(nebfBE,npebfBE,npbf,ng1,ng1prm,nat,
      x                        ngtg1,pmass,cat,zan,bcoef1,gamma1,
      x                        AMPEB2C_be,AGEBFCC_be,AGNBFCC,ELCEX_be,
-     x                        NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC)
+     x                        NUCEX,ELCAM_be,NUCAM,ELCBFC_be,NUCBFC)
       end if
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -1049,60 +1084,75 @@ C Kick-off SCF
       wtime  = MPI_WTIME()
 
       nebf2=nebf*nebf
-      npbf2=npbf*npbf
       nebflt=nebf*(nebf+1)/2
+
+      nebfBE2=nebfBE*nebfBE
+      nebfBElt=nebfBE*(nebfBE+1)/2
+
+      npbf2=npbf*npbf
       npbflt=npbf*(npbf+1)/2
 
-C      if ((read_GAM3).or.(nblocks.eq.1)) then
-C       if(LRXCUHF) then
-C        call RXCHF_uscf_MPI(nproc,rank,
-C     x                      nelec,nae,nae_alp,nae_beta,
-C     x                      nbe,nebflt,npbflt,nucst,
-C     x                      npebf,nebf,nebf2,npbf,npbf2,ngee,
-C     x                      ngtg1,ng1,ng2,ng3,ng4,
-C     x                      NG2CHK,NG3CHK,NG4CHK,
-C     x                      read_CE,read_CP,
-C     x                      LG4DSCF,LG3DSCF,LG2DSCF,
-C     x                      LSOSCF,LDIIS,LSORXCHF,
-C     x                      OCBSETYP,LDBG,LADDEXCH,
-C     x                      ng2prm,ng3prm,nat,pmass,cat,zan,
-C     x                      bcoef1,gamma1,
-C     x                      KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-C     x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-C     x                      LG2IC,dimXCHF2,dimINT2,dimINT2ex,
-C     x                      XCHF_GAM2,INT_GAM2,
-C     x                      INT_GAM2ex,XCHF_GAM2s,
-C     x                      LG3IC,dimXCHF3,dimINT3,dimINT3ex,
-C     x                      XCHF_GAM3,INT_GAM3,
-C     x                      INT_GAM3ex1,INT_GAM3ex2,
-C     x                      LG4IC,dimXCHF4,dimINT4,
-C     x                      int_pinds,int_einds,INT_GAM4,
-C     x                      xchf_pinds,xchf_einds,XCHF_GAM4)
-C       else
-C        call RXCHF_scf_MPI(nproc,rank,
-C     x                     nelec,nae,nbe,nebflt,npbflt,nucst,
-C     x                     npebf,nebf,nebf2,npbf,npbf2,ngee,
-C     x                     ngtg1,ng1,ng2,ng3,ng4,
-C     x                     NG2CHK,NG3CHK,NG4CHK,
-C     x                     read_CE,read_CP,
-C     x                     LG4DSCF,LG3DSCF,LG2DSCF,
-C     x                     LSOSCF,LDIIS,LSORXCHF,
-C     x                     OCBSETYP,LDBG,LADDEXCH,
-C     x                     ng2prm,ng3prm,nat,pmass,cat,zan,
-C     x                     bcoef1,gamma1,
-C     x                     KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-C     x                     ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-C     x                     LG2IC,dimXCHF2,dimINT2,dimINT2ex,
-C     x                     XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
-C     x                     LG3IC,dimXCHF3,dimINT3,dimINT3ex,
-C     x                     XCHF_GAM3,INT_GAM3,
-C     x                     INT_GAM3ex1,INT_GAM3ex2,
-C     x                     LG4IC,dimXCHF4,dimINT4,
-C     x                     int_pinds,int_einds,INT_GAM4,
-C     x                     xchf_pinds,xchf_einds,XCHF_GAM4)
-C       end if
-C      end if
-C
+      if ((read_GAM3).or.(nblocks.eq.1)) then
+       if(LRXCUHF) then
+        call RXCHF_uscf_MPI(nproc,rank,
+     x                      nelec,nae,nae_alp,nae_beta,
+     x                      nbe,nebflt,npbflt,nucst,
+     x                      npebf,nebf,nebf2,npbf,npbf2,ngee,
+     x                      ngtg1,ng1,ng2,ng3,ng4,
+     x                      NG2CHK,NG3CHK,NG4CHK,
+     x                      read_CE,read_CP,
+     x                      LG4DSCF,LG3DSCF,LG2DSCF,
+     x                      LSOSCF,LDIIS,LSORXCHF,
+     x                      OCBSETYP,LDBG,LADDEXCH,
+     x                      ng2prm,ng3prm,nat,pmass,cat,zan,
+     x                      bcoef1,gamma1,
+     x                      KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                      LG2IC,dimXCHF2,dimINT2,dimINT2ex,
+     x                      XCHF_GAM2,INT_GAM2,
+     x                      INT_GAM2ex,XCHF_GAM2s,
+     x                      LG3IC,dimXCHF3,dimINT3,dimINT3ex,
+     x                      XCHF_GAM3,INT_GAM3,
+     x                      INT_GAM3ex1,INT_GAM3ex2,
+     x                      LG4IC,dimXCHF4,dimINT4,
+     x                      int_pinds,int_einds,INT_GAM4,
+     x                      xchf_pinds,xchf_einds,XCHF_GAM4)
+       else
+        call RXCHF_scf_MPI(nproc,rank,
+     x                     nelec,nae,nbe,nucst,
+     x                     npebf,nebf,nebf2,nebflt,
+     x                     npebfBE,nebfBE,nebfBE2,nebfBElt,elindBE,
+     x                     npbf,npbf2,npbflt,
+     x                     ngtg1,ngee,ng1,
+     x                     ng2_int,ng2_xchf,
+     x                     ng3_int,ng3_xchf,
+     x                     ng4_int,ng4_xchf,
+     x                     NG2CHK,NG3CHK,NG4CHK,
+     x                     read_CE,read_CP,
+     x                     LG4DSCF,LG3DSCF,LG2DSCF,
+     x                     LSOSCF,LDIIS,LSORXCHF,
+     x                     OCBSETYP,LDBG,LADDEXCH,
+     x                     LALTBAS,LREORDGS,
+     x                     nat,pmass,cat,zan,
+     x                     bcoef1,gamma1,
+     x                     KPESTR,KPEEND,
+     x                     AMPEB2C,AGEBFCC,
+     x                     ELCEX,ELCAM,ELCBFC,
+     x                     KPESTR_be,KPEEND_be,
+     x                     AMPEB2C_be,AGEBFCC_be,
+     x                     ELCEX_be,ELCAM_be,ELCBFC_be,
+     x                     AGNBFCC,NUCEX,NUCAM,NUCBFC,
+     x                     LG2IC,dimXCHF2,dimINT2,dimINT2ex,
+     x                     XCHF_GAM2,INT_GAM2,INT_GAM2ex,XCHF_GAM2s,
+     x                     LG3IC,dimXCHF3,dimINT3,dimINT3ex,
+     x                     XCHF_GAM3,INT_GAM3,
+     x                     INT_GAM3ex1,INT_GAM3ex2,
+     x                     LG4IC,dimXCHF4,dimINT4,
+     x                     int_pinds,int_einds,INT_GAM4,
+     x                     xchf_pinds,xchf_einds,XCHF_GAM4)
+       end if
+      end if
+
       wtime2 = MPI_WTIME() - wtime
 
 C Cleanup
