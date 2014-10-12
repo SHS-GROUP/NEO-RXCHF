@@ -821,13 +821,27 @@ C )
        if (rank.eq.0) then
 !       READ IN GUESS FOR E:
 !       call read_elec_density(nebf,nelec,DE)
-        call RXCHFmult_read_CAE(nebf,NAE,DAE,VECAE0)
+        call RXCUHF_read_CAE("guessCAalpE.inp",nebf,NAE_alp,
+     x                       DAE_alp,VECAE0_alp)
+        call RXCUHF_read_CAE("guessCAbetE.inp",nebf,NAE_beta,
+     x                       DAE_beta,VECAE0_beta)
+        DAE=zero
+        call add2fock(nebf,DAE_alp,DAE)
+        call add2fock(nebf,DAE_beta,DAE)
         call RXCHFmult_read_CBE(nebf,NBE,DBE,VECBE0)
        end if
 
        call MPI_BCAST(DAE,nebf2_,MPI_DOUBLE_PRECISION,
      x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(DAE_alp,nebf2_,MPI_DOUBLE_PRECISION,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(DAE_beta,nebf2_,MPI_DOUBLE_PRECISION,
+     x                0,MPI_COMM_WORLD,ierr)
        call MPI_BCAST(VECAE0,nebf2_,MPI_DOUBLE_PRECISION,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(VECAE0_alp,nebf2_,MPI_DOUBLE_PRECISION,
+     x                0,MPI_COMM_WORLD,ierr)
+       call MPI_BCAST(VECAE0_beta,nebf2_,MPI_DOUBLE_PRECISION,
      x                0,MPI_COMM_WORLD,ierr)
        call MPI_BCAST(DBE,nebf2_,MPI_DOUBLE_PRECISION,
      x                0,MPI_COMM_WORLD,ierr)
@@ -885,6 +899,8 @@ C ARS( debug: print out initial guess MOs here
        WRITE(*,9610)
        WRITE(*,*) "ALPHA ELECTRONS"
        call PREVNU(vecAE0_alp,AEE_alp,nebf,nebf,nebf)
+       WRITE(*,*) "BETA ELECTRONS"
+       call PREVNU(vecAE0_beta,AEE_beta,nebf,nebf,nebf)
        WRITE(*,9620)
        call PREVNU(vecBE0,BEE,nebf,nebf,nebf)
 C vecP not defined yet
@@ -2149,9 +2165,9 @@ C ARS( check orthonormality of MOs
           end if
 C )
 ! Output the vectors for this iteration for restart if necessary:
-          call write_MOs(860,nebf,VECAE_alp)
-          call write_MOs(861,nebf,VECAE_beta)
-          call write_MOs(862,nebf,VECBE)
+          call write_MOs(870,nebf,VECAE_alp)
+          call write_MOs(871,nebf,VECAE_beta)
+          call write_MOs(861,nebf,VECBE)
           call write_MOs(853,npbf,VECP)
          end if ! rank 0
 
