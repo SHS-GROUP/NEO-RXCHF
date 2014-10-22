@@ -1025,7 +1025,7 @@ C ARS( new stuff
           end do
           end do
 
-          call RXCHFmult_OCBSE_transF(nebfBE,nwbf,Cint,
+          call RXCHFmult_OCBSE_transF(LCMF,nebfBE,nwbf,Cint,
      x                                FBE,WB,wFBEw)
 
          else
@@ -1034,8 +1034,8 @@ C ARS( new stuff
 !  - W updated with new vecA from this iteration
 !  - vecBE in AO basis from previous iteration is transformed to new W basis
 !    (relevant for SOSCF only)
-          call RXCHFmult_OCBSE_transF(nebf,nwbf,vecAE(:,nocca+1:nebf),
-     x                                FBE,WB,wFBEw)
+          call RXCHFmult_OCBSE_transF(LCMF,nebf,nwbf,
+     x                               vecAE(:,nocca+1:nebf),FBE,WB,wFBEw)
 
          end if
 
@@ -1050,7 +1050,7 @@ C ARS( new stuff
 !!!!!!      --> SETUP LOWER TRIANGLE FOCKE FOR SOSCF
            call pack_LT(nwbf,nwbfLT,wFBEw,wFLTw)
 ! Transform vecBE that was used to build FBE into new W basis
-           call RXCHFmult_OCBSE_transVt(nebfBE,nwbf,WB,
+           call RXCHFmult_OCBSE_transVt(LCMF,nebfBE,nwbf,WB,
      x                                  xxseBE,vecBE,wvecBEw)
            call SOGRAD(GRADB,wFLTw,wvecBEw,wWRKw,NPRB,NB,
      x                 L0w,L1w,NwBFLT,ORBGRDB)
@@ -1070,8 +1070,8 @@ C ARS( new stuff
               call SOTRAN(DISPLIB,wvecBEw,wGBw,wWRKw,NPRB,
      x                    L0w,L1w,NB,NB,ORBGRDB)
               CALL DCOPY(NPRB,GRADB,1,PGRADB,1)
-              call RXCHFmult_OCBSE_transV(nebfBE,nwbf,WB,wvecBEw,wBEenw,! eigenvalues useless
-     x                                    vecBE,BEe)
+              call RXCHFmult_OCBSE_transV(LCMF,nebfBE,nwbf,WB,wvecBEw,! eigenvalues useless
+     x                                    wBEenw,vecBE,BEe)
               call RXCHFmult_construct_DE(NBE,nebfBE,vecBE,DBE)
               GO TO 450  ! Use the new C's to form new density (change)
             END IF
@@ -1081,7 +1081,7 @@ C ARS( new stuff
 ! No SOSCF
 !  - Diagonalize Fock matrix in W basis of this iteration
 !  - Obtain updated vecBE in W basis of this iteration
-         call RXCHFmult_OCBSE_diag(nebfBE,nwbf,WB,wFBEw,
+         call RXCHFmult_OCBSE_diag(LCMF,nebfBE,nwbf,WB,wFBEw,
      x                             wvecBEw,wBEenw,vecBE,BEe)
          call RXCHFmult_construct_DE(NBE,nebfBE,vecBE,DBE)
 
@@ -2317,7 +2317,7 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       end
 
 !======================================================================
-      subroutine RXCHFmult_OCBSE_transF(nebf,nwbf,
+      subroutine RXCHFmult_OCBSE_transF(debug,nebf,nwbf,
      x                                  vecAE,FBE,WB,wFBEw)
 !
 !     OCBSE Procedure:
@@ -2335,32 +2335,27 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       integer nwbf
       double precision vecAE(nebf,nwbf)
       double precision FBE(nebf,nebf)
+      logical debug
 ! Variables Returned
       double precision WB(nebf,nwbf)
       double precision wFBEw(nwbf,nwbf)
 ! Local variables
       integer i,j
-      double precision WBtrans(nwbf,nebf)
       double precision AUXB(nebf,nwbf)
-      double precision zero1(nebf),zero2(nwbf)
-      double precision zero
-      parameter(zero=0.0d+00)
-
-      logical debug
-      debug=.true.
+      double precision zeroarr(nebf)
+      double precision zero, one
+      parameter(zero=0.0d+00, one=1.0d+00)
 
 ! Initialize
       WB=zero
-      WBtrans=zero
       wFBEw=zero
       AUXB=zero
-      zero1=zero
-      zero2=zero
+      zeroarr=zero
 
       if (debug) then
        write(*,*) "nwbf:",nwbf
        write(*,*) "MATRIX vecAE:"
-       call PREVNU(vecAE,zero1,nwbf,nebf,nebf)
+       call PREVNU(vecAE,zeroarr,nwbf,nebf,nebf)
       end if
 
 ! Form special electronic transformation matrix
@@ -2372,32 +2367,25 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
 
       if (debug) then
        write(*,*) "MATRIX WB:"
-       call PREVNU(WB,zero2,nwbf,nebf,nebf)
+       call PREVNU(WB,zeroarr,nwbf,nebf,nebf)
       end if
 
-! Form transpose
-      do i=1,nwbf
-        do j=1,nebf
-          WBtrans(i,j)=WB(j,i)
-        end do
-      end do
-
 ! Transform FBE as Wtrans * FBE * W
-      call RXCHF_matmult(nebf,nebf,nebf,nwbf,
-     x                   FBE,WB,AUXB)
-      call RXCHF_matmult(nwbf,nebf,nebf,nwbf,
-     x                   WBtrans,AUXB,wFBEw)
+      call dgemm('n','n',nebf,nwbf,nebf,one,FBE,nebf,WB,nebf,
+     x           zero,AUXB,nebf)
+      call dgemm('t','n',nwbf,nwbf,nebf,one,WB,nebf,AUXB,nebf,
+     x           zero,wFBEw,nwbf)
 
       if (debug) then
        write(*,*) "MATRIX wFBEw:"
-       call PREVNU(wFBEw,zero2,nwbf,nwbf,nwbf)
+       call PREVNU(wFBEw,zeroarr,nwbf,nwbf,nwbf)
       end if
 
       return
       end
 
 !======================================================================
-      subroutine RXCHFmult_OCBSE_diag(nebf,nwbf,WB,wFBEw,
+      subroutine RXCHFmult_OCBSE_diag(debug,nebf,nwbf,WB,wFBEw,
      x                                wvecBEw,wBEenw,vecBE,BEen)
 !
 !     OCBSE Procedure:
@@ -2413,6 +2401,7 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       integer nwbf
       double precision WB(nebf,nwbf)
       double precision wFBEw(nwbf,nwbf)
+      logical debug
 ! Variables Returned
       double precision BEen(nebf)
       double precision wBEenw(nwbf)
@@ -2420,37 +2409,53 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       double precision wvecBEw(nwbf,nwbf)
 ! Local variables
       integer i,j
-      integer ierr
-      double precision work1(nwbf),work2(nwbf)
+      integer istat
+      double precision workq(1)
+      double precision, allocatable :: work(:)
       double precision zero
       parameter(zero=0.0d+00)
-
-      logical debug
-      debug=.true.
 
 ! Initialize
       wBEenw=zero
       wvecBEw=zero
-      work1=zero
-      work2=zero
 
 ! Diagonalize transformed FBE to obtain solutions in new basis
-      call RS(nwbf,nwbf,wFBEw,wBEenw,2,wvecBEw,work1,work2,ierr)
+
+! Query work array size for diagonalization and allocate work array
+      istat=0
+      wvecBEw(:,:)=wFBEw(:,:)
+      call dsyev("v","l",nwbf,wvecBEw,nwbf,wBEenw,
+     x           workq,-1,istat)
+      if (istat.ne.0) then
+       write(*,*) "Error in dsyev query"
+      end if
+      if(allocated(work)) deallocate(work)
+      allocate(work(int(workq(1))))
+
+! Diagonalize
+      istat=0
+      wvecBEw(:,:)=wFBEw(:,:)
+      call dsyev("v","l",nwbf,wvecBEw,nwbf,wBEenw,
+     x           work,int(workq(1)),istat)
+      if (istat.ne.0) then
+       write(*,*) "Error in dsyev"
+      end if
+      if(allocated(work)) deallocate(work)
 
       if (debug) then
        WRITE(*,*) "MATRIX wvecBEw:"
        call PREVNU(wvecBEw,wBEenw,nwbf,nwbf,nwbf)
       end if
 
-      call RXCHFmult_OCBSE_transV(nebf,nwbf,WB,wvecBEw,wBEenw,
+      call RXCHFmult_OCBSE_transV(debug,nebf,nwbf,WB,wvecBEw,wBEenw,
      x                            vecBE,BEen)
 
       return
       end
 
 !======================================================================
-      subroutine RXCHFmult_OCBSE_transV(nebf,nwbf,WB,wvecBEw,wBEenw,
-     x                                  vecBE,BEen)
+      subroutine RXCHFmult_OCBSE_transV(debug,nebf,nwbf,WB,wvecBEw,
+     x                                  wBEenw,vecBE,BEen)
 !
 !     OCBSE Procedure:
 !       - Transform eigenvectors (wvecBEw,wBEenw) -> (vecBE,BEen)
@@ -2464,17 +2469,15 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       double precision WB(nebf,nwbf)
       double precision wBEenw(nwbf)
       double precision wvecBEw(nwbf,nwbf)
+      logical debug
 ! Variables Returned
       double precision vecBE(nebf,nebf)
       double precision BEen(nebf)
 ! Local variables
       integer i,j
       double precision blockvecBE(nebf,nwbf)
-      double precision zero
-      parameter(zero=0.0d+00)
-
-      logical debug
-      debug=.true.
+      double precision zero, one
+      parameter(zero=0.0d+00, one=1.0d+00)
 
 ! Initialize
       blockvecBE=zero
@@ -2482,7 +2485,8 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       BEen=zero
 
 ! Transform evectors to AO basis as vecBE = W * xvecBE
-      call RXCHF_matmult(nebf,nwbf,nwbf,nwbf,WB,wvecBEw,blockvecBE)
+      call dgemm('n','n',nebf,nwbf,nwbf,one,WB,nebf,wvecBEw,nwbf,
+     x           zero,blockvecBE,nebf)
 
 ! Pass evectors to output variables (zeros for unfilled part)
       do i=1,nwbf
@@ -2501,7 +2505,7 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       end
 
 !======================================================================
-      subroutine RXCHFmult_OCBSE_transVt(nebf,nwbf,WB,
+      subroutine RXCHFmult_OCBSE_transVt(debug,nebf,nwbf,WB,
      x                                   Selec,vecBE,wvecBEw)
 !
 !     OCBSE Procedure:
@@ -2515,61 +2519,51 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       double precision WB(nebf,nwbf)
       double precision vecBE(nebf,nebf)
       double precision Selec(nebf,nebf)
+      logical debug
 ! Variables Returned
       double precision wvecBEw(nwbf,nwbf)
 ! Local variables
       integer i,j
       double precision testvec(nebf,nebf)
-      double precision WBtrans(nwbf,nebf)
       double precision WBinv(nwbf,nebf)
       double precision blockvecBE(nwbf,nebf)
       double precision wSBw(nwbf,nwbf)
-      double precision zero1(nwbf),zero2(nebf)
-      double precision zero
-      parameter(zero=0.0d+00)
-      integer k,l
-      double precision ovlap
-
-      logical debug
-      debug=.true.
+      double precision zeroarr(nebf)
+      double precision zero, one
+      parameter(zero=0.0d+00, one=1.0d+00)
 
 ! Initialize
-      WBtrans=zero
       WBinv=zero
       blockvecBE=zero
+      wSBw=zero
       wvecBEw=zero
-      zero1=zero
-      zero2=zero
+      zeroarr=zero
 
       if (debug) then
        WRITE(*,*) "MATRIX Pretransformed vecBE:"
-       call PREVNU(vecBE,zero2,nebf,nebf,nebf)
+       call PREVNU(vecBE,zeroarr,nebf,nebf,nebf)
       end if
 
       if (debug) then
        WRITE(*,*) "MATRIX Pretransformed WB:"
-       call PREVNU(WB,zero1,nwbf,nebf,nebf)
+       call PREVNU(WB,zeroarr,nwbf,nebf,nebf)
       end if
 
-! Form transpose
-      do i=1,nwbf
-        do j=1,nebf
-          WBtrans(i,j)=WB(j,i)
-        end do
-      end do
+! W^(-1) = W^t * S
+      call dgemm('t','n',nwbf,nebf,nebf,one,WB,nebf,Selec,nebf,
+     x           zero,WBinv,nwbf)
 
-      call RXCHF_matmult(nwbf,nebf,nebf,nebf,
-     x                   WBtrans,Selec,WBinv)
-      call RXCHF_matmult(nwbf,nebf,nebf,nwbf,
-     x                   WBinv,WB,wSBw)
-
-      if (debug) then
-      write(*,*) "MATRIX wSBw:"
-      call PREVNU(wSBw,zero1,nwbf,nwbf,nwbf)
+! Test: W * W^(-1) = S(W basis) = I
+      if(debug) then
+       call dgemm('n','n',nwbf,nwbf,nebf,one,WBinv,nwbf,WB,nebf,
+     x            zero,wSBw,nwbf)
+       write(*,*) "MATRIX wSBw:"
+       call PREVNU(wSBw,zeroarr,nwbf,nwbf,nwbf)
       end if
 
 ! Transform evectors to W basis as xvecBE = (W^t * S_AO) * vecBE
-      call RXCHF_matmult(nwbf,nebf,nebf,nebf,WBinv,vecBE,blockvecBE)
+      call dgemm('n','n',nwbf,nebf,nebf,one,WBinv,nwbf,vecBE,nebf,
+     x           zero,blockvecBE,nwbf)
 
 ! Pass evectors to output variables (unpassed part should be zero)
       do i=1,nwbf
@@ -2580,7 +2574,7 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
 
       if (debug) then
        WRITE(*,*) "MATRIX Transformed wvecBEw:"
-       call PREVNU(wvecBEw,zero1,nwbf,nwbf,nwbf)
+       call PREVNU(wvecBEw,zeroarr,nwbf,nwbf,nwbf)
       end if
 
 ! Lowdin orthogonalize
@@ -2588,13 +2582,14 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
 
       if (debug) then
        WRITE(*,*) "MATRIX Lowdin-orth wvecBEw:"
-       call PREVNU(wvecBEw,zero1,nwbf,nwbf,nwbf)
+       call PREVNU(wvecBEw,zeroarr,nwbf,nwbf,nwbf)
       end if
 
       if (debug) then
-       call RXCHF_matmult(nebf,nwbf,nwbf,nebf,WB,blockvecBE,testvec)
+       call dgemm('n','n',nebf,nebf,nwbf,one,WB,nebf,blockvecBE,nwbf,
+     x            zero,testvec,nebf)
        WRITE(*,*) "MATRIX Pretransformed TEST vecBE:"
-       call PREVNU(testvec,zero2,nebf,nebf,nebf)
+       call PREVNU(testvec,zeroarr,nebf,nebf,nebf)
       end if
 
       return
@@ -2696,7 +2691,7 @@ C )
       double precision, parameter :: zero=0.0d+00
       double precision, parameter :: one=1.0d+00
 
-      debug=.true.
+      debug=.false.
 
       A=zero
       Wt=zero
@@ -3006,7 +3001,7 @@ C )
       double precision, parameter :: bigrot=0.1d+00
       double precision, parameter :: small=1.0d-08
 
-      debug=.true.
+      debug=.false.
 
       H=zero
       D=zero
@@ -3108,9 +3103,11 @@ C       end if
       IF(SQCDF.GT.BIGROT) THEN
          IF(it.GT.0) WRITE(*,9020) SQCDF
          SCAL=dSQRT(BIGROT/SQCDF)
-         if(debug) then
-          write(*,*) "scal:",scal
-         end if
+C ARS( turn off
+         write(*,*) "scal:",scal
+         write(*,*) "not doing anything"
+         SCAL=one
+C )
          CALL DSCAL(n,SCAL,D,1)
       END IF
 

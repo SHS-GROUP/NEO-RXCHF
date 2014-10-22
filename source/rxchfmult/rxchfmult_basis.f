@@ -31,7 +31,7 @@
       end
 
 !======================================================================
-      subroutine process_elec_guess(nebf,nebfBE,elindBE,noccb)
+      subroutine process_elec_guess(debug,nebf,nebfBE,elindBE,noccb)
 
 ! This processes the regular and special electronic guess MOs that must
 ! be provided by the user for restricted basis set runs
@@ -59,12 +59,12 @@
 ! Input variables
       integer nebf,nebfBE,noccb
       integer elindBE(nebfBE)
+      logical debug
 
 ! Local variables
       integer i,j,k
       integer contrind,currcontrind
       logical laddbasis
-      logical debug
       double precision ovlap
       double precision CA0(nebf,nebf)      ! reg  coeffs as given in input file
       double precision CB0(nebf,nebf)      ! spec coeffs as given in input file
@@ -83,8 +83,6 @@
       double precision zeroarr(nebf)
       double precision zero,one
       parameter(zero=0.0d+00,one=1.0d+00)
-
-      debug=.true.
 
       CA=zero
       CB=zero
@@ -162,7 +160,7 @@ C Omitting this for CB effectively truncates it to restr basis set
       end if
 
 ! Orthonormalize special MOs which are now nonorthogonal due to truncation
-      call RXCHF_symmorth(nebfBE,noccb,CB,SBE)
+      call RXCHF_symmorth(debug,nebfBE,noccb,CB,SBE)
 
 ! Final special electron MOs are now in CB - form orth compl to their span next
       do i=1,noccb
@@ -170,7 +168,7 @@ C Omitting this for CB effectively truncates it to restr basis set
           CBpk(j,i)=CB(j,i)
         end do
       end do
-      call calc_orth_compl(nebf,nebfBE,noccb,CBpk,S,ocompl)
+      call calc_orth_compl(debug,nebf,nebfBE,noccb,CBpk,S,ocompl)
 
       if(debug) then
        write(*,*)
@@ -180,7 +178,7 @@ C Omitting this for CB effectively truncates it to restr basis set
       end if
 
 ! Project and orthonormalize regular guess vectors in orth compl space
-      call RXCHFmult_OCBSE_transVt(nebf,nebf-noccb,ocompl,
+      call RXCHFmult_OCBSE_transVt(debug,nebf,nebf-noccb,ocompl,
      x                             S,scrA,projvec)
 ! Project vectors back to all-AO space
 !  - will be o-normalized and still span orth compl
@@ -255,7 +253,7 @@ C Omitting this for CB effectively truncates it to restr basis set
       end
 
 !======================================================================
-      subroutine calc_orth_compl(N,m,nvec,vec,S,orthvec)
+      subroutine calc_orth_compl(debug,N,m,nvec,vec,S,orthvec)
 
 ! Calculates orthogonal complement of the (N-nvec)-dim subspace formed by
 ! the span of the first nvec vectors in {vec} in the global space given
@@ -287,6 +285,7 @@ C Omitting this for CB effectively truncates it to restr basis set
       integer N,m,nvec
       double precision vec(m,m)
       double precision S(N,N)
+      logical debug
 
 ! Output variables
       double precision orthvec(N,N-Nvec)
@@ -295,7 +294,6 @@ C Omitting this for CB effectively truncates it to restr basis set
       integer i,j,k
       integer istat
       integer dimnull
-      logical debug
       double precision ovlap
       double precision A(N,nvec)
       double precision AtS(nvec,N)
@@ -308,8 +306,6 @@ C Omitting this for CB effectively truncates it to restr basis set
       double precision, allocatable :: work(:)
       double precision zero,one,tol
       parameter(zero=0.0d+00,one=1.0d+00,tol=1.0d-12)
-
-      debug=.true.
 
       orthvec=zero
       A=zero
@@ -484,8 +480,8 @@ C Omitting this for CB effectively truncates it to restr basis set
       end
 
 !======================================================================
-      subroutine RXCHFmult_intersection(dimtot,nvec,vecA,ncanon,Sao,
-     x                                  dimint,basint)
+      subroutine RXCHFmult_intersection(debug,dimtot,nvec,vecA,ncanon,
+     x                                  Sao,dimint,basint)
 !
 ! Calculates an orthonormal basis for the intersection A \cap B where
 !     A is spanned by the nvec columns of vecA
@@ -515,13 +511,13 @@ C Omitting this for CB effectively truncates it to restr basis set
       integer          ncanon
       double precision vecA(dimtot,nvec)
       double precision Sao(ncanon,ncanon)
+      logical debug
 
 ! Variables Returned
       integer          dimint
       double precision basint(ncanon,dimtot) ! adjust on exit to dimint
 
 ! Local variables
-      logical debug
       integer i,j,k
       integer m,n
       integer currind
@@ -540,8 +536,6 @@ C Omitting this for CB effectively truncates it to restr basis set
       double precision, allocatable :: work(:)
       double precision, parameter   :: zero=0.0d+00, one=1.0d+00
       double precision, parameter   :: tol=1.0d-12
-
-      debug=.true.
 
 ! Initialize
       svals=zero
@@ -803,7 +797,7 @@ C Omitting this for CB effectively truncates it to restr basis set
       end
 
 !======================================================================
-      subroutine RXCHF_symmorth(m,n,mat,S)
+      subroutine RXCHF_symmorth(debug,m,n,mat,S)
 
 ! Performs symmetric orthogonalization for mat (replaced by symmetric mat)
 ! Computes SVD A = U * S * V^t and replaces A with U * V^t (uses GESVD)
@@ -820,6 +814,7 @@ C Omitting this for CB effectively truncates it to restr basis set
 ! Input variables
       integer          :: m,n
       double precision :: S(m,m)
+      logical          :: debug
 
 ! Input/Output variables
       double precision :: mat(m,n)
@@ -827,7 +822,6 @@ C Omitting this for CB effectively truncates it to restr basis set
 ! Local variables
       integer          :: i,j
       integer          :: istat
-      logical          :: debug
       double precision :: ovlap
       double precision :: Sevals(m),workq(1)
       double precision :: Sevecs(m,m)
@@ -841,8 +835,6 @@ C Omitting this for CB effectively truncates it to restr basis set
       double precision, parameter   :: zero=0.0d+00
       double precision, parameter   :: one=1.0d+00
       double precision, parameter   :: tol=1.0d-12
-
-      debug=.true.
 
       Sevals=zero
       Sevecs=zero

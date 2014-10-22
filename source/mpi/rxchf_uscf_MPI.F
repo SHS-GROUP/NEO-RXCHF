@@ -1258,7 +1258,7 @@ C )
             call checkovlap(nwbfA_alp,nebf,tempvecA_alp,xxse)
            end if
 
-           call RXCHFmult_OCBSE_transF(nebf,nwbfA_alp,tempvecA_alp,
+           call RXCHFmult_OCBSE_transF(LCMF,nebf,nwbfA_alp,tempvecA_alp,
      x                                 FAE_alp,WA_alp,wFAEw_alp)
 
 !-----------------------POSSIBLE-SOSCF-ALPHA----------------------------(
@@ -1268,7 +1268,7 @@ C )
          end if
          IF((LSORXCHF.or.LSOSCFA) .AND. (EIGAVL)) THEN
            call pack_LT(nwbfA_alp,nwbfLTA_alp,wFAEw_alp,wFLTAw_alp)
-           call RXCHFmult_OCBSE_transVt(nebf,nwbfA_alp,WA_alp,
+           call RXCHFmult_OCBSE_transVt(LCMF,nebf,nwbfA_alp,WA_alp,
      x                                  xxse,vecAE_alp,wvecAEw_alp)
            if(LCMF) then
             write(*,*) "regular transVt vecAE_alp"
@@ -1321,7 +1321,7 @@ C )
               ELSE
                 CALL DCOPY(NPRA_alp,GRADA_alp,1,PGRADA_alp,1)
               END IF
-              call RXCHFmult_OCBSE_transV(nebf,nwbfA_alp,WA_alp,
+              call RXCHFmult_OCBSE_transV(LCMF,nebf,nwbfA_alp,WA_alp,
      x               wvecAEw_alp,wAEenw_alp, ! eigenvalues useless
      x                                    vecAE_alp,AEe_alp)
               if(LCMF) then
@@ -1338,7 +1338,7 @@ C )
 ! No SOSCF
 !  - Diagonalize Fock matrix in WA basis of this iteration
 !  - Obtain updated vecAE in WA basis of this iteration
-           call RXCHFmult_OCBSE_diag(nebf,nwbfA_alp,WA_alp,wFAEw_alp,
+         call RXCHFmult_OCBSE_diag(LCMF,nebf,nwbfA_alp,WA_alp,wFAEw_alp,
      x                      wvecAEw_alp,wAEenw_alp,vecAE_alp,AEe_alp)
            if(LCMF) then
             write(*,*) "regular diag vecAE_alp"
@@ -1367,7 +1367,7 @@ C )
             call checkovlap(nwbfA_beta,nebf,tempvecA_beta,xxse)
            end if
 
-           call RXCHFmult_OCBSE_transF(nebf,nwbfA_beta,tempvecA_beta,
+         call RXCHFmult_OCBSE_transF(LCMF,nebf,nwbfA_beta,tempvecA_beta,
      x                                 FAE_beta,WA_beta,wFAEw_beta)
 
 !-----------------------POSSIBLE-SOSCF-ALPHA----------------------------(
@@ -1377,7 +1377,7 @@ C )
          end if
          IF((LSORXCHF.or.LSOSCFA) .AND. (EIGAVL)) THEN
            call pack_LT(nwbfA_beta,nwbfLTA_beta,wFAEw_beta,wFLTAw_beta)
-           call RXCHFmult_OCBSE_transVt(nebf,nwbfA_beta,WA_beta,
+           call RXCHFmult_OCBSE_transVt(LCMF,nebf,nwbfA_beta,WA_beta,
      x                                  xxse,vecAE_beta,wvecAEw_beta)
            if(LCMF) then
             write(*,*) "regular transVt vecAE_beta"
@@ -1431,7 +1431,7 @@ C )
               ELSE
                 CALL DCOPY(NPRA_beta,GRADA_beta,1,PGRADA_beta,1)
               END IF
-              call RXCHFmult_OCBSE_transV(nebf,nwbfA_beta,WA_beta,
+              call RXCHFmult_OCBSE_transV(LCMF,nebf,nwbfA_beta,WA_beta,
      x               wvecAEw_beta,wAEenw_beta, ! eigenvalues useless
      x                                    vecAE_beta,AEe_beta)
               if(LCMF) then
@@ -1448,7 +1448,7 @@ C )
 ! No SOSCF
 !  - Diagonalize Fock matrix in WA basis of this iteration
 !  - Obtain updated vecAE in WA basis of this iteration
-           call RXCHFmult_OCBSE_diag(nebf,nwbfA_beta,WA_beta,wFAEw_beta,
+      call RXCHFmult_OCBSE_diag(LCMF,nebf,nwbfA_beta,WA_beta,wFAEw_beta,
      x                               wvecAEw_beta,wAEenw_beta,
      x                        vecAE_beta,AEe_beta)
            if(LCMF) then
@@ -1486,7 +1486,7 @@ c add together alpha and beta density matrices
             call checkovlap(nwbfB,nebf,tempvecB,xxse)
            end if
 
-           call RXCHFmult_OCBSE_transF(nebf,nwbfB,tempvecB,
+           call RXCHFmult_OCBSE_transF(LCMF,nebf,nwbfB,tempvecB,
      x                                 FBE,WB,wFBEw)
 !-----------------------POSSIBLE-SOSCF-BETA----------------------------(
          if((LSORXCHF).or.(LSOSCFB)) THEN
@@ -1495,7 +1495,7 @@ c add together alpha and beta density matrices
          end if
          IF((LSORXCHF.or.LSOSCFB) .AND. (EIGAVL)) THEN
            call pack_LT(nwbfB,nwbfLTB,wFBEw,wFLTBw)
-           call RXCHFmult_OCBSE_transVt(nebf,nwbfB,WB,
+           call RXCHFmult_OCBSE_transVt(LCMF,nebf,nwbfB,WB,
      x                                  xxse,vecBE,wvecBEw)
            if(LCMF) then
             write(*,*) "special transVt vecBE"
@@ -1542,7 +1542,7 @@ C )
               ELSE
                 CALL DCOPY(NPRB,GRADB,1,PGRADB,1)
               END IF
-              call RXCHFmult_OCBSE_transV(nebf,nwbfB,WB,wvecBEw,wBEenw, ! eigenvalues useless
+         call RXCHFmult_OCBSE_transV(LCMF,nebf,nwbfB,WB,wvecBEw,wBEenw, ! eigenvalues useless
      x                                    vecBE,BEe)
 c            write(6,*) 'krb  vecbe after'
 c                  call PREVNU(vecbe,AEE,nebf,nebf,nebf)
@@ -1559,7 +1559,7 @@ c                  call PREVNU(vecbe,AEE,nebf,nebf,nebf)
 ! No SOSCF
 !  - Diagonalize Fock matrix in WB basis of this iteration
 !  - Obtain updated vecBE in WB basis of this iteration
-           call RXCHFmult_OCBSE_diag(nebf,nwbfB,WB,wFBEw,
+           call RXCHFmult_OCBSE_diag(LCMF,nebf,nwbfB,WB,wFBEw,
      x                               wvecBEw,wBEenw,vecBE,BEe)
 c            write(6,*) 'krb  vecbe after2'
 c                  call PREVNU(vecbe,AEE,nebf,nebf,nebf)
@@ -1809,7 +1809,7 @@ C ARS( OCBSE/SOSCF
 !  - W updated with new vecA from this iteration
 !  - vecBE in AO basis from previous iteration is transformed to new W basis
 !    (relevant for SOSCF only)
-         call RXCHFmult_OCBSE_transF(nebf,nwbfB,vecAE(:,nocca+1:nebf),
+      call RXCHFmult_OCBSE_transF(LCMF,nebf,nwbfB,vecAE(:,nocca+1:nebf),
      x                               FBE,WB,wFBEw)
 
 !-----------------------POSSIBLE-SOSCF-BETA----------------------------(
@@ -1819,7 +1819,7 @@ C ARS( OCBSE/SOSCF
          end if
          IF((LSORXCHF.or.LSOSCFB) .AND. (EIGAVL)) THEN
            call pack_LT(nwbfB,nwbfLTB,wFBEw,wFLTBw)
-           call RXCHFmult_OCBSE_transVt(nebf,nwbfB,WB,
+           call RXCHFmult_OCBSE_transVt(LCMF,nebf,nwbfB,WB,
      x                                  xxse,vecBE,wvecBEw)
            if(LCMF) then
             write(*,*) "special transVt vecBE"
@@ -1866,7 +1866,7 @@ C )
               ELSE
                 CALL DCOPY(NPRB,GRADB,1,PGRADB,1)
               END IF
-              call RXCHFmult_OCBSE_transV(nebf,nwbfB,WB,wvecBEw,wBEenw, ! eigenvalues useless
+         call RXCHFmult_OCBSE_transV(LCMF,nebf,nwbfB,WB,wvecBEw,wBEenw, ! eigenvalues useless
      x                                    vecBE,BEe)
               if(LCMF) then
                write(*,*) "special transV vecBE"
@@ -1881,7 +1881,7 @@ C )
 ! No SOSCF
 !  - Diagonalize Fock matrix in W basis of this iteration
 !  - Obtain updated vecBE in W basis of this iteration
-         call RXCHFmult_OCBSE_diag(nebf,nwbfB,WB,wFBEw,
+         call RXCHFmult_OCBSE_diag(LCMF,nebf,nwbfB,WB,wFBEw,
      x                             wvecBEw,wBEenw,vecBE,BEe)
          if(LCMF) then
           write(*,*) "special diag vecBE"

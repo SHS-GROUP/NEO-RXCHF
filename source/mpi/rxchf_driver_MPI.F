@@ -409,7 +409,7 @@ C since the all-electron basis set may have been reordered
 ! Process electronic guess (must be given) if LREORDGS (defaults to True)
        if ((LALTBAS).and.(LREORDGS)) then
 
-        call process_elec_guess(nebf,nebfBE,elindBE,nbe/2) ! assumes closed shell of sp elecs
+        call process_elec_guess(LDBG,nebf,nebfBE,elindBE,nbe/2) ! assumes closed shell of sp elecs
 
 ! Otherwise one must ensure that the guess is already consistent with the
 ! reordered basis set of this run (i.e. generated from a previous calc)

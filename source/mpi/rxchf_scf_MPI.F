@@ -302,7 +302,9 @@ C )
 C ARS( alt basis variables
       integer ialt,jalt,kalt,lalt
       integer dimint,dimint0
-      double precision,allocatable :: ocompl(:,:)
+      double precision projvecA(nebf,nebf)
+      double precision projvecB(nebfBE,nebfBE)
+      double precision,allocatable :: ocomplA(:,:),ocomplB(:,:)
       double precision Ctemp(nebfBE,nebf)
       double precision,allocatable :: Cintocc(:,:)
       double precision ovlapalt
@@ -481,6 +483,8 @@ C )
         L0wB=nwbfB
         L1wB=nwbfB
         if (rank.eq.0) then
+         if(allocated(ocomplB)) deallocate(ocomplB)
+         allocate(ocomplB(nebf,nwbfB))
          if(allocated(tempvecB)) deallocate(tempvecB)
          allocate(tempvecB(nebf,nwbfB))
          if(allocated(WB)) deallocate(WB)
@@ -554,8 +558,8 @@ C )
         L0wA=nwbfA
         L1wA=nwbfA
         if (rank.eq.0) then
-         if(allocated(ocompl)) deallocate(ocompl)
-         allocate(ocompl(nebf,nwbfA))
+         if(allocated(ocomplA)) deallocate(ocomplA)
+         allocate(ocomplA(nebf,nwbfA))
          if(allocated(tempvecA)) deallocate(tempvecA)
          allocate(tempvecA(nebf,nwbfA))
          if(allocated(WA)) deallocate(WA)
@@ -1090,50 +1094,45 @@ C )
 
 ! Regular electrons
 
-         if (LALTBAS) then
-
 ! Calculate accessible space to regular electrons of this iteration
+         if (LALTBAS) then
 !  - orthogonal complement of span of occ specials of previous iteration
-          call calc_orth_compl(nebf,nebfBE,noccb,vecBE0,xxse,ocompl)
-
-! Project and orthonormalize vecAE0 (occ+virt) in orth compl space
-          call RXCHFmult_OCBSE_transVt(nebf,nwbfA,ocompl,
-     x                                 xxse,vecAE0,wvecAEw) ! temporarily use wvecAEw
+          call calc_orth_compl(LCMF,nebf,nebfBE,noccb,vecBE0,xxse,
+     x                         ocomplA)
+         else
+!  - orthogonal complement already given directly
+!  - span of virt specials augmented with nocca occ regulars (all of prev iteration)
+          do j=1,nocca
+            ocomplA(:,j)=vecAE0(:,j)
+          end do
+          do j=1,nebf-nocca-noccb
+            ocomplA(:,j+nocca)=vecBE0(:,j+noccb)
+          end do
+         end if
+          
+! Project and orthonormalize WA0 (or vecAE0 if first it) in orth compl space
+         projvecA=zero
+         if ((i.eq.1).and.(ielec.eq.1)) then
+          projvecA(:,:)=vecAE0(:,:)
+         else
+          do j=1,nwbfA
+            projvecA(:,j)=WA0(:,j)
+          end do
+         end if
+         call RXCHFmult_OCBSE_transVt(LCMF,nebf,nwbfA,ocomplA,
+     x                                xxse,projvecA,wvecAEw) ! temporarily use wvecAEw
 
 ! Project vectors back to all-AO space
 !  - will be o-normalized and still span orth compl
-          call dgemm('n','n',nebf,nwbfA,nwbfA,one,
-     x               ocompl,nebf,wvecAEw,nwbfA,zero,tempvecA,nebf)
-
-         else
-
-! Transform FAE (calculated at end of previous iteration) to new WA basis
-!  - WA constructed from vecAE0 and vecBE0 (previous iteration MOs)
-!  - vecAE in AO basis from previous iteration is transformed to new WA basis
-!    (relevant for SOSCF only)
-          do j=1,nebf-nocca-noccb
-            tempvecA(:,j)=vecBE0(:,j+noccb)
-          end do
-          do j=1,nocca
-            tempvecA(:,j+nebf-nocca-noccb)=vecAE0(:,j)
-          end do
-
-! Phase WA wrt WA0 (for consistency in second order transformation)
-          if((LSORXCHF).and.(ielec.gt.1)) then
-           call RXCHFmult_OCBSE_phase(nebf,nwbfA,xxse,WA0,tempvecA)
-           call RXCHFmult_OCBSE_phase(nebf,nocca,xxse,
-     x               tempvecA(:,nebf-nocca-noccb+1:nwbfA),
-     x               vecAE(:,1:nocca))
-          end if
-
-         end if
+         call dgemm('n','n',nebf,nwbfA,nwbfA,one,
+     x              ocomplA,nebf,wvecAEw,nwbfA,zero,tempvecA,nebf)
 
          if(LCMF) then
           write(*,*) "regular tempvecA"
           call checkovlap(nwbfA,nebf,tempvecA,xxse)
          end if
 
-         call RXCHFmult_OCBSE_transF(nebf,nwbfA,tempvecA,
+         call RXCHFmult_OCBSE_transF(LCMF,nebf,nwbfA,tempvecA,
      x                               FAE,WA,wFAEw)
 
 !-----------------------POSSIBLE-SOSCF-ALPHA----------------------------(
@@ -1143,7 +1142,7 @@ C )
          end if
          IF((LSORXCHF.or.LSOSCFA) .AND. (EIGAVL)) THEN
            call pack_LT(nwbfA,nwbfLTA,wFAEw,wFLTAw)
-           call RXCHFmult_OCBSE_transVt(nebf,nwbfA,WA,
+           call RXCHFmult_OCBSE_transVt(LCMF,nebf,nwbfA,WA,
      x                                  xxse,vecAE,wvecAEw)
            if(LCMF) then
             write(*,*) "regular transVt vecAE"
@@ -1188,8 +1187,8 @@ C                 write(*,*) "regular displia:",displia
               ELSE
                 CALL DCOPY(NPRA,GRADA,1,PGRADA,1)
               END IF
-              call RXCHFmult_OCBSE_transV(nebf,nwbfA,WA,wvecAEw,wAEenw, ! eigenvalues useless
-     x                                    vecAE,AEe)
+              call RXCHFmult_OCBSE_transV(LCMF,nebf,nwbfA,WA,wvecAEw, ! eigenvalues useless
+     x                                    wAEenw,vecAE,AEe)
               if(LCMF) then
                write(*,*) "regular transV vecAE"
                call checkovlap(nebf,nebf,vecAE,xxse)
@@ -1203,7 +1202,7 @@ C                 write(*,*) "regular displia:",displia
 ! No SOSCF
 !  - Diagonalize Fock matrix in WA basis of this iteration
 !  - Obtain updated vecAE in WA basis of this iteration
-           call RXCHFmult_OCBSE_diag(nebf,nwbfA,WA,wFAEw,
+           call RXCHFmult_OCBSE_diag(LCMF,nebf,nwbfA,WA,wFAEw,
      x                               wvecAEw,wAEenw,vecAE,AEe)
            if(LCMF) then
             write(*,*) "regular diag vecAE"
@@ -1220,7 +1219,7 @@ C                 write(*,*) "regular displia:",displia
 ! Calculate accessible space to special electrons of this iteration
 !  - intersection of restricted basis set and span of virt regulars of this iteration
 !  - augmented with the noccb occ specials of previous iteration
-          call RXCHFmult_intersection(nebf,nebf-nocca-noccb,
+          call RXCHFmult_intersection(LCMF,nebf,nebf-nocca-noccb,
      x                                vecAE(:,nocca+1:nebf-noccb),
      x                                nebfBE,xxseBE,dimint,Ctemp)
 
@@ -1374,9 +1373,13 @@ C                 write(*,*) "regular displia:",displia
              tempvecB(:,j)=Cintocc(:,j)
            end do
           else
-! Project and orthonormalize vecBE0 (occ+virt) in intersection space
-           call RXCHFmult_OCBSE_transVt(nebfBE,nwbfB,Cintocc,
-     x                                  xxseBE,vecBE0,wvecBEw) ! temporarily use wvecBEw
+! Project and orthonormalize WB0 in intersection space
+           projvecB=zero
+           do j=1,nwbfB
+             projvecB(:,j)=WB0(:,j)
+           end do
+           call RXCHFmult_OCBSE_transVt(LCMF,nebfBE,nwbfB,Cintocc,
+     x                                  xxseBE,projvecB,wvecBEw) ! temporarily use wvecBEw
 ! Project vectors back to restr-AO space
 !  - will be o-normalized and still span intersection
            call dgemm('n','n',nebfBE,nwbfB,nwbfB,one,
@@ -1385,25 +1388,32 @@ C                 write(*,*) "regular displia:",displia
 
          else
 
-! Transform FBE (calculated at end of previous iteration) to new WB basis
-!  - WB constructed from vecAE and vecBE0 (current and previous iteration MOs)
-!  - vecBE in AO basis from previous iteration is transformed to new WB basis
-!    (relevant for SOSCF only)
-
-          do j=1,nebf-nocca-noccb
-            tempvecB(:,j)=vecAE(:,j+nocca)
-          end do
+! Calculate accessible space to regular electrons of this iteration
+!  - orthogonal complement already given directly
+!  - span of virt regulars (curr it) augmented with noccb occ specials (prev it)
           do j=1,noccb
-            tempvecB(:,j+nebf-nocca-noccb)=vecBE0(:,j)
+            ocomplB(:,j)=vecBE0(:,j)
+          end do
+          do j=1,nebf-nocca-noccb
+            ocomplB(:,j+noccb)=vecAE(:,j+nocca)
           end do
 
-! Phase WB wrt WB0 (for consistency in second order transformation)
-          if((LSORXCHF).and.(ielec.gt.1)) then
-           call RXCHFmult_OCBSE_phase(nebf,nwbfB,xxse,WB0,tempvecB)
-           call RXCHFmult_OCBSE_phase(nebf,noccb,xxse,
-     x               tempvecB(:,nebf-nocca-noccb+1:nwbfB),
-     x               vecBE(:,1:noccb))
+! Project and orthonormalize WB0 (or vecBE0 if first it) in orth compl space
+          projvecB=zero
+          if ((i.eq.1).and.(ielec.eq.1)) then
+           projvecB(:,:)=vecBE0(:,:)
+          else
+           do j=1,nwbfB
+             projvecB(:,j)=WB0(:,j)
+           end do
           end if
+          call RXCHFmult_OCBSE_transVt(LCMF,nebf,nwbfB,ocomplB,
+     x                                xxse,projvecB,wvecBEw) ! temporarily use wvecBEw
+
+! Project vectors back to all-AO space
+!  - will be o-normalized and still span orth compl
+          call dgemm('n','n',nebf,nwbfB,nwbfB,one,
+     x               ocomplB,nebf,wvecBEw,nwbfB,zero,tempvecB,nebf)
 
          end if ! altbasis
 
@@ -1412,7 +1422,7 @@ C                 write(*,*) "regular displia:",displia
           call checkovlap(nwbfB,nebfBE,tempvecB,xxseBE)
          end if
 
-         call RXCHFmult_OCBSE_transF(nebfBE,nwbfB,tempvecB,
+         call RXCHFmult_OCBSE_transF(LCMF,nebfBE,nwbfB,tempvecB,
      x                               FBE,WB,wFBEw)
 
 !-----------------------POSSIBLE-SOSCF-BETA----------------------------(
@@ -1424,7 +1434,7 @@ C                 write(*,*) "regular displia:",displia
 ! Turn off SOSCF if dimint changes (until stable again)
          IF((LSORXCHF.or.LSOSCFB) .AND. (EIGAVL)) THEN
            call pack_LT(nwbfB,nwbfLTB,wFBEw,wFLTBw)
-           call RXCHFmult_OCBSE_transVt(nebfBE,nwbfB,WB,
+           call RXCHFmult_OCBSE_transVt(LCMF,nebfBE,nwbfB,WB,
      x                                  xxseBE,vecBE,wvecBEw)
            if(LCMF) then
             write(*,*) "special transVt vecBE"
@@ -1469,8 +1479,8 @@ C                 write(*,*) "special displib:",displib
               ELSE
                 CALL DCOPY(NPRB,GRADB,1,PGRADB,1)
               END IF
-             call RXCHFmult_OCBSE_transV(nebfBE,nwbfB,WB,wvecBEw,wBEenw,! eigenvalues useless
-     x                                    vecBE,BEe)
+             call RXCHFmult_OCBSE_transV(LCMF,nebfBE,nwbfB,WB,wvecBEw,! eigenvalues useless
+     x                                   wBEenw, vecBE,BEe)
               if(LCMF) then
                write(*,*) "special transV vecBE"
                call checkovlap(nebfBE,nebfBE,vecBE,xxseBE)
@@ -1484,7 +1494,7 @@ C                 write(*,*) "special displib:",displib
 ! No SOSCF
 !  - Diagonalize Fock matrix in WB basis of this iteration
 !  - Obtain updated vecBE in WB basis of this iteration
-           call RXCHFmult_OCBSE_diag(nebfBE,nwbfB,WB,wFBEw,
+           call RXCHFmult_OCBSE_diag(LCMF,nebfBE,nwbfB,WB,wFBEw,
      x                               wvecBEw,wBEenw,vecBE,BEe)
            if(LCMF) then
             write(*,*) "special diag vecBE"
@@ -1525,10 +1535,10 @@ C --------------------------- POTENTIAL DIIS ---------------------------
          write(*,*) "regular DIIS vecAE"
          call checkovlap(nebf,nebf,vecAE,xxse)
          write(*,*) "special DIIS vecBE"
-         call checkovlap(nebf,nebf,vecBE,xxse)
+         call checkovlap(nebfBE,nebfBE,vecBE,xxseBE)
         end if
         call RXCHFmult_construct_DE(NAE,nebf,vecAE,DAE)
-        call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
+        call RXCHFmult_construct_DE(NBE,nebfBE,vecBE,DBE)
        end if
 
       end if
@@ -1709,8 +1719,8 @@ C ARS( OCBSE/SOSCF
 !  - W updated with new vecA from this iteration
 !  - vecBE in AO basis from previous iteration is transformed to new W basis
 !    (relevant for SOSCF only)
-         call RXCHFmult_OCBSE_transF(nebf,nwbfB,vecAE(:,nocca+1:nebf),
-     x                               FBE,WB,wFBEw)
+         call RXCHFmult_OCBSE_transF(LCMF,nebfBE,nwbfB,
+     x                               vecAE(:,nocca+1:nebf),FBE,WB,wFBEw)
 
 !-----------------------POSSIBLE-SOSCF-BETA----------------------------(
          if((LSORXCHF).or.(LSOSCFB)) THEN
@@ -1719,11 +1729,11 @@ C ARS( OCBSE/SOSCF
          end if
          IF((LSORXCHF.or.LSOSCFB) .AND. (EIGAVL)) THEN
            call pack_LT(nwbfB,nwbfLTB,wFBEw,wFLTBw)
-           call RXCHFmult_OCBSE_transVt(nebf,nwbfB,WB,
-     x                                  xxse,vecBE,wvecBEw)
+           call RXCHFmult_OCBSE_transVt(LCMF,nebfBE,nwbfB,WB,
+     x                                  xxseBE,vecBE,wvecBEw)
            if(LCMF) then
             write(*,*) "special transVt vecBE"
-            call checkovlap(nebf,nebf,vecBE,xxse)
+            call checkovlap(nebfBE,nebfBE,vecBE,xxseBE)
            end if
            call SOGRAD(GRADB,wFLTBw,wvecBEw,wWRKBw,NPRB,NB,
      x                 L0wB,L1wB,NwBFLTB,ORBGRDB)
@@ -1742,7 +1752,7 @@ C ARS( OCBSE/SOSCF
               END IF
               ITSOB = ITSOB+1
               IF(LSORXCHF) then
-               call RXCHF_SOCHGBAS(NPRB,NB,nwbfB,nebf,WB0,WB,xxse,
+               call RXCHF_SOCHGBAS(NPRB,NB,nwbfB,nebfBE,WB0,WB,xxseBE,
      x                             GRADB0,HESSB0,DISPLIB0)
                call RXCHF_SONEWT(NPRB,ITSOB,HESSB0,HESSB,GRADB0,
      x                           GRADB,DISPLIB0,DISPLIB)
@@ -1764,13 +1774,13 @@ C                 write(*,*) "special displib:",displib
               ELSE
                 CALL DCOPY(NPRB,GRADB,1,PGRADB,1)
               END IF
-              call RXCHFmult_OCBSE_transV(nebf,nwbfB,WB,wvecBEw,wBEenw, ! eigenvalues useless
-     x                                    vecBE,BEe)
+            call RXCHFmult_OCBSE_transV(LCMF,nebfBE,nwbfB,WB,wvecBEw, ! eigenvalues useless
+     x                                  wBEenw,vecBE,BEe)
               if(LCMF) then
                write(*,*) "special transV vecBE"
-               call checkovlap(nebf,nebf,vecBE,xxse)
+               call checkovlap(nebfBE,nebfBE,vecBE,xxseBE)
               end if
-              call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
+              call RXCHFmult_construct_DE(NBE,nebfBE,vecBE,DBE)
               GO TO 450
             END IF
          END IF
@@ -1779,13 +1789,13 @@ C                 write(*,*) "special displib:",displib
 ! No SOSCF
 !  - Diagonalize Fock matrix in W basis of this iteration
 !  - Obtain updated vecBE in W basis of this iteration
-         call RXCHFmult_OCBSE_diag(nebf,nwbfB,WB,wFBEw,
+         call RXCHFmult_OCBSE_diag(LCMF,nebfBE,nwbfB,WB,wFBEw,
      x                             wvecBEw,wBEenw,vecBE,BEe)
          if(LCMF) then
           write(*,*) "special diag vecBE"
-          call checkovlap(nebf,nebf,vecBE,xxse)
+          call checkovlap(nebfBE,nebfBE,vecBE,xxseBE)
          end if
-         call RXCHFmult_construct_DE(NBE,nebf,vecBE,DBE)
+         call RXCHFmult_construct_DE(NBE,nebfBE,vecBE,DBE)
 
   450 CONTINUE
 
@@ -2029,7 +2039,7 @@ C ARS( debug: print out MOs here
            WRITE(*,9610)
            call PREVNU(vecAE,AEE,nebf,nebf,nebf)
            WRITE(*,9620)
-           call PREVNU(vecBE,BEE,nebf,nebf,nebf)
+           call PREVNU(vecBE,BEE,nebfBE,nebfBE,nebfBE)
            WRITE(*,9700)
            call PREVNU(vecp,EP,npbf,npbf,npbf)
           end if
@@ -2039,12 +2049,12 @@ C ARS( check orthonormality of MOs
            write(*,*) "Regular MO overlap matrix:"
            call checkovlap(nebf,nebf,vecAE,xxse)
            write(*,*) "Special MO overlap matrix:"
-           call checkovlap(nebf,nebf,vecBE,xxse)
+           call checkovlap(nebfBE,nebfBE,vecBE,xxseBE)
           end if
 C )
 ! Output the vectors for this iteration for restart if necessary:
           call write_MOs(860,nebf,VECAE)
-          call write_MOs(861,nebf,VECBE)
+          call write_MOs(861,nebfBE,VECBE)
           call write_MOs(853,npbf,VECP)
          end if ! rank 0
 
@@ -2097,7 +2107,7 @@ C )
        WRITE(*,9610)
        call PREVNU(vecAE,AEE,nebf,nebf,nebf)
        WRITE(*,9620)
-       call PREVNU(vecBE,BEE,nebf,nebf,nebf)
+       call PREVNU(vecBE,BEE,nebfBE,nebfBE,nebfBE)
        WRITE(*,9700)
        call PREVNU(vecp,EP,npbf,npbf,npbf)
 
@@ -2108,7 +2118,7 @@ C )
 !     IFIL=860 :: FinalCAE.dat
 !     IFIL=861 :: FinalCBE.dat
        call write_MOs(860,nebf,VECAE)
-       call write_MOs(861,nebf,VECBE)
+       call write_MOs(861,nebfBE,VECBE)
        call write_MOs(853,npbf,VECP)
 ! PUNCH-OUT-THE-FINAL-VECTORS-FOR-E-AND-NUC----------------------------)
 
@@ -2123,7 +2133,7 @@ C )
        if(allocated(wFAEw))    deallocate(wFAEw)
        if(allocated(WA))       deallocate(WA)
        if(allocated(tempvecA)) deallocate(tempvecA)
-       if(allocated(ocompl))   deallocate(ocompl)
+       if(allocated(ocomplA))  deallocate(ocomplA)
        if(allocated(wWRKBw))   deallocate(wWRKBw)
        if(allocated(wGBw))     deallocate(wGBw)
        if(allocated(wFLTBw))   deallocate(wFLTBw)
@@ -2132,6 +2142,7 @@ C )
        if(allocated(wFBEw))    deallocate(wFBEw)
        if(allocated(WB))       deallocate(WB)
        if(allocated(tempvecB)) deallocate(tempvecB)
+       if(allocated(ocomplB))  deallocate(ocomplB)
        if(allocated(Cintocc))  deallocate(Cintocc)
       end if
       if((LDIIS).and.(rank.eq.0)) then
