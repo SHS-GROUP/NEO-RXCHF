@@ -373,6 +373,7 @@ C Broadcast array data
        if(allocated(ELCAM_be)) deallocate(ELCAM_be)
        allocate( ELCAM_be(npebfBE,3),stat=istat )
        if(allocated(ELCBFC_be)) deallocate(ELCBFC_be)
+       allocate( ELCBFC_be(npebfBE,3),stat=istat )
        ELCBFC_be=ELCBFC
        AMPEB2C_be=AMPEB2C
        ELCEX_be=ELCEX

@@ -90,7 +90,6 @@
       integer nelec
       integer NAE,NBE
       integer NPRA,NPRB
-      integer NEBFLT
       integer NUCST
       integer nebf,nebfBE,npbf
       integer nebf2,nebflt
@@ -727,8 +726,9 @@ C store quantities over special electron basis
         if(rank.eq.0) write(*,*)'ABOUT TO CALL guess_A_elec'
 !       call guess_elec(nelec,nebf,xxse,GAM_ecore,DE)
         if ((LOCBSE).or.(LOCBSE2)) then
-          call RXCHFmult_guess_elec(nae,nbe,nebf,xxse,GAM_ecore,
-     x                          DAE,DBE,VECAE0,VECBE0)
+          call RXCHFmult_guess_elec(LALTBAS,nae,nbe,nebf,nebf,
+     x                              xxse,xxse,GAM_ecore,GAM_ecore,
+     x                              DAE,DBE,VECAE0,VECBE0)
           if(rank.eq.0) write(*,*)'BACK FROM guess_elec for OCBSE'
         else
          call RXCHFmult_guess_A_elec(NAE,nebf,xxse,GAM_ecore,DAE,VECAE0)

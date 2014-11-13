@@ -22,6 +22,10 @@ OPT='-O2 -s default64 -Ktrap=fp -c'                                         #Cra
 #F77=mpif77
 #OPT='-fopenmp -lgomp -O2 -c -I/usr/local/include -I/usr/local/lib/gcc/x86_64-apple-darwin12.2.0/4.8.0/finclude' # Kurt
 
+# Andrew's specifications:
+#F77=mpif90
+#OPT='-O2 -fopenmp -fdefault-integer-8 -fdefault-real-8 -fdefault-double-8 -DMPI32 -c'
+
 set echo
 
 echo Compiling $FIL with $F77 with options $OPT ...

@@ -41,6 +41,11 @@ OPT='-O2 -s default64 -Ktrap=fp'                                         # Cray
 #LIB='-L/opt/acml/5.3.0/open64_64_int64/lib -lm -lacml' # UIUC cluster Open64/ACML
 LIB='-L$CRAY_LIBSCI_PREFIX_DIR/lib -lsci_cray'         # Blue Waters serial Cray libsci
 
+# Andrew's specifications:
+#F77=mpif90
+#OPT='-O2 -fopenmp -fdefault-integer-8 -fdefault-real-8 -fdefault-double-8 -DMPI32'
+#LIB='-L/etc/lapack-3.5.0 -llapack -lblas'
+
 FILS='../object/*.o'
 
 set echo
