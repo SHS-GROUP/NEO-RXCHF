@@ -1,0 +1,5 @@
+Guess for RXCHF restricted basis set calculation in ../ is formed by:
+ - perform NEO-HF calculation (cwd)
+ - manually partition the resulting electronic orbitals (./FinalCE.dat) into a regular guess (../guessCAE.inp) and special guess (../guessCBE.inp)
+   (in this case, lowest occupied orbital is occ in guessCAE while second-lowest occupied orbital is occ in guessCBE)
+ - no need to reorder the MO coeffs according to restricted basis set ordering as code will handle this (unless REORDGS=T)

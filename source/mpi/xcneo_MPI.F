@@ -277,7 +277,7 @@
        write(*,*)
        write(*,nml=scfctrl)
        write(*,*)
-       if(.not.LSORXCHF) then
+       if((.not.LSORXCHF).and.(LRXCUHF)) then
         write(*,*) "Must use SORXCHF to use UHF for regulars"
         write(*,*) "Exiting...."
         call exit
@@ -540,9 +540,10 @@ C       end if
         rewind(9)
         read(9,nml=altbas)
        else
+        nebfBE=nebf
         if(allocated(elindBE)) deallocate(elindBE)
-        allocate(elindBE(nebf))
-        do i=1,nebf
+        allocate(elindBE(nebfBE))
+        do i=1,nebfBE
           elindBE(i)=i
         end do
        end if
@@ -550,8 +551,8 @@ C       end if
        close(9)
 
        if(allocated(KPESTR)) deallocate(KPESTR)
-       allocate( KPESTR(nebf),stat=istat )
        if(allocated(KPEEND)) deallocate(KPEEND)
+       allocate( KPESTR(nebf),stat=istat )
        allocate( KPEEND(nebf),stat=istat )
        call make_KPE(nebf,npebf,AMPEB2C,KPESTR,KPEEND)
 
@@ -623,8 +624,6 @@ C       end if
        allocate( zan(nat),stat=istat )
        if(allocated(cat)) deallocate(cat)
        allocate( cat(3,nat),stat=istat )
-       if(allocated(elindBE)) deallocate(elindBE)
-       allocate(elindBE(nebfBE))
        if(allocated(AMPEB2C)) deallocate(AMPEB2C)
        allocate( AMPEB2C(npebf),stat=istat )
        if(allocated(ELCEX)) deallocate(ELCEX)
@@ -643,6 +642,8 @@ C       end if
        allocate( NUCAM(npbf,3),stat=istat )
        if(allocated(NUCBFC)) deallocate(NUCBFC)
        allocate( NUCBFC(npbf,3),stat=istat )
+       if(allocated(elindBE)) deallocate(elindBE)
+       allocate(elindBE(nebfBE))
        if(allocated(KPESTR)) deallocate(KPESTR)
        allocate( KPESTR(nebf),stat=istat )
        if(allocated(KPEEND)) deallocate(KPEEND)
@@ -703,16 +704,15 @@ C       end if
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
       if(LNEOHF.or.LXCUHF) then
-       if (rank.eq.0) 
-     x    write(*,*) "MPI code only supports RXCHF-ne/ae with NBE>1"
-       return
-      end if
-
-      if(.not.((LRXCHF.or.LRXCUHF).and.(NBE.ge.2).and.(EXCHLEV.lt.2)))
-     x  then
-       if (rank.eq.0) 
-     x    write(*,*) "MPI code only supports RXCHF-ne/ae with NBE>1"
-       return
+       if ((nproc.gt.1).and.(rank.eq.0))
+     x    write(*,*) "Warning: NEO-HF code is serial but nproc=",nproc
+      else
+       if(.not.((LRXCHF.or.LRXCUHF).and.(NBE.ge.2).and.(EXCHLEV.lt.2)))
+     x   then
+        if (rank.eq.0) 
+     x     write(*,*) "MPI code only supports RXCHF-ne/ae with NBE>1"
+        return
+       end if
       end if
 
       ngee=nebf*nebf*nebf*nebf
@@ -722,17 +722,27 @@ C       end if
        write(*,*)
        write(*,*) "========================================"
        write(*,*)
-       if (LRXCHF) then
-        write(*,*) " Running closed shell RXCHF calculation"
+       if (LNEOHF) then
+        if(LXCUHF) then
+         write(*,*) " Running open shell NEO-HF calculation"
+        else
+         write(*,*) " Running closed shell NEO-HF calculation"
+        end if
        else
-        write(*,*) " Running open shell RXCHF calculation"
-       end if
-       if (EXCHLEV.eq.2) then
-        write(*,*) " performed at the RXCHF-fe level"
-       else if (EXCHLEV.eq.1) then
-        write(*,*) " performed at the RXCHF-ae level"
-       else
-        write(*,*) " performed at the RXCHF-ne level"
+        if (LRXCHF.or.LRXCUHF) then
+         if (LRXCUHF) then
+          write(*,*) " Running open shell RXCHF calculation"
+         else
+          write(*,*) " Running closed shell RXCHF calculation"
+         end if
+         if (EXCHLEV.eq.2) then
+          write(*,*) " performed at the RXCHF-fe level"
+         else if (EXCHLEV.eq.1) then
+          write(*,*) " performed at the RXCHF-ae level"
+         else
+          write(*,*) " performed at the RXCHF-ne level"
+         end if
+        end if
        end if
        write(*,*)
        write(*,*) "========================================"
@@ -875,23 +885,56 @@ C )
 
       call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
-      call RXCHF_driver_MPI(nproc,rank,
-     x                      nblocks,blockrank,
-     x                      nelec,nae,nbe,nae_alp,nae_beta,nucst,
-     x                      nebf,npebf,npbf,nat,ngtg,ngee,
-     x                      nebfBE,elindBE,
-     x                      pmass,cat,zan,bgem,ggem,
-     x                      KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
-     x                      ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
-     x                      NG2CHK,NG3CHK,NG4CHK,
-     x                      read_CE,read_CP,
-     x                      read_GAM2,read_GAM3,read_GAM4,
-     x                      LG2IC1,LG3IC1,LG4IC,
-     x                      LG2DSCF,LG3DSCF,LG4DSCF,
-     x                      LRXCUHF,
-     x                      LSOSCF,LDIIS,LSORXCHF,OCBSETYP,
-     x                      LALTBAS,LREORDGS,
-     x                      LDBG,EXCHLEV)
+      if(LNEOHF) then
+
+       if(rank.eq.0) then
+        call NEOHF_driver(nelec,nae,nbe,nucst,
+     x                    nebf,npebf,npbf,nat,ngtg,ngee,
+     x                    pmass,cat,zan,bgem,ggem,
+     x                    KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                    ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                    read_CE,read_CP,
+     x                    LXCUHF,LSOSCF,LDBG)
+       end if
+
+      else
+
+       call RXCHF_driver_MPI(nproc,rank,
+     x                       nblocks,blockrank,
+     x                       nelec,nae,nbe,nae_alp,nae_beta,nucst,
+     x                       nebf,npebf,npbf,nat,ngtg,ngee,
+     x                       nebfBE,elindBE,
+     x                       pmass,cat,zan,bgem,ggem,
+     x                       KPESTR,KPEEND,AMPEB2C,AGEBFCC,AGNBFCC,
+     x                       ELCEX,NUCEX,ELCAM,NUCAM,ELCBFC,NUCBFC,
+     x                       NG2CHK,NG3CHK,NG4CHK,
+     x                       read_CE,read_CP,
+     x                       read_GAM2,read_GAM3,read_GAM4,
+     x                       LG2IC1,LG3IC1,LG4IC,
+     x                       LG2DSCF,LG3DSCF,LG4DSCF,
+     x                       LRXCUHF,
+     x                       LSOSCF,LDIIS,LSORXCHF,OCBSETYP,
+     x                       LALTBAS,LREORDGS,
+     x                       LDBG,EXCHLEV)
+
+      end if
+
+      if(allocated(KPEEND)) deallocate(KPEEND)
+      if(allocated(KPESTR)) deallocate(KPESTR)
+      if(allocated(elindBE)) deallocate(elindBE)
+      if(allocated(NUCBFC)) deallocate(NUCBFC)
+      if(allocated(NUCAM)) deallocate(NUCAM)
+      if(allocated(AGNBFCC)) deallocate(AGNBFCC)
+      if(allocated(NUCEX)) deallocate(NUCEX)
+      if(allocated(ELCBFC)) deallocate(ELCBFC)
+      if(allocated(ELCAM)) deallocate(ELCAM)
+      if(allocated(AGEBFCC)) deallocate(AGEBFCC)
+      if(allocated(ELCEX)) deallocate(ELCEX)
+      if(allocated(AMPEB2C)) deallocate(AMPEB2C)
+      if(allocated(cat)) deallocate(cat)
+      if(allocated(zan)) deallocate(zan)
+      if(allocated(ggem)) deallocate(ggem)
+      if(allocated(bgem)) deallocate(bgem)
 
       write(*,*) "Process is finished:",rank
 
