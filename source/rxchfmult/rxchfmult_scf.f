@@ -2159,31 +2159,6 @@ C      if(allocated(Cint_tr)) deallocate(Cint_tr)
       end
 
 
-      subroutine invertEXPmat(nbf,A,Ainv)
-! Works only for exponential matrix exp(A) where A has zero diagonal
-      implicit none
-! Input variables
-      integer nbf
-      double precision A(nbf,nbf)
-! Output variables
-      double precision Ainv(nbf,nbf)
-! Local variables
-      integer i,j
-
-      do i=1,nbf
-        do j=1,nbf
-          if (i.ne.j) then
-           Ainv(j,i)=-A(j,i)
-          else
-           Ainv(j,i)=A(j,i)
-          end if
-        end do
-      end do
-
-      return
-      end
-
-
       subroutine fock2mobasis(nbf,F,C,Fmo)
       implicit none
 ! Input variables
@@ -3095,17 +3070,17 @@ C       end if
       end if
 
 ! Scale displacement in case value is too large (poached from GAMESS)
-      SQCDF = dSQRT(DDOT(n,D,1,D,1)/dble(n))
+      SQCDF = SQRT(DDOT(n,D,1,D,1)/dble(n))
       IF(SQCDF.GT.TOOBIG  .AND.  it.GT.5) THEN
          WRITE(*,9011) SQCDF
          it = 0
       END IF
       IF(SQCDF.GT.BIGROT) THEN
          IF(it.GT.0) WRITE(*,9020) SQCDF
-         SCAL=dSQRT(BIGROT/SQCDF)
+         SCAL=SQRT(BIGROT/SQCDF)
 C ARS( turn off
-         write(*,*) "scal:",scal
-         write(*,*) "not doing anything"
+         write(*,*) "NOT SCALING DISPLACEMENT VECTOR"
+         write(*,*) " - would have been scaled by:",SCAL," -"
          SCAL=one
 C )
          CALL DSCAL(n,SCAL,D,1)
